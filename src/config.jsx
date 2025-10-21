@@ -1,0 +1,1 @@
+export const config = {"REACT_API_URL": "http://localhost:5000/"};
