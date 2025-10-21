@@ -1,7 +1,7 @@
 {
   "name": "ynotsoft-dynamic-form",
   "version": "1.0.14",
-  "description": "Small React UI bits",
+  "description": "DynamicForm Component",
   "type": "module",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
@@ -33,8 +33,7 @@
     "@emotion/react": "^11.0.0",
     "@emotion/styled": "^11.0.0",
     "react-select": "^5.0.0",
-    "@heroicons/react": "^2.0.0",
-    "axios": "^1.0.0"
+    "@heroicons/react": "^2.0.0"
   },
   "devDependencies": {
     "tsup": "^8.5.0",

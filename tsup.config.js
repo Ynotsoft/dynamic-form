@@ -17,7 +17,6 @@ export default {
     'dayjs',
     'dayjs/locale/de',
     'dompurify',
-    'axios',
     
     // Radix UI - all components
     '@radix-ui/react-label',
