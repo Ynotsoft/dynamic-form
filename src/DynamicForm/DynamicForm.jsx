@@ -2,26 +2,28 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { toast } from "react-hot-toast";
 import dayjs from "dayjs";
 // import "dayjs/locale/de"; // Remove this to avoid module resolution issues
-import apiClient from "../services/Interceptors.jsx";
-import { default as RenderHiddenField } from "./fields/HiddenField";
-import { default as RenderMultiSelectField } from "./fields/MultiSelectField";
-import { default as RenderSelectField } from "./fields/SelectField";
-import { default as RenderEmailField } from "./fields/EmailField";
-import { default as RenderInputField } from "./fields/InputField";
-import { default as RenderHtmlField } from "./fields/HtmlField";
-import { default as RenderCheckboxField } from "./fields/CheckboxField";
-import { default as RenderDayPickerField } from "./fields/DateRangePickerField";
-import { default as RenderFileInputField } from "./fields/FileField";
-import { default as RenderTextAreaField } from "./fields/TextArea";
-import { default as DayTimePickerField } from "./fields/DayTimePickerField";
-import { default as RenderLineBreakField } from "./fields/LineBreakField";
-import { default as RenderRadioGroupField } from "./fields/RadioGroups";
-import { default as RenderHeaderField } from "./fields/HeaderField";
-import { default as RenderDatePickerField } from "./fields/DatePickerField";
-import { default as RenderTimeField } from "./fields/timeField";
-import { default as RenderAlertMessageField } from "./fields/AlertMessageField";
+// Removed: import apiClient from "../services/Interceptors.jsx"; - now passed as prop
+import { default as RenderHiddenField } from "./fields/HiddenField.jsx";
+import { default as RenderMultiSelectField } from "./fields/MultiSelectField.jsx";
+import { default as RenderSelectField } from "./fields/SelectField.jsx";
+import { default as RenderEmailField } from "./fields/EmailField.jsx";
+import { default as RenderInputField } from "./fields/InputField.jsx";
+import { default as RenderHtmlField } from "./fields/HtmlField.jsx";
+import { default as RenderCheckboxField } from "./fields/CheckboxField.jsx";
+import { default as RenderDayPickerField } from "./fields/DateRangePickerField.jsx";
+import { default as RenderFileInputField } from "./fields/FileField.jsx";
+import { default as RenderTextAreaField } from "./fields/TextArea.jsx";
+import { default as DayTimePickerField } from "./fields/DayTimePickerField.jsx";
+import { default as RenderLineBreakField } from "./fields/LineBreakField.jsx";
+import { default as RenderRadioGroupField } from "./fields/RadioGroups.jsx";
+import { default as RenderHeaderField } from "./fields/HeaderField.jsx";
+import { default as RenderDatePickerField } from "./fields/DatePickerField.jsx";
+import { default as RenderTimeField } from "./fields/timeField.jsx";
+import { default as RenderAlertMessageField } from "./fields/AlertMessageField.jsx";
 import { Label } from "@radix-ui/react-label";
 const DynamicForm = ({
+    apiClient,
+    api_URL,
     formDefinition,
     sendFormValues,
     children,
@@ -57,12 +59,14 @@ const DynamicForm = ({
     }), []);
 
 
-    const FIELD_FORMATTERS = {
-
-
-    }
-
     const loadOptionsForField = async (field, dependentValue = null) => {
+        // Check if apiClient is provided, if not throw an error
+        if (!apiClient) {
+            const errorMsg = `apiClient prop is required when using fields with optionsUrl. Field "${field.name}" requires optionsUrl but no apiClient was provided.`;
+            console.error(errorMsg);
+            toast.error(errorMsg);
+            return;
+        }
 
         try {
             const response = await apiClient(`/${field.optionsUrl}`);
@@ -355,6 +359,7 @@ const DynamicForm = ({
                 handleBlur={() => handleBlur(field.name)}
                 setCharCounts={setCharCounts}
                 charCount={charCounts[field.name] || 0}
+                api_URL={api_URL}
             //error={error}
             />, field
         )

@@ -1,6 +1,5 @@
 import React from 'react'
 import { toast } from "react-hot-toast";
-import { config } from "../../config.jsx";
 
 function FileField({
   field,
@@ -11,7 +10,8 @@ function FileField({
   setFileUploads,
   fileInputRefs,
   handleChange,
-  onFieldsChange
+  onFieldsChange,
+  api_URL
 }) {
   const error = touched[field.name] && errors[field.name];
   const isMultiple = field.type === "multifile";
@@ -24,7 +24,12 @@ function FileField({
   const disablebtnClasses = `px-4 py-2 bg-gray-100 border rounded hover:bg-gray-200 ${isDisabled ? "cursor-not-allowed" : ""
     }`;
 
-  const uploadUrl = `${config.REACT_API_URL}uploads`;
+  // Check if api_URL is provided when file uploads are needed
+  const uploadUrl = api_URL ? `${api_URL}uploads` : null;
+
+  if (!uploadUrl && field.uploadEndpoint) {
+    console.error(`api_URL prop is required when using FileField with upload functionality for field "${field.name}"`);
+  }
 
   const formatFileSize = (bytes) => {
     if (bytes === 0) return "0 Bytes";
