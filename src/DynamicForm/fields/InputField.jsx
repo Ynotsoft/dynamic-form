@@ -1,7 +1,6 @@
 import React from "react";
 
 function InputField({ field, formValues, handleChange, handleBlur, touched, errors }) {
-  console.log("Rendering InputField for", field);
   const isDisabled = field.readOnly || field.disabled;
   const error = false
   return (

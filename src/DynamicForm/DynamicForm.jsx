@@ -70,7 +70,6 @@ const DynamicForm = ({
 
         try {
             const response = await apiClient(`/${field.optionsUrl}`);
-            console.log(response)
             // Add empty option at the beginning if not exists
             let options = [];
             if (field.type === "select") {
@@ -178,7 +177,6 @@ const DynamicForm = ({
         if (!field) return;
 
         const newValues = { ...formValues };
-        console.log(value)
         // Handle multiselect values
         if (field.type === "multiselect") {
             newValues[fieldName] = Array.isArray(value)
@@ -188,7 +186,6 @@ const DynamicForm = ({
         // Handle DateRangePicker (dayPicker)
 
         else if (field.type === "dateRange") {
-            console.log(value)
             newValues[fieldName] = [
                 {
                     startDate: value[0].from,
