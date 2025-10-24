@@ -20,7 +20,6 @@ jobs:
   publish:
     name: Build & Publish
     runs-on: ubuntu-latest
-    # run for manual OR release
     if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
     permissions:
       contents: read
@@ -34,10 +33,8 @@ jobs:
         with:
           node-version: 20
           registry-url: https://registry.npmjs.org/
-          # if caching causes trouble, comment this out once to bust it
           cache: npm
 
-      # Show what we're actually running
       - name: Show tool versions & lockfileVersion
         run: |
           echo "node (PATH): $(node -v)"
@@ -61,7 +58,6 @@ jobs:
             echo "::error::package.json 'name' must be 'ynotsoft-dynamic-form'"; exit 1;
           fi
 
-      # Derive version from tag (release) or manual input
       - name: Derive version
         id: ver
         run: |
@@ -73,6 +69,12 @@ jobs:
           VERSION="${RAW#v}"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Publishing version $VERSION"
+
+      - name: Ensure repository matches provenance
+        run: |
+          REPO_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"
+          node -e "const fs=require('fs');const p='./package.json';const pkg=require(p);pkg.repository=process.env.REPO_URL;fs.writeFileSync(p, JSON.stringify(pkg,null,2));"
+          node -p "require('./package.json').repository"
 
       - name: Set version in package.json (idempotent)
         run: |
@@ -90,7 +92,6 @@ jobs:
           test -f dist/index.js
           test -f dist/index.cjs
 
-      # Auto dist-tag: pre-releases -> next; stable -> latest; or honour manual override
       - name: Choose npm dist-tag
         id: tag
         run: |
