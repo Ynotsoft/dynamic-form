@@ -1,33 +1,87 @@
-# This workflow will run tests using node and then publish a package to GitHub Packages when a release is created
-# For more information see: https://docs.github.com/en/actions/publishing-packages/publishing-nodejs-packages
 
-name: Node.js Package
+name: Publish ynotsoft-dynamic-form
 
 on:
   release:
     types: [published]
 
+permissions:
+  contents: read
+
 jobs:
   build:
+    name: Build (tsup)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: npm ci
-      - run: npm test
+          cache: npm
 
-  publish-npm:
+      - run: npm ci
+      - name: Build dist with tsup
+        run: npm run build
+
+      - name: Verify dist artifacts exist
+        run: |
+          test -f dist/index.js
+          test -f dist/index.cjs
+          echo "dist looks good"
+
+      - name: Upload dist
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist
+          if-no-files-found: error
+
+  publish:
+    name: Publish to npm
     needs: build
     runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: read
+      id-token: write  # required for `npm publish --provenance`
+    env:
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           registry-url: https://registry.npmjs.org/
+          cache: npm
+
       - run: npm ci
-      - run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
+
+      # Bring in the exact dist from the build job
+      - name: Download dist
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+
+      - name: Guard: package name must match
+        run: |
+          NAME=$(node -p "require('./package.json').name")
+          echo "package.json name: $NAME"
+          if [ "$NAME" != "ynotsoft-dynamic-form" ]; then
+            echo "::error::package.json 'name' must be 'ynotsoft-dynamic-form'"; exit 1;
+          fi
+
+      - name: Set version from release tag
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          echo "Publishing version ${VERSION}"
+          npm version "${VERSION}" --no-git-tag-version
+
+      # Optional: inspect payload
+      # - run: npm pack --dry-run
+
+      - name: Publish
+        run: npm publish --access public --provenance
+
