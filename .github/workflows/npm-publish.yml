@@ -3,6 +3,8 @@ name: Publish ynotsoft-dynamic-form
 on:
   release:
     types: [published]
+  # ✅ Allow manual trigger from the "Actions" tab
+  workflow_dispatch:
 
 permissions:
   contents: read
