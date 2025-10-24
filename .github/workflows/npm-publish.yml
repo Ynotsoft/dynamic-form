@@ -26,7 +26,22 @@ jobs:
           registry-url: https://registry.npmjs.org/
           cache: npm
 
-      - name: Install
+      # ✅ Pin the npm major to match your lockfile producer
+      - name: Ensure npm@10 (matches lockfile)
+        run: npm i -g npm@10
+
+      # 🧪 Optional but helpful for debugging
+      - name: Show versions & lockfileVersion
+        run: |
+          node -v
+          npm -v
+          node -p "require('./package-lock.json').lockfileVersion"
+
+      # 🧹 Optional: clear npm cache once to avoid stale cache issues
+      - name: Clean npm cache (defensive)
+        run: npm cache clean --force
+
+      - name: Install (strict)
         run: npm ci
 
       - name: Build (tsup)
