@@ -72,9 +72,11 @@ jobs:
 
       - name: Ensure repository matches provenance
         run: |
-          REPO_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"
-          node -e "const fs=require('fs');const p='./package.json';const pkg=require(p);pkg.repository=process.env.REPO_URL;fs.writeFileSync(p, JSON.stringify(pkg,null,2));"
-          node -p "require('./package.json').repository"
+          export REPO_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"   # <-- export matters
+          echo "Setting package.json repository to: $REPO_URL"
+          node -e "const fs=require('fs');const p='./package.json';const pkg=JSON.parse(fs.readFileSync(p,'utf8'));pkg.repository={type:'git',url:process.env.REPO_URL};fs.writeFileSync(p, JSON.stringify(pkg,null,2));"
+          # sanity check
+          node -p "require('./package.json').repository.url"
 
       - name: Set version in package.json (idempotent)
         run: |
