@@ -3,6 +3,7 @@
   "version": "1.0.17",
   "description": "DynamicForm Component",
   "type": "module",
+  "repository": "https://github.com/Ynotsoft/dynamic-form",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
   "exports": {
@@ -53,4 +54,3 @@
     "components"
   ]
 }
-
