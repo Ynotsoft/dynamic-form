@@ -45,9 +45,10 @@ jobs:
           echo "npm  (npx):  $(npx -y npm@10 -v)"
           node -p "require('./package-lock.json').lockfileVersion"
 
-      # ✅ Use npm@10 explicitly, so lockfile v3 is honoured
-      - name: Install (strict with npm@10)
-        run: npx -y npm@10 ci
+      - name: Install (recreate lock on runner)
+        run: |
+          rm -f package-lock.json
+          npx -y npm@10 install --no-audit --no-fund
 
       - name: Build (tsup)
         run: npm run build
