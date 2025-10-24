@@ -1,4 +1,3 @@
-
 name: Publish ynotsoft-dynamic-form
 
 on:
@@ -9,42 +8,13 @@ permissions:
   contents: read
 
 jobs:
-  build:
-    name: Build (tsup)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-
-      - run: npm ci
-      - name: Build dist with tsup
-        run: npm run build
-
-      - name: Verify dist artifacts exist
-        run: |
-          test -f dist/index.js
-          test -f dist/index.cjs
-          echo "dist looks good"
-
-      - name: Upload dist
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist
-          path: dist
-          if-no-files-found: error
-
   publish:
-    name: Publish to npm
-    needs: build
+    name: Build & Publish
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
     permissions:
       contents: read
-      id-token: write  # required for `npm publish --provenance`
+      id-token: write
     env:
       NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
@@ -56,16 +26,13 @@ jobs:
           registry-url: https://registry.npmjs.org/
           cache: npm
 
-      - run: npm ci
+      - name: Install
+        run: npm ci
 
-      # Bring in the exact dist from the build job
-      - name: Download dist
-        uses: actions/download-artifact@v4
-        with:
-          name: dist
-          path: dist
+      - name: Build (tsup)
+        run: npm run build
 
-      - name: Guard: package name must match
+      - name: Package name must match
         run: |
           NAME=$(node -p "require('./package.json').name")
           echo "package.json name: $NAME"
@@ -79,9 +46,10 @@ jobs:
           echo "Publishing version ${VERSION}"
           npm version "${VERSION}" --no-git-tag-version
 
-      # Optional: inspect payload
-      # - run: npm pack --dry-run
+      - name: Verify dist files
+        run: |
+          test -f dist/index.js
+          test -f dist/index.cjs
 
       - name: Publish
         run: npm publish --access public --provenance
-
