@@ -9,7 +9,7 @@ on:
         description: "Version to publish (e.g. v1.0.18 or v1.0.18-rc.1)"
         required: true
       dist_tag:
-        description: "npm dist-tag to use (latest/next/beta/alpha). Leave blank for auto."
+        description: "npm dist-tag (latest/next/beta/alpha). Leave blank for auto."
         required: false
         default: ""
 
@@ -20,7 +20,7 @@ jobs:
   publish:
     name: Build & Publish
     runs-on: ubuntu-latest
-    # Run for release tags OR manual dispatch
+    # run for manual OR release
     if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
     permissions:
       contents: read
@@ -34,22 +34,20 @@ jobs:
         with:
           node-version: 20
           registry-url: https://registry.npmjs.org/
+          # if caching causes trouble, comment this out once to bust it
           cache: npm
 
-      - name: Ensure npm@10 (matches lockfile)
-        run: npm i -g npm@10
-
-      - name: Show versions & lockfileVersion
+      # Show what we're actually running
+      - name: Show tool versions & lockfileVersion
         run: |
-          node -v
-          npm -v
+          echo "node (PATH): $(node -v)"
+          echo "npm  (PATH): $(npm -v)"
+          echo "npm  (npx):  $(npx -y npm@10 -v)"
           node -p "require('./package-lock.json').lockfileVersion"
 
-      - name: Clean npm cache (defensive)
-        run: npm cache clean --force
-
-      - name: Install (strict)
-        run: npm ci
+      # ✅ Use npm@10 explicitly, so lockfile v3 is honoured
+      - name: Install (strict with npm@10)
+        run: npx -y npm@10 ci
 
       - name: Build (tsup)
         run: npm run build
@@ -75,15 +73,16 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Publishing version $VERSION"
 
+      # Stamp package.json using npm@10 as well
       - name: Set version in package.json
-        run: npm version "${{ steps.ver.outputs.version }}" --no-git-tag-version
+        run: npx -y npm@10 version "${{ steps.ver.outputs.version }}" --no-git-tag-version
 
       - name: Verify dist files
         run: |
           test -f dist/index.js
           test -f dist/index.cjs
 
-      # Choose npm dist-tag: honour manual input, else auto (pre-releases -> next)
+      # Auto dist-tag: pre-releases -> next; stable -> latest; or honour manual override
       - name: Choose npm dist-tag
         id: tag
         run: |
