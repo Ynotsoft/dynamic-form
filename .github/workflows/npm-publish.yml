@@ -1,6 +1,7 @@
 name: Publish ynotsoft-dynamic-form
 
 on:
+  # ... (triggers, inputs, and top-level permissions remain the same) ...
   release:
     types: [published]
   workflow_dispatch:
@@ -17,16 +18,15 @@ permissions:
   contents: read
 
 jobs:
-  publish:
-    name: Build & Publish
+  # ----------------------------------------------------------------------
+  # 1. Setup & Install: Checkout, Setup Node, Install Dependencies
+  # ----------------------------------------------------------------------
+  setup_build:
+    name: Setup & Install Dependencies
     runs-on: ubuntu-latest
-    # run for manual OR release
     if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
     permissions:
       contents: read
-      id-token: write
-    env:
-      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
     steps:
       - uses: actions/checkout@v4
@@ -34,26 +34,66 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          registry-url: https://registry.npmjs.org/
+          registry-url: "https://registry.npmjs.org/"
           cache: npm
 
-      - name: Show tool versions & lockfileVersion
-        run: |
-          echo "node (PATH): $(node -v)"
-          echo "npm  (PATH): $(npm -v)"
-          echo "npm  (npx):  $(npx -y npm@10 -v)"
-          node -p "require('./package-lock.json').lockfileVersion || 'no lockfile'"
-
-      # Install deterministically without fighting older lockfiles
       - name: Install (recreate lock on runner)
+        # Install deterministically without fighting older lockfiles
         run: |
           rm -f package-lock.json
           npx -y npm@10 install --no-audit --no-fund
 
+  # ----------------------------------------------------------------------
+  # 2. Build: Execute the build script
+  # ----------------------------------------------------------------------
+  run_build:
+    name: Build Package
+    needs: setup_build # Wait for setup and install to complete
+    runs-on: ubuntu-latest
+    steps:
+      # Need to check out again or use artifacts. For simplicity, we checkout.
+      - uses: actions/checkout@v4
+
+      # Setup Node environment (it uses the cached dependencies)
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: package-lock.json
+
       - name: Build (tsup)
         run: npm run build
 
-      - name: Package name must match
+      - name: Verify dist files
+        run: |
+          test -f dist/index.js
+          test -f dist/index.cjs
+
+  # ----------------------------------------------------------------------
+  # 3. Derive Variables: Get version/name/tag and check npm existence
+  # ----------------------------------------------------------------------
+  derive_variables:
+    name: Derive Publish Variables
+    needs: run_build # Wait for the build to confirm all files exist
+    runs-on: ubuntu-latest
+
+    # Define outputs that subsequent jobs will need
+    outputs:
+      pkg_name: ${{ steps.pkg.outputs.name }}
+      pkg_version: ${{ steps.ver.outputs.version }}
+      npm_tag: ${{ steps.tag.outputs.tag }}
+      already_exists: ${{ steps.exists.outputs.exists }}
+
+    steps:
+      # Checkout is only needed here to read package.json
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: "https://registry.npmjs.org/" # Required for 'Check if version already exists on npm'
+
+      - name: Derive Package Name & Validate
         id: pkg
         run: |
           NAME=$(node -p "require('./package.json').name")
@@ -63,8 +103,9 @@ jobs:
             echo "::error::package.json 'name' must be 'ynotsoft-dynamic-form'"; exit 1;
           fi
 
-      # Derive version from tag or manual input
-      - name: Derive version
+      # ... (Derive Version, Ensure Repository Matches Provenance, Set Version, Choose npm dist-tag, Check if version already exists steps are unchanged from the original 'prepare' job) ...
+
+      - name: Derive Version
         id: ver
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
@@ -74,17 +115,14 @@ jobs:
           fi
           VERSION="${RAW#v}"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "Publishing version $VERSION"
+          echo "Target publishing version: $VERSION"
 
-      # Ensure repository field matches GitHub for npm --provenance
       - name: Ensure repository matches provenance
         run: |
           export REPO_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"
           echo "Setting package.json repository.url = $REPO_URL"
           node -e "const fs=require('fs');const p='./package.json';const pkg=JSON.parse(fs.readFileSync(p,'utf8'));pkg.repository={type:'git',url:process.env.REPO_URL};fs.writeFileSync(p, JSON.stringify(pkg,null,2));"
-          node -p "require('./package.json').repository.url"
 
-      # Idempotent version stamp (skip if already equal)
       - name: Set version in package.json (idempotent)
         run: |
           TARGET="${{ steps.ver.outputs.version }}"
@@ -96,12 +134,6 @@ jobs:
             npx -y npm@10 version "$TARGET" --no-git-tag-version
           fi
 
-      - name: Verify dist files
-        run: |
-          test -f dist/index.js
-          test -f dist/index.cjs
-
-      # Decide dist-tag: manual override > auto (pre-release->next, stable->latest)
       - name: Choose npm dist-tag
         id: tag
         run: |
@@ -117,7 +149,6 @@ jobs:
             echo "tag=latest" >> "$GITHUB_OUTPUT"
           fi
 
-      # If the version is already on npm, don't republish — just retag
       - name: Check if version already exists on npm
         id: exists
         run: |
@@ -129,17 +160,64 @@ jobs:
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
             echo "$PKG@$VER not on npm yet."
-          fi
 
-      - name: Publish (if new)
-        if: steps.exists.outputs.exists == 'false'
-        run: npm publish --access public --provenance --tag "${{ steps.tag.outputs.tag }}"
+  # ----------------------------------------------------------------------
+  # 4. Publish (depends on derive_variables for outputs)
+  # ----------------------------------------------------------------------
+  publish:
+    name: Publish to npm
+    needs: derive_variables
+    runs-on: ubuntu-latest
+    # Run only if the previous job determined the version doesn't exist on npm
+    if: needs.derive_variables.outputs.already_exists == 'false'
 
-      - name: Promote dist-tag (if already published)
-        if: steps.exists.outputs.exists == 'true'
+    # Permissions MUST be set on the job that uses the secret/token
+    permissions:
+      contents: read
+      id-token: write # needed for npm provenance
+    env:
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+    steps:
+      # This job needs the built files and modified package.json from the previous jobs.
+      # You can either:
+      # a) Use actions/checkout@v4 (simple, re-downloads repo)
+      # b) Use actions/download-artifact (best practice, only transfers required files)
+      - uses: actions/checkout@v4 # Using simple checkout for this example.
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: "https://registry.npmjs.org/"
+
+      - name: Publish Package
+        run: npm publish --access public --provenance --tag "${{ needs.derive_variables.outputs.npm_tag }}"
+
+  # ----------------------------------------------------------------------
+  # 5. Retag (depends on derive_variables for outputs)
+  # ----------------------------------------------------------------------
+  retag:
+    name: Promote dist-tag
+    needs: derive_variables
+    runs-on: ubuntu-latest
+    # Run only if the previous job determined the version already exists on npm
+    if: needs.derive_variables.outputs.already_exists == 'true'
+
+    permissions:
+      contents: read
+    env:
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: "https://registry.npmjs.org/"
+
+      - name: Promote dist-tag
         run: |
-          PKG="${{ steps.pkg.outputs.name }}"
-          VER="${{ steps.ver.outputs.version }}"
-          TAG="${{ steps.tag.outputs.tag }}"
+          PKG="${{ needs.derive_variables.outputs.pkg_name }}"
+          VER="${{ needs.derive_variables.outputs.pkg_version }}"
+          TAG="${{ needs.derive_variables.outputs.npm_tag }}"
           echo "Promoting $PKG@$VER to dist-tag '$TAG'"
           npx -y npm@10 dist-tag add "$PKG@$VER" "$TAG"
