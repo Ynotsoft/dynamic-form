@@ -74,9 +74,16 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Publishing version $VERSION"
 
-      # Stamp package.json using npm@10 as well
-      - name: Set version in package.json
-        run: npx -y npm@10 version "${{ steps.ver.outputs.version }}" --no-git-tag-version
+      - name: Set version in package.json (idempotent)
+        run: |
+          TARGET="${{ steps.ver.outputs.version }}"
+          CURRENT=$(node -p "require('./package.json').version")
+          echo "current=$CURRENT target=$TARGET"
+          if [ "$CURRENT" = "$TARGET" ]; then
+            echo "Version already $TARGET — skipping bump."
+            exit 0
+          fi
+          npx -y npm@10 version "$TARGET" --no-git-tag-version
 
       - name: Verify dist files
         run: |
