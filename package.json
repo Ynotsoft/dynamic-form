@@ -1,22 +1,30 @@
 {
   "name": "ynotsoft-dynamic-form",
-  "version": "1.0.19b",
-  "description": "DynamicForm Component",
+  "version": "1.0.21",
+  "description": "DynamicForm React component library",
   "type": "module",
   "repository": "https://github.com/Ynotsoft/dynamic-form",
-  "main": "dist/index.cjs",
-  "module": "dist/index.js",
+  "main": "dist/dynamic-form-umd.cjs",
+  "module": "dist/dynamic-form.js",
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
-    }
+      "import": "./dist/dynamic-form.js",
+      "require": "./dist/dynamic-form-umd.cjs"
+    },
+    "./index.css": "./dist/index.css"
   },
   "files": [
     "dist",
     "README.md"
   ],
-  "sideEffects": false,
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
   "peerDependencies": {
     "@emotion/react": "^11.0.0",
     "@emotion/styled": "^11.0.0",
@@ -33,18 +41,27 @@
     "react": "^18.2.0 || ^19.0.0",
     "react-day-picker": "^8.0.0 || ^9.0.0",
     "react-dom": "^18.2.0 || ^19.0.0",
-    "react-hot-toast": "^2.0.0",
+    "react-hot-toast": "^2.4.1",
     "react-select": "^5.0.0"
   },
   "devDependencies": {
-    "@tailwindcss/cli": "^4.1.17",
+    "@tailwindcss/vite": "^4.1.17",
+    "@vitejs/plugin-react": "^4.2.0",
     "tailwindcss": "^4.1.17",
-    "tsup": "^8.5.0",
-    "typescript": "^5.9.3"
-  },
-  "scripts": {
-    "css:build": "npx @tailwindcss/cli -i ./src/styles.css -o ./src/tailwind.css --minify",
-    "build": "npm run css:build && tsup"
+    "vite": "^5.4.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "dayjs": "^1.11.0",
+    "react-hot-toast": "^2.4.1",
+    "react-select": "^5.8.0",
+    "react-day-picker": "^9.0.0",
+    "@heroicons/react": "^2.1.5",
+    "@radix-ui/react-label": "^2.0.0",
+    "@radix-ui/react-popover": "^1.0.0",
+    "@radix-ui/react-radio-group": "^1.0.0",
+    "@radix-ui/react-select": "^2.0.0",
+    "@radix-ui/react-separator": "^1.0.0",
+    "dompurify": "^3.1.0"
   },
   "publishConfig": {
     "access": "public"
@@ -54,6 +71,9 @@
   },
   "keywords": [
     "react",
-    "components"
-  ]
+    "components",
+    "forms",
+    "ui"
+  ],
+  "license": "MIT"
 }

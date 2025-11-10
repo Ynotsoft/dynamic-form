@@ -1,4 +1,7 @@
 @import "tailwindcss";
+
+@source "./**/*.jsx";
+
 @source inline("col-span-{{1...12}}");
 @source inline("grid-cols-{{1...12}}");
 @source inline("gap-{{0...10}}");
