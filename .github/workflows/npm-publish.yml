@@ -99,8 +99,9 @@ jobs:
 
       - name: Verify dist files
         run: |
-          test -f dist/index.js
-          test -f dist/index.cjs
+          test -f dynamic-form.js
+          test -f dynamic-form.umd.cjs
+          test -f index.css
 
       - name: Choose npm dist-tag
         id: tag
