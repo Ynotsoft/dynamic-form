@@ -1,26 +1,40 @@
-
 # DynamicForm Component - Complete Field Reference
 
+## Install
+
+```
+npm install ynotsoft-dynamic-form
+
+# install peer dependencies
+npm install react-hot-toast dayjs react-select react-day-picker dompurify @radix-ui/react-label @radix-ui/react-popover @radix-ui/react-radio-group @radix-ui/react-select @radix-ui/react-separator @heroicons/react
+
+```
+
+### TODO:
+
+- remove radixui as dependency, maybe replace with ShadCN and maintain it ourselves
+
 ## Overview
+
 The DynamicForm component provides a flexible, declarative way to build forms with various field types, validation, conditional logic, and styling options.
 
 ## Basic Usage
 
 ```javascript
-import DynamicForm from './lib/DynamicForm/DynamicForm';
+import DynamicForm from "./lib/DynamicForm/DynamicForm";
 
 const formDefinition = {
   fields: [
     // Field definitions here
-  ]
+  ],
 };
 
 <DynamicForm
   formDefinition={formDefinition}
-  defaultValues={{ name: 'John Doe' }}
+  defaultValues={{ name: "John Doe" }}
   sendFormValues={(values) => console.log(values)}
-  onFieldsChange={(values) => console.log('Changed:', values)}
-/>
+  onFieldsChange={(values) => console.log("Changed:", values)}
+/>;
 ```
 
 ---
@@ -28,6 +42,7 @@ const formDefinition = {
 ## Field Types
 
 ### 1. Header Field
+
 Used for section titles and form organization.
 
 ```javascript
@@ -41,6 +56,7 @@ Used for section titles and form organization.
 ```
 
 ### 2. Input Field
+
 Standard text input with shadcn/ui styling.
 
 ```javascript
@@ -61,6 +77,7 @@ Standard text input with shadcn/ui styling.
 ```
 
 ### 3. Email Field
+
 Email input with validation and shadcn/ui styling.
 
 ```javascript
@@ -75,6 +92,7 @@ Email input with validation and shadcn/ui styling.
 ```
 
 ### 4. TextArea Field
+
 Multi-line text input.
 
 ```javascript
@@ -92,6 +110,7 @@ Multi-line text input.
 ```
 
 ### 5. Select Field
+
 Dropdown selection with single choice.
 
 ```javascript
@@ -114,6 +133,7 @@ Dropdown selection with single choice.
 ```
 
 ### 6. MultiSelect Field
+
 Multiple selection dropdown.
 
 ```javascript
@@ -137,6 +157,7 @@ Multiple selection dropdown.
 ```
 
 ### 7. Checkbox Field
+
 Single checkbox with flexible layouts and card styling.
 
 ```javascript
@@ -147,10 +168,10 @@ Single checkbox with flexible layouts and card styling.
   required: true,
   value: false,
   description: 'By checking this, you agree to our terms and conditions',
-  
+
   // Layout options
   layout: 'inline',        // 'inline' | 'stacked' | 'default'
-  
+
   // Card container styling
   containerStyle: 'card',  // Wraps in bordered card
   color: 'blue',           // 'green' | 'blue' | 'red' | 'yellow' | 'purple' | 'indigo' | 'gray' | 'pink' | 'orange'
@@ -158,11 +179,13 @@ Single checkbox with flexible layouts and card styling.
 ```
 
 **Checkbox Layouts:**
+
 - `default`: Standard checkbox with label above
 - `inline`: Checkbox and label side-by-side
 - `stacked`: Checkbox, label, and description stacked vertically
 
 ### 8. Radio Group Field
+
 Single selection from multiple options using Radix UI.
 
 ```javascript
@@ -177,13 +200,13 @@ Single selection from multiple options using Radix UI.
     { value: 'paypal', label: 'PayPal' },
     { value: 'bank', label: 'Bank Transfer' }
   ],
-  
+
   // Layout options
   inline: true,            // Display options horizontally
-  
+
   // Color variants
   color: 'blue',           // 'green' | 'blue' | 'red' | 'yellow' | 'purple' | 'indigo' | 'gray' | 'pink' | 'orange'
-  
+
   // Card container styling
   containerStyle: 'card',
   color: 'green'
@@ -191,6 +214,7 @@ Single selection from multiple options using Radix UI.
 ```
 
 ### 9. Date Picker Field
+
 Single date selection with shadcn/ui calendar.
 
 ```javascript
@@ -205,12 +229,14 @@ Single date selection with shadcn/ui calendar.
 ```
 
 **Features:**
+
 - Year/month dropdown selectors
 - Clear and Done buttons
 - Blue highlight for selected date
 - Popover interface
 
 ### 10. Date Range Picker Field
+
 Select date ranges (from/to).
 
 ```javascript
@@ -228,6 +254,7 @@ Select date ranges (from/to).
 ```
 
 ### 11. Time Field
+
 Time picker with AM/PM selection.
 
 ```javascript
@@ -242,12 +269,14 @@ Time picker with AM/PM selection.
 ```
 
 **Features:**
+
 - Hour/minute spinners
 - AM/PM toggle buttons
 - Clear and Done buttons
 - Format: "HH:MM AM/PM"
 
 ### 12. Date Time Picker Field
+
 Combined date and time selection.
 
 ```javascript
@@ -261,6 +290,7 @@ Combined date and time selection.
 ```
 
 ### 13. File Upload Field
+
 Single or multiple file uploads.
 
 ```javascript
@@ -276,6 +306,7 @@ Single or multiple file uploads.
 ```
 
 ### 14. Hidden Field
+
 Store hidden values in the form.
 
 ```javascript
@@ -287,6 +318,7 @@ Store hidden values in the form.
 ```
 
 ### 15. HTML/Literal Field
+
 Display rich HTML content (non-editable).
 
 ```javascript
@@ -297,6 +329,7 @@ Display rich HTML content (non-editable).
 ```
 
 ### 16. Alert Message Field
+
 Display contextual alert messages with icons (info, success, warning, error).
 
 ```javascript
@@ -329,17 +362,19 @@ Display contextual alert messages with icons (info, success, warning, error).
 ```
 
 **Features:**
+
 - Color-coded backgrounds (blue, green, yellow, red)
 - Icon indicators for each variant
 - Clean, accessible design
 - No user interaction required (display only)
 
 ### 17. Line Break Field
+
 Add visual spacing between sections.
 
 ```javascript
 {
-  type: 'linebreak'
+  type: "linebreak";
 }
 ```
 
@@ -354,11 +389,11 @@ Apply consistent styling to all fields (except header, html, linebreak, hidden, 
   name: 'email',
   label: 'Email',
   type: 'email',
-  
+
   // Card container
   containerStyle: 'card',
   color: 'blue',           // Card border/accent color
-  
+
   // Layout for checkbox/radio
   layout: 'inline',        // or 'stacked' | 'default'
   inline: true,            // For radio groups
@@ -370,6 +405,7 @@ Apply consistent styling to all fields (except header, html, linebreak, hidden, 
 ## Advanced Features
 
 ### Conditional Display
+
 Show/hide fields based on other values:
 
 ```javascript
@@ -383,6 +419,7 @@ Show/hide fields based on other values:
 ```
 
 ### Conditional Disable
+
 Disable fields based on conditions:
 
 ```javascript
@@ -395,6 +432,7 @@ Disable fields based on conditions:
 ```
 
 ### Custom Validation
+
 Field-level validation functions:
 
 ```javascript
@@ -412,6 +450,7 @@ Field-level validation functions:
 ```
 
 ### Dynamic Options
+
 Load options from API:
 
 ```javascript
@@ -433,142 +472,143 @@ const formDefinition = {
   fields: [
     // Section Header
     {
-      type: 'header',
-      label: 'Personal Information',
-      size: 'xl',
-      underline: true
+      type: "header",
+      label: "Personal Information",
+      size: "xl",
+      underline: true,
     },
-    
+
     // Alert Message
     {
-      type: 'alert',
-      variant: 'info',
-      message: 'Please provide accurate information. All fields marked with * are required.'
+      type: "alert",
+      variant: "info",
+      message:
+        "Please provide accurate information. All fields marked with * are required.",
     },
-    
+
     // Input Field
     {
-      name: 'fullName',
-      label: 'Full Name',
-      type: 'input',
+      name: "fullName",
+      label: "Full Name",
+      type: "input",
       required: true,
-      placeholder: 'John Doe',
-      containerStyle: 'card',
-      color: 'blue'
+      placeholder: "John Doe",
+      containerStyle: "card",
+      color: "blue",
     },
-    
+
     // Email Field
     {
-      name: 'email',
-      label: 'Email',
-      type: 'email',
+      name: "email",
+      label: "Email",
+      type: "email",
       required: true,
-      placeholder: 'you@example.com'
+      placeholder: "you@example.com",
     },
-    
+
     // Date Picker
     {
-      name: 'birthDate',
-      label: 'Birth Date',
-      type: 'date',
+      name: "birthDate",
+      label: "Birth Date",
+      type: "date",
       required: true,
-      placeholder: 'Select your birth date'
+      placeholder: "Select your birth date",
     },
-    
+
     // Time Picker
     {
-      name: 'preferredTime',
-      label: 'Preferred Contact Time',
-      type: 'time',
-      placeholder: 'Select time'
+      name: "preferredTime",
+      label: "Preferred Contact Time",
+      type: "time",
+      placeholder: "Select time",
     },
-    
+
     // Section Header
     {
-      type: 'header',
-      label: 'Preferences',
-      size: 'lg',
-      underline: true
+      type: "header",
+      label: "Preferences",
+      size: "lg",
+      underline: true,
     },
-    
+
     // Radio Group
     {
-      name: 'contactMethod',
-      label: 'Preferred Contact Method',
-      type: 'radiogroup',
+      name: "contactMethod",
+      label: "Preferred Contact Method",
+      type: "radiogroup",
       required: true,
-      value: 'email',
+      value: "email",
       inline: true,
-      color: 'green',
+      color: "green",
       options: [
-        { value: 'email', label: 'Email' },
-        { value: 'phone', label: 'Phone' },
-        { value: 'sms', label: 'SMS' }
-      ]
+        { value: "email", label: "Email" },
+        { value: "phone", label: "Phone" },
+        { value: "sms", label: "SMS" },
+      ],
     },
-    
+
     // MultiSelect
     {
-      name: 'interests',
-      label: 'Areas of Interest',
-      type: 'multiselect',
+      name: "interests",
+      label: "Areas of Interest",
+      type: "multiselect",
       value: [],
       options: [
-        { value: 'sports', label: 'Sports' },
-        { value: 'tech', label: 'Technology' },
-        { value: 'travel', label: 'Travel' },
-        { value: 'food', label: 'Food & Dining' }
-      ]
+        { value: "sports", label: "Sports" },
+        { value: "tech", label: "Technology" },
+        { value: "travel", label: "Travel" },
+        { value: "food", label: "Food & Dining" },
+      ],
     },
-    
+
     // Checkbox
     {
-      name: 'newsletter',
-      label: 'Subscribe to newsletter',
-      type: 'checkbox',
-      layout: 'inline',
-      description: 'Get weekly updates and special offers',
-      containerStyle: 'card',
-      color: 'purple'
+      name: "newsletter",
+      label: "Subscribe to newsletter",
+      type: "checkbox",
+      layout: "inline",
+      description: "Get weekly updates and special offers",
+      containerStyle: "card",
+      color: "purple",
     },
-    
+
     // TextArea
     {
-      name: 'comments',
-      label: 'Additional Comments',
-      type: 'textarea',
+      name: "comments",
+      label: "Additional Comments",
+      type: "textarea",
       rows: 4,
       maxLength: 500,
       showCharCount: true,
-      placeholder: 'Any additional information...'
+      placeholder: "Any additional information...",
     },
-    
+
     // File Upload
     {
-      name: 'documents',
-      label: 'Upload Documents',
-      type: 'file',
-      accept: '.pdf,.doc,.docx',
-      maxSize: 5 * 1024 * 1024
-    }
-  ]
+      name: "documents",
+      label: "Upload Documents",
+      type: "file",
+      accept: ".pdf,.doc,.docx",
+      maxSize: 5 * 1024 * 1024,
+    },
+  ],
 };
 
 // Usage
 <DynamicForm
   formDefinition={formDefinition}
   defaultValues={{
-    fullName: 'John Doe',
-    email: 'john@example.com',
-    contactMethod: 'email'
+    fullName: "John Doe",
+    email: "john@example.com",
+    contactMethod: "email",
   }}
   sendFormValues={(values) => {
-    console.log('Form submitted:', values);
+    console.log("Form submitted:", values);
   }}
   onFieldsChange={(values) => {
-    console.log('Form changed:', values);
+    console.log("Form changed:", values);
   }}
-/>
+/>;
 ```
 
 ---
@@ -576,7 +616,9 @@ const formDefinition = {
 ## Styling Reference
 
 ### Card Container Colors
+
 Available for `containerStyle='card'`:
+
 - `green` - Green border and accent
 - `blue` - Blue border and accent
 - `red` - Red border and accent
@@ -588,6 +630,7 @@ Available for `containerStyle='card'`:
 - `orange` - Orange border and accent
 
 ### Header Sizes
+
 - `sm` - Small header
 - `md` - Medium header
 - `lg` - Large header
@@ -597,6 +640,7 @@ Available for `containerStyle='card'`:
 - `4xl` - 4X large
 
 ### Layout Options (Checkbox/Radio)
+
 - `default` - Standard vertical layout
 - `inline` - Horizontal with label beside control
 - `stacked` - Vertical with description below
@@ -606,6 +650,7 @@ Available for `containerStyle='card'`:
 ## Props
 
 ### DynamicForm Props
+
 - `formDefinition` - Object containing field definitions
 - `defaultValues` - Initial form values
 - `sendFormValues` - Callback when form is submitted
@@ -615,6 +660,7 @@ Available for `containerStyle='card'`:
 ---
 
 ## Notes
+
 - All fields support `required`, `disabled`, `showIf` properties
 - Fields are automatically validated on blur and submit
 - Error messages display below invalid fields
