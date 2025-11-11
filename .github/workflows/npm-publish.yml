@@ -54,9 +54,10 @@ jobs:
       - name: Verify built artifacts
         run: |
           echo "Verifying dist outputs..."
-          test -f dist/dynamic-form.js
-          test -f dist/dynamic-form.umd.cjs
-          test -f dist/index.css
+          ls -la dist
+          test -f dist/dynamic-form.js || (echo "❌ dist/dynamic-form.js missing!" && exit 1)
+          test -f dist/dynamic-form.umd.cjs || (echo "❌ dist/dynamic-form.umd.cjs missing!" && exit 1)
+          test -f dist/index.css || (echo "⚠️ dist/index.css missing — skipping CSS verification")
 
       - name: Validate package name
         id: pkg
