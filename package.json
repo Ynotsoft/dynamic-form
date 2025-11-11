@@ -12,6 +12,10 @@
     },
     "./index.css": "./dist/index.css"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Ynotsoft/dynamic-form"
+  },
   "files": [
     "dist",
     "README.md"
