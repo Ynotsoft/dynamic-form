@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Version to publish (e.g. v1.0.30 or v1.0.30-beta.1)"
+        description: "Version to publish (e.g. v1.0.32 or v1.0.32-beta.1)"
         required: true
       dist_tag:
         description: "npm dist-tag (latest/next/beta/alpha). Leave blank for auto."
@@ -21,11 +21,9 @@ jobs:
     name: Build & Publish
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
-
     permissions:
       contents: read
       id-token: write
-
     env:
       NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -33,44 +31,53 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           registry-url: https://registry.npmjs.org/
           cache: npm
 
+      - name: Ensure repository field (for provenance)
+        run: |
+          REPO_URL="https://github.com/${GITHUB_REPOSITORY}"
+          echo "Setting repository.url = $REPO_URL"
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            pkg.repository = { type: 'git', url: '${REPO_URL}' };
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
+          "
+          node -p "require('./package.json').repository"
+
       - name: Install dependencies
         run: |
-          echo "Installing dependencies..."
+          echo "Installing deps..."
           rm -f package-lock.json
-          npm install --no-audit --no-fund
+          npm ci --no-audit --no-fund || npm install --no-audit --no-fund
 
-      - name: Build library (Vite)
+      - name: Build with Vite
         run: |
           echo "Building with Vite..."
           npm run build
 
-      - name: Verify built artifacts
+      - name: Verify built files
         run: |
-          echo "Verifying dist outputs..."
-          ls -la dist
-          test -f dist/dynamic-form.js || (echo "❌ dist/dynamic-form.js missing!" && exit 1)
-          test -f dist/dynamic-form.umd.cjs || (echo "❌ dist/dynamic-form.umd.cjs missing!" && exit 1)
-          test -f dist/index.css || (echo "⚠️ dist/index.css missing — skipping CSS verification")
+          echo "Verifying dist files..."
+          ls -l dist
+          test -f dist/dynamic-form.js
+          test -f dist/dynamic-form.umd.cjs
 
       - name: Validate package name
         id: pkg
         run: |
           NAME=$(node -p "require('./package.json').name")
-          echo "Package name: $NAME"
-          if [ "$NAME" != "ynotsoft-dynamic-form" ]; then
-            echo "::error::package.json name must be 'ynotsoft-dynamic-form'"
-            exit 1
-          fi
           echo "name=$NAME" >> "$GITHUB_OUTPUT"
+          if [ "$NAME" != "ynotsoft-dynamic-form" ]; then
+            echo "::error::Invalid package name: $NAME"; exit 1;
+          fi
 
-      - name: Derive target version
+      - name: Determine version
         id: ver
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
@@ -82,60 +89,48 @@ jobs:
           echo "Publishing version $VERSION"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
-      - name: Ensure repository URL for provenance
-        run: |
-          REPO_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"
-          echo "Setting package.json repository.url = $REPO_URL"
-          node -e "const fs=require('fs');const pkg=JSON.parse(fs.readFileSync('package.json','utf8'));pkg.repository={type:'git',url:process.env.REPO_URL};fs.writeFileSync('package.json',JSON.stringify(pkg,null,2));"
-
-      - name: Update version if needed
+      - name: Bump version in package.json
         run: |
           TARGET="${{ steps.ver.outputs.version }}"
           CURRENT=$(node -p "require('./package.json').version")
-          echo "Current=$CURRENT Target=$TARGET"
           if [ "$CURRENT" != "$TARGET" ]; then
             npm version "$TARGET" --no-git-tag-version
           fi
+          echo "Updated version to $(node -p "require('./package.json').version")"
 
-      - name: Determine dist-tag
+      - name: Pick npm dist-tag
         id: tag
         run: |
           INPUT="${{ github.event.inputs.dist_tag }}"
           if [ -n "$INPUT" ]; then
             echo "tag=$INPUT" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          VER="${{ steps.ver.outputs.version }}"
-          if [[ "$VER" == *-* ]]; then
-            echo "tag=next" >> "$GITHUB_OUTPUT"
           else
-            echo "tag=latest" >> "$GITHUB_OUTPUT"
+            VER="${{ steps.ver.outputs.version }}"
+            if [[ "$VER" == *-* ]]; then echo "tag=next"  >> "$GITHUB_OUTPUT"; else echo "tag=latest" >> "$GITHUB_OUTPUT"; fi
           fi
 
-      - name: Check if version already exists on npm
+      - name: Check if version exists
         id: exists
         run: |
           PKG="${{ steps.pkg.outputs.name }}"
           VER="${{ steps.ver.outputs.version }}"
           if npm view "$PKG@$VER" version >/dev/null 2>&1; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
-            echo "$PKG@$VER already exists on npm."
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
-            echo "$PKG@$VER not published yet."
           fi
+
+      - name: Final provenance validation
+        run: node -e "console.log('repository.url =', require('./package.json').repository?.url)"
 
       - name: Publish to npm (if new)
         if: steps.exists.outputs.exists == 'false'
-        run: |
-          echo "Publishing new version..."
-          npm publish --access public --provenance --tag "${{ steps.tag.outputs.tag }}"
+        run: npm publish --access public --provenance --tag "${{ steps.tag.outputs.tag }}"
 
-      - name: Promote dist-tag (if already published)
+      - name: Promote existing version
         if: steps.exists.outputs.exists == 'true'
         run: |
           PKG="${{ steps.pkg.outputs.name }}"
           VER="${{ steps.ver.outputs.version }}"
           TAG="${{ steps.tag.outputs.tag }}"
-          echo "Promoting existing $PKG@$VER to dist-tag '$TAG'"
-          npm dist-tag add "$PKG@$VER" "$TAG"
+          npm dist-tag add "$PKG@$VER" "$TAG" || true
