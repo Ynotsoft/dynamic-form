@@ -360,13 +360,16 @@ const DynamicForm = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="grid grid-cols-12 gap-x-4 mx-auto">
+    <form
+      onSubmit={handleSubmit}
+      className="grid grid-cols-12 gap-x-4 mx-auto w-full"
+    >
       {formDefinition ? (
         formDefinition.fields.map(renderField)
       ) : (
         <div>Loading...</div>
       )}
-      {children}
+      <div className="w-full col-span-full">{children}</div>
     </form>
   );
 };
