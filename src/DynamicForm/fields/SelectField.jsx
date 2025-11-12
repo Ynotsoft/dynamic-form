@@ -21,10 +21,10 @@ function SelectField({ field, formValues, handleChange, handleBlur }) {
       <Select.Trigger
         id={field.name}
         onBlur={() => handleBlur(field.name)}
-        className={`inline-flex items-center justify-between w-full px-3 py-2 border rounded-md text-sm transition-all
+        className={`inline-flex items-center justify-between w-full h-10 rounded-md border px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 border-input focus-visible:ring-blue-500 bg-background transition-all
           ${isDisabled
-            ? "bg-gray-100 text-gray-500 cursor-not-allowed"
-            : "border-gray-300 hover:border-gray-400 focus:ring-2 focus:ring-blue-500"}
+            ? "cursor-not-allowed opacity-50"
+            : ""}
         `}
       >
         <Select.Value
