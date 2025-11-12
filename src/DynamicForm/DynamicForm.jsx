@@ -353,7 +353,7 @@ const DynamicForm = ({
         setCharCounts={setCharCounts}
         charCount={charCounts[field.name] || 0}
         api_URL={api_URL}
-        //error={error}
+        error={error}
       />,
       field,
     );
