@@ -1,8 +1,16 @@
 name: Publish ynotsoft-dynamic-form
 
 on:
+  # Runs automatically when a new GitHub Release is published
   release:
     types: [published]
+
+  # Also runs automatically when a version tag like "v1.0.32" is pushed
+  push:
+    tags:
+      - "v*"
+
+  # Optional manual trigger
   workflow_dispatch:
     inputs:
       version:

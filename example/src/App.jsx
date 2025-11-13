@@ -1,8 +1,6 @@
 import React from "react";
 import "./App.css";
-
-import DynamicForm from "ynotsoft-dynamic-form";
-import "ynotsoft-dynamic-form/index.css";
+import { DynamicForm } from "ynotsoft-dynamic-form";
 
 export default function App() {
   const form = {
