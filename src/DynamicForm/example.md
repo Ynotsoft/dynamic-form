@@ -20,7 +20,15 @@ const formDefinition = {
   defaultValues={{ name: 'John Doe' }}
   sendFormValues={(values) => console.log(values)}
   onFieldsChange={(values) => console.log('Changed:', values)}
-/>
+>
+  <button  type="button" className="w-auto">
+      Cancel
+  </button>
+  <button type="submit">
+      Create Environment
+  </button>
+
+</DynamicForm>
 ```
 
 ---
