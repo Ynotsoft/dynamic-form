@@ -10,6 +10,30 @@ npm install react-hot-toast dayjs react-select react-day-picker dompurify @radix
 
 ```
 
+### Build the Library
+
+From the root of the library (dynamic-form/):
+
+```
+npm run build
+npm link
+```
+
+### Link It Inside the Example App
+
+Now connect the example app to the linked library:
+
+```
+cd ../example
+npm link ynotsoft-dynamic-form
+```
+
+### Start the Example App
+
+```
+npm run dev
+```
+
 ### TODO:
 
 - remove radixui as dependency, maybe replace with ShadCN and maintain it ourselves
