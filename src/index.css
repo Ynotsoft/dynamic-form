@@ -1,25 +1,3 @@
 @import "tailwindcss";
 
 @source "./**/*.jsx";
-
-@source inline("col-span-{{1...12}}");
-@source inline("grid-cols-{{1...12}}");
-@source inline("gap-{{0...10}}");
-@source inline("p-{{0...10}}");
-@source inline("m-{{0...10}}");
-@source inline("bg-{{white,gray-100,gray-200,gray-300,gray-400,gray-500,gray-600,gray-700,gray-800,gray-900,black}}");
-@source inline("text-{{xs,sm,base,lg,xl,2xl,3xl,4xl,5xl,6xl}}");
-@source inline("font-{{thin,extralight,light,normal,medium,bold,extrabold,black}}");
-@source inline("text-{{left,center  ,right,justify}}");
-@source inline("rounded-{{none,sm,md,lg,full}}");
-@source inline("border-{{0,2,4,8}}");
-@source inline("border-{{transparent,black,white,gray-100,gray-200,gray-300,gray-400,gray-500,gray-600,gray-700,gray-800,gray-900,red-500,green-500,blue-500,yellow-500}}");
-@source inline("hover:bg-{{gray-100,gray-200,gray-300,gray-400,gray-500,gray-600,gray-700,gray-800,gray-900,black}}");
-@source inline("hover:text-{{gray-100,gray-200,gray-300,gray-400,gray-500,gray-600,gray-700,gray-800,gray-900,black}}");
-@source inline("flex");
-@source inline("items-{{start,center,end,stretch}}");
-@source inline("justify-{{start,center,end,between,around}}");
-@source inline("flex-col");
-@source inline("flex-row");
-@source inline("w-{{full,1/2,1/3,2/3,1/4,3/4}}");
-@source inline("h-{{full,screen}}");
