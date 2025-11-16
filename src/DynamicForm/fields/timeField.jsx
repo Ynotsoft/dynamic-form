@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import * as Popover from "@radix-ui/react-popover";
 
-function TimeField({ field, formValues, handleChange, handleBlur }) {
+function TimeField({ field, formValues, handleChange, handleBlur, error }) {
   const [open, setOpen] = useState(false);
   const [hours, setHours] = useState("12");
   const [minutes, setMinutes] = useState("00");
@@ -64,14 +64,17 @@ function TimeField({ field, formValues, handleChange, handleBlur }) {
             aria-haspopup="dialog"
             aria-expanded={open}
             onClick={() => setOpen(true)}
-            className="
+            className={`
               inline-flex items-center justify-between gap-2
-              w-full h-9 rounded-md border border-gray-300 bg-white
+              w-full h-9 rounded-md border bg-white
               px-3 py-2 text-sm font-normal shadow-sm
               hover:bg-gray-50 hover:text-gray-900
-              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2
+              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
               disabled:cursor-not-allowed disabled:opacity-50
-            "
+              ${error 
+                ? "border-red-500 focus-visible:ring-red-500" 
+                : "border-gray-300 focus-visible:ring-blue-500"}
+            `}
           >
             {value ? (
               <span>{value}</span>
@@ -262,6 +265,7 @@ function TimeField({ field, formValues, handleChange, handleBlur }) {
           </div>
         </Popover.Content>
       </Popover.Root>
+      {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
     </div>
   );
 }

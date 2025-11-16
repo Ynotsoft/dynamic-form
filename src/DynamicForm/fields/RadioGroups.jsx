@@ -52,7 +52,7 @@
 import React from 'react';
 import * as RadioGroup from '@radix-ui/react-radio-group';
 
-function RadioGroupField({ field, formValues, handleChange, handleBlur }) {
+function RadioGroupField({ field, formValues, handleChange, handleBlur, error }) {
   const value = formValues[field.name] || '';
   const isDisabled = typeof field.disabled === 'function' 
     ? field.disabled(formValues) 
@@ -61,6 +61,7 @@ function RadioGroupField({ field, formValues, handleChange, handleBlur }) {
   const isInline = field.inline || false;
 
   return (
+    <>
     <RadioGroup.Root
       value={value}
       onValueChange={(val) => handleChange(field.name, val)}
@@ -112,6 +113,8 @@ function RadioGroupField({ field, formValues, handleChange, handleBlur }) {
         );
       })}
     </RadioGroup.Root>
+    {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
+    </>
   );
 }
 

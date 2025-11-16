@@ -4,8 +4,7 @@ import { toast } from "react-hot-toast";
 function FileField({
   field,
   formValues,
-  touched,
-  errors,
+  error,
   fileUploads,
   setFileUploads,
   fileInputRefs,
@@ -13,7 +12,6 @@ function FileField({
   onFieldsChange,
   api_URL
 }) {
-  const error = touched[field.name] && errors[field.name];
   const isMultiple = field.type === "multifile";
   const uploads = fileUploads[field.name] || {};
   const currentValues = formValues[field.name];

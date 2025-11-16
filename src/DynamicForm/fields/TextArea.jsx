@@ -5,8 +5,7 @@ function TextAreaField({
   formValues,
   handleChange,
   handleBlur,
-  touched,
-  errors,
+  error,
   charCount,
   setCharCounts,
 }) {
@@ -16,7 +15,6 @@ function TextAreaField({
     typeof field.disabled === "function"
       ? field.disabled(formValues)
       : field.disabled || field.readOnly;
-  const error = touched?.[field.name] && errors?.[field.name] ? errors[field.name] : null;
 
   // Auto-resize logic
   const autoResize = () => {
@@ -80,8 +78,9 @@ function TextAreaField({
             {charCount || 0}/{field.maxLength} characters
           </span>
         )}
-
       </div>
+      
+      {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
     </div>
   );
 }

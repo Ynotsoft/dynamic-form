@@ -1,10 +1,10 @@
 import React from 'react';
 
-function EmailField({ field, formValues, handleChange, handleBlur, touched, errors }) {
-  //const error = touched[field.name] && errors[field.name];
+function EmailField({ field, formValues, handleChange, handleBlur, error }) {
   const isDisabled = field.readOnly && field.disabled;
-    const error = false;
+  
   return (
+    <>
       <input
         {...field.props}
         type="email"
@@ -14,10 +14,14 @@ function EmailField({ field, formValues, handleChange, handleBlur, touched, erro
         disabled={isDisabled}
         name={field.name}
         placeholder={field.placeholder}
-        className={`w-full px-3 py-2 border rounded-md ${
-          error ? "border-red-500" : "border-gray-300"
-        } ${isDisabled ? "bg-gray-100 text-gray-500 cursor-not-allowed" : ""}`}
+        className={`flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
+          error 
+            ? "border-red-500 focus-visible:ring-red-500" 
+            : "border-input focus-visible:ring-blue-500"
+        } ${isDisabled ? "bg-gray-100 text-gray-500 cursor-not-allowed" : "bg-background"}`}
       />
+      {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
+    </>
   );
 }
 

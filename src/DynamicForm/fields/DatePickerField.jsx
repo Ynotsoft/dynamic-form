@@ -3,7 +3,7 @@ import { useState } from "react";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
 
-function DateRangeField({ field, formValues, handleChange, handleBlur }) {
+function DateRangeField({ field, formValues, handleChange, handleBlur, error }) {
   const [open, setOpen] = useState(false);
   const selected = formValues[field.name] ?? null;
 
@@ -21,14 +21,17 @@ function DateRangeField({ field, formValues, handleChange, handleBlur }) {
             aria-expanded={open}
             onClick={() => setOpen(true)}
             onKeyDown={(e) => e.key === "Enter" && setOpen(true)}
-            className="
+            className={`
               inline-flex items-center justify-between gap-2
-              w-full h-9 rounded-md border border-gray-300 bg-white
+              w-full h-9 rounded-md border bg-white
               px-3 py-2 text-sm font-normal shadow-sm
               hover:bg-gray-50 hover:text-gray-900
-              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2
+              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
               disabled:cursor-not-allowed disabled:opacity-50
-            "
+              ${error 
+                ? "border-red-500 focus-visible:ring-red-500" 
+                : "border-gray-300 focus-visible:ring-blue-500"}
+            `}
           >
             {selected ? (
               <span>{selected.toLocaleDateString()}</span>
@@ -87,6 +90,7 @@ function DateRangeField({ field, formValues, handleChange, handleBlur }) {
           </div>
         </Popover.Content>
       </Popover.Root>
+      {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
     </div>
   );
 }

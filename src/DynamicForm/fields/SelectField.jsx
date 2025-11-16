@@ -3,7 +3,7 @@ import React from "react";
 // get arrow down icon from icon hero icon
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 
-function SelectField({ field, formValues, handleChange, handleBlur }) {
+function SelectField({ field, formValues, handleChange, handleBlur, error }) {
   const value = formValues[field.name] || "";
   const isDisabled =
     typeof field.disabled === "function"
@@ -12,6 +12,7 @@ function SelectField({ field, formValues, handleChange, handleBlur }) {
   const options = field.options || [];
 
   return (
+    <>
     <Select.Root
       value={value}
       onValueChange={(val) => handleChange(field.name, val)}
@@ -21,7 +22,10 @@ function SelectField({ field, formValues, handleChange, handleBlur }) {
       <Select.Trigger
         id={field.name}
         onBlur={() => handleBlur(field.name)}
-        className={`inline-flex items-center justify-between w-full h-10 rounded-md border px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 border-input focus-visible:ring-blue-500 bg-background transition-all
+        className={`inline-flex items-center justify-between w-full h-10 rounded-md border px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-background transition-all
+          ${error
+            ? "border-red-500 focus-visible:ring-red-500"
+            : "border-input focus-visible:ring-blue-500"}
           ${isDisabled
             ? "cursor-not-allowed opacity-50"
             : ""}
@@ -87,6 +91,8 @@ function SelectField({ field, formValues, handleChange, handleBlur }) {
         </Select.Content>
       </Select.Portal>
     </Select.Root>
+    {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
+    </>
   );
 }
 

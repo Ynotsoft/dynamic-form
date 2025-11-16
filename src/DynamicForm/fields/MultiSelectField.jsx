@@ -1,8 +1,7 @@
 import Select from 'react-select'
 import makeAnimated from 'react-select/animated'
 
-function MultiSelectField({ field, formValues, handleChange, touched, errors, handleBlur }) {
-   //const error = touched[field.name] && errors[field.name];
+function MultiSelectField({ field, formValues, handleChange, handleBlur, error }) {
     const isDisabled = field.disabled && field.disabled(formValues);
     const options = field.options || [];
 
@@ -11,7 +10,7 @@ function MultiSelectField({ field, formValues, handleChange, touched, errors, ha
     const currentValues = formValues[field.name] || [];
 
     return (
-
+      <>
         <Select
           components={animatedComponents}
           isMulti
@@ -22,8 +21,20 @@ function MultiSelectField({ field, formValues, handleChange, touched, errors, ha
           options={options}
           placeholder={field.placeholder}
           closeMenuOnSelect={false}
+          onBlur={() => handleBlur(field.name)}
+          className={error ? "border-red-500" : ""}
+          styles={{
+            control: (base) => ({
+              ...base,
+              borderColor: error ? '#ef4444' : base.borderColor,
+              '&:hover': {
+                borderColor: error ? '#ef4444' : base['&:hover']?.borderColor
+              }
+            })
+          }}
         />
-
+        {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
+      </>
     );
 }
 export default MultiSelectField;

@@ -132,13 +132,21 @@ const DynamicForm = ({
       return null;
     }
 
-    if (field.required) {
-      if (!value) {
-        return `${field.label} is required`;
-      }
-      if (Array.isArray(value) && value.length === 0) {
-        return `Please select at least one ${field.label.toLowerCase()}`;
-      }
+    // Check if value is empty (handles strings, arrays, null, undefined, booleans)
+    const isEmpty = value === null || 
+      value === undefined ||
+      (typeof value === 'string' && value.trim() === '') || 
+      (Array.isArray(value) && value.length === 0) ||
+      (field.type === 'checkbox' && value === false) ||
+      (typeof value === 'object' && value !== null && !Array.isArray(value) && Object.keys(value).length === 0);
+
+    if (field.required && isEmpty) {
+      return `${field.label} is required`;
+    }
+
+    // Skip further validation if field is empty and not required
+    if (isEmpty && !field.required) {
+      return null;
     }
 
     if (field.validate) {
@@ -147,7 +155,7 @@ const DynamicForm = ({
     }
 
     // Email validation addition
-    if (field.type === "email") {
+    if (field.type === "email" && value) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(value)) return "Please enter a valid email address";
     }
@@ -161,7 +169,7 @@ const DynamicForm = ({
       }
     }
 
-    if (field.type === "date") {
+    if (field.type === "date" && value) {
       // Ensure the value is a valid date
       if (!dayjs(value).isValid()) {
         return `${field.label} must be a valid date`;
@@ -312,8 +320,6 @@ const DynamicForm = ({
 
         {/* InputField or any other field goes here */}
         <div>{children}</div>
-
-        {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
       </>
     );
 
