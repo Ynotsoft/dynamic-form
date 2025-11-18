@@ -1,32 +1,16 @@
 import "./App.css";
 import { useState } from "react";
+import { DynamicForm } from "ynotsoft-dynamic-form";
 import ExampleNormalPage from "./pages/ExampleNormalPage.jsx";
 import ExampleDrawer from "./pages/ExampleDrawer.jsx";
 import ExampleDialog from "./pages/ExampleDialog.jsx";
 
 export default function App() {
-  const form = {
-    fields: [
-      {
-        name: "Description",
-        label: "Category Name",
-        type: "text",
-        placeholder: "Enter Category Name",
-        required: true,
-        maxLength: 100,
-        fieldClass: "col-span-8",
-      },
-    ],
-  };
-
-  const handleSubmit = (values) => console.log("Form Submitted:", values);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
 
   return (
-    <div className="max-w-lg mx-auto mt-10">
-      <h1 className="text-xl font-bold mb-4">DynamicForm Demo</h1>
-      <DynamicForm formDefinition={form} sendFormValues={handleSubmit} />
+    <div className="max-w-3xl w-full mx-auto mt-10">
       <div className="w-full max-w-4xl  mx-auto p-8 space-y-8">
         <h1 className="text-3xl font-bold">DynamicForm Example</h1>
 
