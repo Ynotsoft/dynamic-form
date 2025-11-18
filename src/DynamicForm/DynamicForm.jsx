@@ -24,6 +24,7 @@ import { Label } from "@radix-ui/react-label";
 const DynamicForm = ({
   apiClient,
   api_URL,
+  footerMode = "normal",
   formDefinition,
   sendFormValues,
   children,
@@ -366,17 +367,27 @@ const DynamicForm = ({
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="grid grid-cols-12 gap-x-4 mx-auto w-full"
-    >
-      {formDefinition ? (
-        formDefinition.fields.map(renderField)
-      ) : (
-        <div>Loading...</div>
-      )}
-      <div className="w-full col-span-full">{children}</div>
-    </form>
+    <>
+      <form
+        onSubmit={handleSubmit}
+        className="grid grid-cols-12 gap-x-4 mx-auto w-full relative "
+      >
+        {formDefinition ? (
+          formDefinition.fields.map(renderField)
+        ) : (
+          <div>Loading...</div>
+        )}
+        <div
+          className={
+            footerMode === "sticky"
+              ? "absolute col-span-full w-full bottom-0  bg-white py-4 flex justify-end gap-2 z-50"
+              : "col-span-full mt-4 flex justify-end gap-2"
+          }
+        >
+          {children}
+        </div>
+      </form>
+    </>
   );
 };
 
