@@ -1,9 +1,19 @@
-import * as Popover from "@radix-ui/react-popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { useState } from "react";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
 
-function DateRangeField({ field, formValues, handleChange, handleBlur, error }) {
+function DateRangeField({
+  field,
+  formValues,
+  handleChange,
+  handleBlur,
+  error,
+}) {
   const [open, setOpen] = useState(false);
   const selected = formValues[field.name] ?? null;
 
@@ -12,8 +22,8 @@ function DateRangeField({ field, formValues, handleChange, handleBlur, error }) 
 
   return (
     <div>
-      <Popover.Root open={open} onOpenChange={setOpen}>
-        <Popover.Trigger asChild>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
           <button
             type="button"
             id={field.name}
@@ -28,9 +38,11 @@ function DateRangeField({ field, formValues, handleChange, handleBlur, error }) 
               hover:bg-gray-50 hover:text-gray-900
               focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
               disabled:cursor-not-allowed disabled:opacity-50
-              ${error 
-                ? "border-red-500 focus-visible:ring-red-500" 
-                : "border-gray-300 focus-visible:ring-blue-500"}
+              ${
+                error
+                  ? "border-red-500 focus-visible:ring-red-500"
+                  : "border-gray-300 focus-visible:ring-blue-500"
+              }
             `}
           >
             {selected ? (
@@ -56,9 +68,9 @@ function DateRangeField({ field, formValues, handleChange, handleBlur, error }) 
               <path d="m6 9 6 6 6-6" />
             </svg>
           </button>
-        </Popover.Trigger>
+        </PopoverTrigger>
 
-        <Popover.Content
+        <PopoverContent
           align="start"
           sideOffset={2}
           className="z-50 rounded-md border border-gray-200 bg-white p-0 shadow-md w-auto"
@@ -70,7 +82,7 @@ function DateRangeField({ field, formValues, handleChange, handleBlur, error }) 
             showOutsideDays
             className="rounded-md bg-white p-3 text-xs"
           />
-          
+
           {/* Action buttons */}
           <div className="flex items-center justify-between gap-2 border-t border-gray-200 p-3">
             <button
@@ -88,8 +100,8 @@ function DateRangeField({ field, formValues, handleChange, handleBlur, error }) 
               Done
             </button>
           </div>
-        </Popover.Content>
-      </Popover.Root>
+        </PopoverContent>
+      </Popover>
       {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
     </div>
   );

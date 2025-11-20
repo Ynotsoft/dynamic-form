@@ -8,6 +8,9 @@ export default defineConfig({
   plugins: [react(), tailwind()],
   resolve: {
     dedupe: ["react", "react-dom"],
+    alias: {
+      "@": "/src", // Adjust this if your src folder is elsewhere
+    },
   },
   build: {
     lib: {
@@ -25,18 +28,10 @@ export default defineConfig({
         "react/jsx-runtime",
         "react-hot-toast",
         "dayjs",
-        "dompurify",
-        "@radix-ui/react-label",
-        "@radix-ui/react-popover",
-        "@radix-ui/react-radio-group",
-        "@radix-ui/react-select",
-        "@radix-ui/react-separator",
         "react-select",
         "react-select/animated", // ✅ add this
         "react-day-picker",
         "react-day-picker/dist/style.css", // ✅ also add the stylesheet
-        "@heroicons/react/20/solid",
-        "@heroicons/react/24/outline",
       ],
       output: {
         exports: "named",
@@ -48,14 +43,7 @@ export default defineConfig({
           dayjs: "dayjs",
           "react-select": "ReactSelect",
           "react-select/animated": "ReactSelectAnimated",
-          "@radix-ui/react-select": "RadixSelect",
-          "@radix-ui/react-label": "RadixLabel",
-          "@radix-ui/react-popover": "RadixPopover",
-          "@radix-ui/react-radio-group": "RadixRadioGroup",
-          "@radix-ui/react-separator": "RadixSeparator",
           "react-day-picker": "ReactDayPicker",
-          "@heroicons/react/20/solid": "HeroiconsSolid",
-          "@heroicons/react/24/outline": "HeroiconsOutline",
         },
         assetFileNames: (assetInfo) =>
           assetInfo.fileName?.endsWith(".css")

@@ -1,5 +1,10 @@
 import React from "react";
-import { Error, Success, Warning, Info } from "../components/formats/alerts/Alerts.jsx";
+import {
+  ErrorAlert,
+  SuccessAlert,
+  WarningAlert,
+  InfoAlert,
+} from "@/components/ui/alerts";
 
 function AlertMessageField({ field }) {
   const { variant = "info", message, content } = field;
@@ -10,19 +15,19 @@ function AlertMessageField({ field }) {
   switch (variant.toLowerCase()) {
     case "error":
     case "danger":
-      return <Error message={alertMessage} />;
+      return <ErrorAlert message={alertMessage} />;
 
     case "success":
-      return <Success message={alertMessage} />;
+      return <SuccessAlert message={alertMessage} />;
 
     case "warning":
     case "warn":
-      return <Warning message={alertMessage} />;
+      return <WarningAlert message={alertMessage} />;
 
     case "info":
     case "information":
     default:
-      return <Info message={alertMessage} />;
+      return <InfoAlert message={alertMessage} />;
   }
 }
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { toast } from "react-hot-toast";
 import dayjs from "dayjs";
 // import "dayjs/locale/de"; // Remove this to avoid module resolution issues
@@ -133,17 +133,21 @@ const DynamicForm = ({
       return null;
     }
 
-    // Check if value is empty (handles strings, arrays, null, undefined, booleans)
+    // Detect only plain objects (not Date)
+    const isPlainObject =
+      typeof value === "object" &&
+      value !== null &&
+      !Array.isArray(value) &&
+      !(value instanceof Date);
+
+    // Actual empty check
     const isEmpty =
       value === null ||
       value === undefined ||
       (typeof value === "string" && value.trim() === "") ||
       (Array.isArray(value) && value.length === 0) ||
       (field.type === "checkbox" && value === false) ||
-      (typeof value === "object" &&
-        value !== null &&
-        !Array.isArray(value) &&
-        Object.keys(value).length === 0);
+      (isPlainObject && Object.keys(value).length === 0);
 
     if (field.required && isEmpty) {
       return `${field.label} is required`;
