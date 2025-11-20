@@ -20,7 +20,6 @@ import { default as RenderHeaderField } from "./fields/HeaderField.jsx";
 import { default as RenderDatePickerField } from "./fields/DatePickerField.jsx";
 import { default as RenderTimeField } from "./fields/timeField.jsx";
 import { default as RenderAlertMessageField } from "./fields/AlertMessageField.jsx";
-import { Label } from "@radix-ui/react-label";
 const DynamicForm = ({
 	apiClient,
 	api_URL,
@@ -320,13 +319,13 @@ const DynamicForm = ({
 		const content = (
 			<>
 				{field.label && (
-					<Label
+					<label
 						htmlFor={field.name}
 						className="block text-sm font-medium mb-1"
 					>
 						{field.label}
 						{field.required && <span className="text-red-500 ml-1">*</span>}
-					</Label>
+					</label>
 				)}
 
 				{/* InputField or any other field goes here */}
@@ -383,7 +382,9 @@ const DynamicForm = ({
 		>
 			{formDefinition ? (
 				formDefinition.fields.map((field) => (
-					<React.Fragment key={field.name}>{renderField(field)}</React.Fragment>
+					<div className="col-span-full" key={field.name}>
+						{renderField(field)}
+					</div>
 				))
 			) : (
 				<div>Loading...</div>

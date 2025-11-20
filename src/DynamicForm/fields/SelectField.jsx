@@ -1,7 +1,7 @@
 import * as Select from "@radix-ui/react-select";
+import { ChevronDown } from "lucide-react";
 import React from "react";
 // get arrow down icon from icon hero icon
-import { ChevronDownIcon } from "@heroicons/react/20/solid";
 
 function SelectField({ field, formValues, handleChange, handleBlur, error }) {
 	const value = formValues[field.name] || "";
@@ -37,7 +37,7 @@ function SelectField({ field, formValues, handleChange, handleBlur, error }) {
 						}
 					/>
 					<Select.Icon className="ml-2 text-gray-500">
-						<ChevronDownIcon className="w-4 h-4" />
+						<ChevronDown className="w-4 h-4" />
 					</Select.Icon>
 				</Select.Trigger>
 
