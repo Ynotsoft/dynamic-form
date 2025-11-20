@@ -1,5 +1,4 @@
-
-import { Separator } from "@radix-ui/react-separator"
+import { Separator } from "@/components/ui/separator";
 
 function LineBreakField({ field }) {
   if (!field?.label) return <Separator className="my-4 h-px bg-gray-300" />;
@@ -16,3 +15,4 @@ function LineBreakField({ field }) {
 }
 
 export default LineBreakField;
+
