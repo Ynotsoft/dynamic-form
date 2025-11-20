@@ -134,12 +134,16 @@ const DynamicForm = ({
     }
 
     // Check if value is empty (handles strings, arrays, null, undefined, booleans)
-    const isEmpty = value === null || 
+    const isEmpty =
+      value === null ||
       value === undefined ||
-      (typeof value === 'string' && value.trim() === '') || 
+      (typeof value === "string" && value.trim() === "") ||
       (Array.isArray(value) && value.length === 0) ||
-      (field.type === 'checkbox' && value === false) ||
-      (typeof value === 'object' && value !== null && !Array.isArray(value) && Object.keys(value).length === 0);
+      (field.type === "checkbox" && value === false) ||
+      (typeof value === "object" &&
+        value !== null &&
+        !Array.isArray(value) &&
+        Object.keys(value).length === 0);
 
     if (field.required && isEmpty) {
       return `${field.label} is required`;
@@ -373,7 +377,11 @@ const DynamicForm = ({
         className="grid grid-cols-12 gap-x-4 mx-auto w-full relative "
       >
         {formDefinition ? (
-          formDefinition.fields.map(renderField)
+          formDefinition.fields.map((field) => (
+            <React.Fragment key={field.name}>
+              {renderField(field)}
+            </React.Fragment>
+          ))
         ) : (
           <div>Loading...</div>
         )}
