@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { toast } from "react-hot-toast";
 import dayjs from "dayjs";
+import { cn } from "@/lib/utils";
+
 // import "dayjs/locale/de"; // Remove this to avoid module resolution issues
 // Removed: import apiClient from "../services/Interceptors.jsx"; - now passed as prop
 import { default as RenderHiddenField } from "./fields/HiddenField.jsx";
