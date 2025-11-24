@@ -26,6 +26,7 @@ const DynamicForm = ({
 	footerMode = "normal",
 	formDefinition,
 	sendFormValues,
+	className,
 	children,
 	defaultValues = {},
 	onFieldsChange = () => {},
@@ -378,7 +379,7 @@ const DynamicForm = ({
 	return (
 		<form
 			onSubmit={handleSubmit}
-			className="grid grid-cols-12 gap-x-4 mx-auto w-full relative "
+			className={cn("grid grid-cols-12 gap-x-4 mx-auto w-full  ", className)}
 		>
 			{formDefinition ? (
 				formDefinition.fields.map((field) => (
