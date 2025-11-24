@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { toast } from "react-hot-toast";
 import dayjs from "dayjs";
-import { cn } from "@/lib/utils.js";
-
 // import "dayjs/locale/de"; // Remove this to avoid module resolution issues
 // Removed: import apiClient from "../services/Interceptors.jsx"; - now passed as prop
 import { default as RenderHiddenField } from "./fields/HiddenField.jsx";
@@ -28,7 +26,6 @@ const DynamicForm = ({
 	footerMode = "normal",
 	formDefinition,
 	sendFormValues,
-	className,
 	children,
 	defaultValues = {},
 	onFieldsChange = () => {},
@@ -381,7 +378,7 @@ const DynamicForm = ({
 	return (
 		<form
 			onSubmit={handleSubmit}
-			className={cn("grid grid-cols-12 gap-x-4 mx-auto w-full  ", className)}
+			className="grid grid-cols-12 gap-x-4 mx-auto w-full  "
 		>
 			{formDefinition ? (
 				formDefinition.fields.map((field) => (
