@@ -128,7 +128,12 @@ const DynamicForm = ({
 	}, [formDefinition]);
 
 	const validateField = (field, value, allValues) => {
-		if (field.disabled && field.disabled(allValues)) {
+		if (typeof field.disabled === "function" && field.disabled(allValues)) {
+			return null;
+		}
+
+		// You may also want to handle static disabling explicitly here:
+		if (field.disabled === true) {
 			return null;
 		}
 
@@ -242,13 +247,25 @@ const DynamicForm = ({
 		setFormValues(newValues);
 
 		// Validate all fields
+		// ...
 		const newErrors = {};
-		formDefinition.fields.forEach((f) => {
-			if (!f.showIf || f.showIf(newValues)) {
-				const error = validateField(f, newValues[f.name], newValues);
-				if (error) newErrors[f.name] = error;
+		formDefinition.fields.forEach((field) => {
+			// 1. Calculate the disabled state safely
+			const isFieldDisabled =
+				typeof field.disabled === "function"
+					? field.disabled(formValues) // Call function if it's dynamic
+					: !!field.disabled; // Use the boolean value if static
+
+			if (
+				(!field.showIf || field.showIf(formValues)) &&
+				// 2. Use the safely calculated state
+				!isFieldDisabled
+			) {
+				const error = validateField(field, formValues[field.name], formValues);
+				if (error) newErrors[field.name] = error;
 			}
 		});
+		// ...
 
 		setErrors(newErrors);
 	};
