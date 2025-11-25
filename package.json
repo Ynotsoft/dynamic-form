@@ -1,6 +1,6 @@
 {
   "name": "ynotsoft-dynamic-form",
-  "version": "1.0.36",
+  "version": "1.0.37",
   "description": "DynamicForm React component library",
   "type": "module",
   "main": "./dist/dynamic-form.umd.cjs",

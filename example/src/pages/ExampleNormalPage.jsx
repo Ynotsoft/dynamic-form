@@ -18,7 +18,7 @@ export default function ExampleNormalPage() {
 				required: true,
 				placeholder: "Enter your name",
 				value: "John Doe",
-				disabled: false,
+				disabled: true,
 				maxLength: 100,
 				validate: (value) => {
 					if (value.length < 2) return "Name must be at least 2 characters";

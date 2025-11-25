@@ -233,7 +233,8 @@ const DynamicForm = ({
 		}
 
 		formDefinition.fields.forEach((f) => {
-			if (f.disabled && f.disabled(newValues)) {
+			if (typeof f.disabled === "function" && f.disabled(newValues)) {
+				// ... rest of the logic
 				newValues[f.name] = f.type === "multiselect" ? [] : "";
 			}
 		});
