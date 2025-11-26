@@ -1,5 +1,5 @@
 {
-  "name": "@ynotsoft/dynamic-form",
+  "name": "ynotsoft-dynamic-form",
   "version": "1.0.39",
   "description": "DynamicForm React component library",
   "type": "module",

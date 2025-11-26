@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "build:lib": "bun run --filter @ynotsoft/dynamic-form build",
+    "build": "bun run --filter ynotsoft-dynamic-form build",
     "example": "bun --filter example dev"
   },
   "workspaces": [

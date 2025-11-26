@@ -9,6 +9,9 @@ This project uses **Bun** as the package manager and **Vite** with custom path a
 You **must** have **Bun** installed to manage dependencies and run development scripts.  
 ( <https://bun.com/docs/installation> )
 
+> Can now use npm instead of bun </br>
+> node ^v22.7.0 required
+
 ### 2\. Install Dependencies
 
 From the root of the repository (`dynamic-form/`):
@@ -28,6 +31,12 @@ From the root of the repository:
 npm run build:lib    #runs: bun run --filter @ynotsoft/dynamic-form build
 ```
 
+or you can use npm commands using the workspace (--workspace) flag and passing in the name of the package
+
+```
+npm run build --workspace ynotsoft-dynamic-form
+```
+
 ### 4\. Start the Example App
 
 Run the development server for the example application.
@@ -36,7 +45,12 @@ From the root of the repository:
 
 ```bash
 npm run example  #runs: bun --filter example dev
+```
 
+or you can use npm commands using the workspace (--workspace) flag and passing in the name of the package
+
+```
+npm run dev --workspace ynotsoft-dynamic-form
 ```
 
 > **IMPORTANT NOTE ON HMR (Hot Module Replacement):**
