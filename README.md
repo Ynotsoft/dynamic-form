@@ -6,7 +6,8 @@ This project uses **Bun** as the package manager and **Vite** with custom path a
 
 ### 1\. Prerequisites
 
-You **must** have **Bun** installed to manage dependencies and run development scripts.
+You **must** have **Bun** installed to manage dependencies and run development scripts.  
+( <https://bun.com/docs/installation> )
 
 ### 2\. Install Dependencies
 
