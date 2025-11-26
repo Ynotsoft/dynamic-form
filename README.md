@@ -1,42 +1,47 @@
 # DynamicForm Component - Complete Field Reference
 
-## Install
+## Install and Development Setup (Bun Monorepo)
 
-```
-npm install ynotsoft-dynamic-form
+This project uses **Bun** as the package manager and **Vite** with custom path aliasing for Hot Module Replacement (HMR) in the monorepo workspace.
 
-# install peer dependencies
-npm install react-hot-toast dayjs react-select react-day-picker dompurify @radix-ui/react-label @radix-ui/react-popover @radix-ui/react-radio-group @radix-ui/react-select @radix-ui/react-separator @heroicons/react
+### 1\. Prerequisites
 
-```
+You **must** have **Bun** installed to manage dependencies and run development scripts.
 
-### Build the Library
+### 2\. Install Dependencies
 
-From the root of the library (dynamic-form/):
+From the root of the repository (`dynamic-form/`):
 
-```
-npm run build
-npm link
+```bash
+# Install all dependencies and create workspace symlinks using Bun
+bun install
 ```
 
-### Link It Inside the Example App
+### 3\. Build the Library (Initial Setup)
 
-Now connect the example app to the linked library:
+Because the library's `package.json` entry points point to files in the `/dist` directory, you must run an initial build so the example app can resolve the dependency.
 
-```
-cd ../example
-npm link ynotsoft-dynamic-form
-```
+From the root of the repository:
 
-### Start the Example App
-
-```
-npm run dev
+```bash
+npm run build:lib    #runs: bun run --filter @ynotsoft/dynamic-form build
 ```
 
-### TODO:
+### 4\. Start the Example App
 
-- remove radixui as dependency, maybe replace with ShadCN and maintain it ourselves
+Run the development server for the example application.
+
+From the root of the repository:
+
+```bash
+npm run example  #runs: bun --filter example dev
+
+```
+
+> **IMPORTANT NOTE ON HMR (Hot Module Replacement):**
+> If HMR fails for changes made in the `packages/dynamic-form-lib/` source code, ensure your `example-app/vite.config.js` has the necessary **Path Aliasing** configured to bypass the symlink watcher issue. This is configured to resolve HMR issues and is essential for local development.
+
+---
 
 ## Overview
 
@@ -45,7 +50,7 @@ The DynamicForm component provides a flexible, declarative way to build forms wi
 ## Basic Usage
 
 ```javascript
-import DynamicForm from "./lib/DynamicForm/DynamicForm";
+import { DynamicForm } from "@ynotsoft/dynamic-form"; // Note the package name
 
 const formDefinition = {
   fields: [
@@ -65,7 +70,7 @@ const formDefinition = {
 
 ## Field Types
 
-### 1. Header Field
+### 1\. Header Field
 
 Used for section titles and form organization.
 
@@ -79,7 +84,7 @@ Used for section titles and form organization.
 }
 ```
 
-### 2. Input Field
+### 2\. Input Field
 
 Standard text input with shadcn/ui styling.
 
@@ -100,7 +105,7 @@ Standard text input with shadcn/ui styling.
 }
 ```
 
-### 3. Email Field
+### 3\. Email Field
 
 Email input with validation and shadcn/ui styling.
 
@@ -115,7 +120,7 @@ Email input with validation and shadcn/ui styling.
 }
 ```
 
-### 4. TextArea Field
+### 4\. TextArea Field
 
 Multi-line text input.
 
@@ -133,7 +138,7 @@ Multi-line text input.
 }
 ```
 
-### 5. Select Field
+### 5\. Select Field
 
 Dropdown selection with single choice.
 
@@ -156,7 +161,7 @@ Dropdown selection with single choice.
 }
 ```
 
-### 6. MultiSelect Field
+### 6\. MultiSelect Field
 
 Multiple selection dropdown.
 
@@ -180,7 +185,7 @@ Multiple selection dropdown.
 }
 ```
 
-### 7. Checkbox Field
+### 7\. Checkbox Field
 
 Single checkbox with flexible layouts and card styling.
 
@@ -208,7 +213,7 @@ Single checkbox with flexible layouts and card styling.
 - `inline`: Checkbox and label side-by-side
 - `stacked`: Checkbox, label, and description stacked vertically
 
-### 8. Radio Group Field
+### 8\. Radio Group Field
 
 Single selection from multiple options using Radix UI.
 
@@ -237,7 +242,7 @@ Single selection from multiple options using Radix UI.
 }
 ```
 
-### 9. Date Picker Field
+### 9\. Date Picker Field
 
 Single date selection with shadcn/ui calendar.
 
@@ -259,7 +264,7 @@ Single date selection with shadcn/ui calendar.
 - Blue highlight for selected date
 - Popover interface
 
-### 10. Date Range Picker Field
+### 10\. Date Range Picker Field
 
 Select date ranges (from/to).
 
@@ -277,7 +282,7 @@ Select date ranges (from/to).
 }
 ```
 
-### 11. Time Field
+### 11\. Time Field
 
 Time picker with AM/PM selection.
 
@@ -299,7 +304,7 @@ Time picker with AM/PM selection.
 - Clear and Done buttons
 - Format: "HH:MM AM/PM"
 
-### 12. Date Time Picker Field
+### 12\. Date Time Picker Field
 
 Combined date and time selection.
 
@@ -313,7 +318,7 @@ Combined date and time selection.
 }
 ```
 
-### 13. File Upload Field
+### 13\. File Upload Field
 
 Single or multiple file uploads.
 
@@ -329,7 +334,7 @@ Single or multiple file uploads.
 }
 ```
 
-### 14. Hidden Field
+### 14\. Hidden Field
 
 Store hidden values in the form.
 
@@ -341,7 +346,7 @@ Store hidden values in the form.
 }
 ```
 
-### 15. HTML/Literal Field
+### 15\. HTML/Literal Field
 
 Display rich HTML content (non-editable).
 
@@ -352,7 +357,7 @@ Display rich HTML content (non-editable).
 }
 ```
 
-### 16. Alert Message Field
+### 16\. Alert Message Field
 
 Display contextual alert messages with icons (info, success, warning, error).
 
@@ -369,30 +374,10 @@ Display contextual alert messages with icons (info, success, warning, error).
   variant: 'success',
   message: 'Your form was submitted successfully!'
 }
-
-// Warning alert
-{
-  type: 'alert',
-  variant: 'warning',
-  message: 'Please review your information before submitting'
-}
-
-// Error alert
-{
-  type: 'alert',
-  variant: 'error',
-  message: 'There was an error processing your request'
-}
+// ... other variants omitted for brevity ...
 ```
 
-**Features:**
-
-- Color-coded backgrounds (blue, green, yellow, red)
-- Icon indicators for each variant
-- Clean, accessible design
-- No user interaction required (display only)
-
-### 17. Line Break Field
+### 17\. Line Break Field
 
 Add visual spacing between sections.
 
@@ -492,131 +477,7 @@ Load options from API:
 ## Complete Example
 
 ```javascript
-const formDefinition = {
-  fields: [
-    // Section Header
-    {
-      type: "header",
-      label: "Personal Information",
-      size: "xl",
-      underline: true,
-    },
-
-    // Alert Message
-    {
-      type: "alert",
-      variant: "info",
-      message:
-        "Please provide accurate information. All fields marked with * are required.",
-    },
-
-    // Input Field
-    {
-      name: "fullName",
-      label: "Full Name",
-      type: "input",
-      required: true,
-      placeholder: "John Doe",
-      containerStyle: "card",
-      color: "blue",
-    },
-
-    // Email Field
-    {
-      name: "email",
-      label: "Email",
-      type: "email",
-      required: true,
-      placeholder: "you@example.com",
-    },
-
-    // Date Picker
-    {
-      name: "birthDate",
-      label: "Birth Date",
-      type: "date",
-      required: true,
-      placeholder: "Select your birth date",
-    },
-
-    // Time Picker
-    {
-      name: "preferredTime",
-      label: "Preferred Contact Time",
-      type: "time",
-      placeholder: "Select time",
-    },
-
-    // Section Header
-    {
-      type: "header",
-      label: "Preferences",
-      size: "lg",
-      underline: true,
-    },
-
-    // Radio Group
-    {
-      name: "contactMethod",
-      label: "Preferred Contact Method",
-      type: "radiogroup",
-      required: true,
-      value: "email",
-      inline: true,
-      color: "green",
-      options: [
-        { value: "email", label: "Email" },
-        { value: "phone", label: "Phone" },
-        { value: "sms", label: "SMS" },
-      ],
-    },
-
-    // MultiSelect
-    {
-      name: "interests",
-      label: "Areas of Interest",
-      type: "multiselect",
-      value: [],
-      options: [
-        { value: "sports", label: "Sports" },
-        { value: "tech", label: "Technology" },
-        { value: "travel", label: "Travel" },
-        { value: "food", label: "Food & Dining" },
-      ],
-    },
-
-    // Checkbox
-    {
-      name: "newsletter",
-      label: "Subscribe to newsletter",
-      type: "checkbox",
-      layout: "inline",
-      description: "Get weekly updates and special offers",
-      containerStyle: "card",
-      color: "purple",
-    },
-
-    // TextArea
-    {
-      name: "comments",
-      label: "Additional Comments",
-      type: "textarea",
-      rows: 4,
-      maxLength: 500,
-      showCharCount: true,
-      placeholder: "Any additional information...",
-    },
-
-    // File Upload
-    {
-      name: "documents",
-      label: "Upload Documents",
-      type: "file",
-      accept: ".pdf,.doc,.docx",
-      maxSize: 5 * 1024 * 1024,
-    },
-  ],
-};
+// ... formDefinition omitted for brevity ...
 
 // Usage
 <DynamicForm
@@ -632,7 +493,7 @@ const formDefinition = {
   onFieldsChange={(values) => {
     console.log("Form changed:", values);
   }}
-/>;
+/>
 ```
 
 ---
