@@ -403,7 +403,7 @@ const DynamicForm = ({
 		>
 			{formDefinition ? (
 				formDefinition.fields.map((field) => (
-					<div className="col-span-full" key={field.name}>
+					<div className="col-span-full" key={field.name + field.type}>
 						{renderField(field)}
 					</div>
 				))

@@ -1,4 +1,4 @@
-import { DynamicForm } from "ynotsoft-dynamic-form";
+import { DynamicForm } from "@ynotsoft/dynamic-form";
 
 export default function ExampleDrawer({ onClose }) {
   const formDefinition = {

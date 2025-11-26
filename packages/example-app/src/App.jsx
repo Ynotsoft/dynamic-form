@@ -1,6 +1,6 @@
 import "./App.css";
 import { useState } from "react";
-import { DynamicForm } from "ynotsoft-dynamic-form";
+import { DynamicForm } from "@ynotsoft/dynamic-form";
 import ExampleNormalPage from "./pages/ExampleNormalPage.jsx";
 import ExampleDrawer from "./pages/ExampleDrawer.jsx";
 import ExampleDialog from "./pages/ExampleDialog.jsx";
@@ -30,7 +30,7 @@ export default function App() {
           </button>
         </div>
 
-        <div className="bg-red-500">
+        <div className="">
           <ExampleNormalPage />
         </div>
         {drawerOpen && <ExampleDrawer onClose={() => setDrawerOpen(false)} />}
