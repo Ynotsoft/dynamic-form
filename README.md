@@ -28,7 +28,7 @@ Because the library's `package.json` entry points point to files in the `/dist` 
 From the root of the repository:
 
 ```bash
-npm run build:lib    #runs: bun run --filter @ynotsoft/dynamic-form build
+npm run build    #runs: bun run --filter @ynotsoft/dynamic-form build
 ```
 
 or you can use npm commands using the workspace (--workspace) flag and passing in the name of the package
