@@ -114,16 +114,18 @@ const DynamicForm = ({
 				if (field.optionsUrl) loadOptionsForField(field);
 			});
 
-			// Initialise form values
-			const initialValues = {};
-			formDefinition.fields.forEach((field) => {
-				initialValues[field.name] =
-					defaultValues[field.name] ??
-					field.value ??
-					(field.type === "multiselect" ? [] : "");
-			});
-
-			setFormValues(initialValues);
+		// Initialise form values
+		const initialValues = {};
+		formDefinition.fields.forEach((field) => {
+			// Initialize arrays for multiselect and checkbox groups (checkboxes with options)
+			const shouldBeArray = field.type === "multiselect" || 
+				(field.type === "checkbox" && field.options && field.options.length > 0);
+			
+			initialValues[field.name] =
+				defaultValues[field.name] ??
+				field.value ??
+				(shouldBeArray ? [] : "");
+		});			setFormValues(initialValues);
 		}
 	}, [formDefinition]);
 
@@ -232,7 +234,9 @@ const DynamicForm = ({
 		if (field.type === "select") {
 			formDefinition.fields.forEach((f) => {
 				if (f.showIf && !f.showIf(newValues)) {
-					newValues[f.name] = f.type === "multiselect" ? [] : "";
+					const shouldBeArray = f.type === "multiselect" || 
+						(f.type === "checkbox" && f.options && f.options.length > 0);
+					newValues[f.name] = shouldBeArray ? [] : "";
 				}
 			});
 		}
@@ -240,7 +244,9 @@ const DynamicForm = ({
 		formDefinition.fields.forEach((f) => {
 			if (typeof f.disabled === "function" && f.disabled(newValues)) {
 				// ... rest of the logic
-				newValues[f.name] = f.type === "multiselect" ? [] : "";
+				const shouldBeArray = f.type === "multiselect" || 
+					(f.type === "checkbox" && f.options && f.options.length > 0);
+				newValues[f.name] = shouldBeArray ? [] : "";
 			}
 		});
 

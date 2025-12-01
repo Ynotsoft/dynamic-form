@@ -44,21 +44,32 @@ export default function ExampleNormalPage() {
         showCharCount: true,
         value: "Initial description",
       },
+
       {
         name: "agreeTerms",
-        label: "I agree to terms",
+        // label: "I agree to terms",
         type: "checkbox",
         required: true,
         value: false,
         description: "By checking this, you agree to our terms and conditions",
-
+        options: [
+          { value: 'sports', label: 'Sports', description: 'Athletic activities' },
+          { value: 'music', label: 'Music', description: 'Playing or listening' },
+          { value: 'art', label: 'Art', description: 'Creative visual arts' },
+          { value: 'technology', label: 'Technology', description: 'Tech gadgets and news' },
+          { value: 'travel', label: 'Travel', description: 'Exploring new places' },
+          { value: 'food', label: 'Food', description: 'Culinary delights' },
+          { value: 'fitness', label: 'Fitness', description: 'Health and exercise' },
+          { value: 'gaming', label: 'Gaming', description: 'Video games and esports' },
+        ],
         // Layout options
-        layout: "inline", // 'inline' | 'stacked' | 'default'
-
+        layout: "inline", // 'inline' | 'stacked' | 'default',
+        onChange: () => console.log("checkbox selection: ", formValues.agreeTerms),
         // Card container styling
         containerStyle: "card", // Wraps in bordered card
         color: "blue", // 'green' | 'blue' | 'red' | 'yellow' | 'purple' | 'indigo' | 'gray' | 'pink' | 'orange'
-      },
+        fieldClass: "flex-start"
+      },      
       {
         name: "paymentMethod",
         label: "Payment Method",
@@ -81,6 +92,7 @@ export default function ExampleNormalPage() {
         // Card container styling
         containerStyle: "card",
       },
+
       {
         name: "birthDate",
         label: "Birth Date",

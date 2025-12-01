@@ -212,7 +212,10 @@ Single checkbox with flexible layouts and card styling.
   required: true,
   value: false,
   description: 'By checking this, you agree to our terms and conditions',
-
+    options: [
+      { value: 'option1', label: 'Option 1', description: '' },
+      { value: 'option2', label: 'Option 2', description: '' },
+      { value: 'option3', label: 'Option 3', description: '' },
   // Layout options
   layout: 'inline',        // 'inline' | 'stacked' | 'default'
 
