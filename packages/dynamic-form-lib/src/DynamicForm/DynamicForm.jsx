@@ -391,60 +391,30 @@ const DynamicForm = ({
 					>
 						{field.label}
 						{field.required && <span className="text-red-500 ml-1">*</span>}
-						<button
-							type="button"
-							onClick={toggleOverride}
-							className={`ml-2 p-[0.25rem] rounded-sm transition-all duration-150 
+
+						{showToggleButton && (
+							<button
+								type="button"
+								onClick={toggleOverride}
+								className={`ml-2 p-[0.25rem] rounded-sm transition-all duration-150 
 								${
 									isOverridden
 										? " text-gray-600 bg-gray-100"
 										: " text-gray-600 hover:bg-gray-300"
 								}`}
-							title={
-								isOverridden
-									? "Field is Overridden (Enabled)"
-									: "Field is Locked (Disabled)"
-							}
-						>
-							{isOverridden ? <LockOpen size={14} /> : <Lock size={14} />}
-						</button>
+								title={
+									isOverridden
+										? "Field is Overridden (Enabled)"
+										: "Field is Locked (Disabled)"
+								}
+							>
+								{isOverridden ? <LockOpen size={14} /> : <Lock size={14} />}
+							</button>
+						)}
 					</label>
 				)}
 
-				{/* Field Rendering Block (with or without toggle button) */}
-				{showToggleButton ? (
-					<div className="flex flex-row gap-2 items-start relative">
-						<div className="flex-grow">{children}</div>
-						{/* Override Toggle Button */}
-						<button
-							type="button"
-							onClick={toggleOverride}
-							className={` p-2.5  rounded-md transition-all duration-150 shadow-sm
-								${
-									isOverridden
-										? "bg-indigo-600 text-white ring-2 ring-indigo-500"
-										: "bg-gray-200 text-gray-500 hover:bg-gray-300"
-								}`}
-							title={
-								isOverridden
-									? "Field is Overridden (Enabled)"
-									: "Field is Locked (Disabled)"
-							}
-						>
-							{isOverridden ? (
-								<>
-									Unlock
-									<LockOpen size={20} />
-								</>
-							) : (
-								<Lock size={20} />
-							)}
-						</button>
-					</div>
-				) : (
-					// Original field rendering
-					<div>{children}</div>
-				)}
+				<div>{children}</div>
 
 				{error && <p className="text-sm text-red-500 mt-1">{error}</p>}
 			</>

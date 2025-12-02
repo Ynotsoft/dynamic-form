@@ -11,7 +11,7 @@ export default function ExampleNormalPage() {
         placeholder: "Enter your name",
         value: "John Doe",
         disabled: true,
-        override: false,
+        override: true,
         maxLength: 100,
         onChange: (value) => console.log("input selection: ", value),
         validate: (value) => {
