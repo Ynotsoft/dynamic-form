@@ -20,6 +20,7 @@
  *   type: 'checkbox',
  *   name: 'interests',
  *   label: 'Select your interests',
+ *   required: true,
  *   options: [
  *     { value: 'sports', label: 'Sports', description: 'Athletic activities and games' },
  *     { value: 'music', label: 'Music', description: 'Playing or listening to music' },
@@ -63,7 +64,7 @@ function CheckboxField({field, formValues, handleChange, handleBlur, error}) {
   
   // If options exist, render as checkbox group
   if (options.length > 0) {
-    const selectedValues = formValues[field.name] || [];
+    const selectedValues = Array.isArray(formValues[field.name]) ? formValues[field.name] : [];
     
     const handleCheckboxGroupChange = (optionValue, isChecked) => {
       let newValues;
@@ -75,20 +76,24 @@ function CheckboxField({field, formValues, handleChange, handleBlur, error}) {
       handleChange(field.name, newValues);
     };
 
+    // Only show error if field is required and no options are selected
+    const showError = error && field.required && selectedValues.length === 0;
+
     return (
       <>
-        <div className={isInline ? 'flex flex-wrap gap-9' : 'space-y-3'}>
+        <div className={isInline ? 'flex flex-wrap gap-6' : 'space-y-3'}>
           {options.map((option) => {
             const optionValue = typeof option === 'object' ? option.value : option;
             const optionLabel = typeof option === 'object' ? option.label : option;
-            const optionDescription = typeof option === 'object' ? option.description : option;
+            const optionDescription = typeof option === 'object' ? option.description : null;
             const itemId = `${field.name}-${optionValue}`;
             const isChecked = selectedValues.includes(optionValue);
 
             return (
-              <div key={optionValue} className="relative flex items-center">
+              <div key={optionValue} className="relative flex items-start">
                 <div className="flex h-6 items-center">
                   <input
+                    {...field.props}
                     type="checkbox"
                     id={itemId}
                     checked={isChecked}
@@ -102,7 +107,7 @@ function CheckboxField({field, formValues, handleChange, handleBlur, error}) {
                         ? 'opacity-50 cursor-not-allowed bg-gray-100' 
                         : 'cursor-pointer hover:border-blue-400'
                       }
-                      ${error ? 'border-red-500' : ''}
+                      ${showError ? 'border-red-500' : ''}
                     `}
                   />
                 </div>
@@ -112,6 +117,9 @@ function CheckboxField({field, formValues, handleChange, handleBlur, error}) {
                     className={`font-medium ${isDisabled ? 'text-gray-500' : 'text-gray-900 cursor-pointer'}`}
                   >
                     {optionLabel}
+                    {field.required && selectedValues.length === 0 && (
+                      <span className="text-red-500 ml-1"></span>
+                    )}
                   </label>
                   {optionDescription && !isInline && (
                     <p className={`text-sm ${isDisabled ? 'text-gray-400' : 'text-gray-500'}`}>
@@ -123,7 +131,7 @@ function CheckboxField({field, formValues, handleChange, handleBlur, error}) {
             );
           })}
         </div>
-        {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
+        {showError && <p className="mt-1 text-sm text-red-500">{error}</p>}
       </>
     );
   }

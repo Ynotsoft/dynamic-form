@@ -348,7 +348,7 @@ const DynamicForm = ({
 				{field.label && (
 					<label
 						htmlFor={field.name}
-						className="block text-sm font-medium mb-1"
+						className="block text-sm font-medium mb-3.5"
 					>
 						{field.label}
 						{field.required && <span className="text-red-500 ml-1">*</span>}
