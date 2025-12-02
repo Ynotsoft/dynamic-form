@@ -77,12 +77,13 @@ jobs:
           echo "Building with Vite with Bun..."
           bun run build
 
-      #- name: Verify built files
-      #  run: |
-      #    echo "Verifying dist files..."
-      #    ls -l dist
-      #    test -f dist/dynamic-form.js
-      #    test -f dist/dynamic-form.umd.cjs
+      # Corrected paths to look inside the package subdirectory.
+      - name: Verify built files
+        run: |
+          echo "Verifying dist files..."
+          ls -l packages/dynamic-form-lib/dist
+          test -f packages/dynamic-form-lib/dist/dynamic-form.js
+          test -f packages/dynamic-form-lib/dist/dynamic-form.umd.cjs
 
       - name: Validate package name
         id: pkg
@@ -144,7 +145,7 @@ jobs:
       # ➡️ Replaced npm publish with bun publish
       - name: Publish to npm (if new, with Bun)
         if: steps.exists.outputs.exists == 'false'
-        run: bun publish --access public --provenance --tag "${{ steps.tag.outputs.tag }}"
+        run: bun publish --cwd packages/dynamic-form-lib --access public --provenance --tag "${{ steps.tag.outputs.tag }}"
 
       # ⚠️ Retained npm dist-tag as Bun does not have a native equivalent for managing distribution tags
       - name: Promote existing version (using npm)
