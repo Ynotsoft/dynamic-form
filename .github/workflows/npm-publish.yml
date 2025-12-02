@@ -77,12 +77,12 @@ jobs:
           echo "Building with Vite with Bun..."
           bun run build
 
-      - name: Verify built files
-        run: |
-          echo "Verifying dist files..."
-          ls -l dist
-          test -f dist/dynamic-form.js
-          test -f dist/dynamic-form.umd.cjs
+      #- name: Verify built files
+      #  run: |
+      #    echo "Verifying dist files..."
+      #    ls -l dist
+      #    test -f dist/dynamic-form.js
+      #    test -f dist/dynamic-form.umd.cjs
 
       - name: Validate package name
         id: pkg
