@@ -87,7 +87,7 @@ jobs:
       - name: Validate package name
         id: pkg
         run: |
-          NAME=$(node -p "require('./package.json').name")
+          NAME=$(node -p "require('./packages/dynamic-form-lib/package.json').name")
           echo "name=$NAME" >> "$GITHUB_OUTPUT"
           if [ "$NAME" != "ynotsoft-dynamic-form" ]; then
             echo "::error::Invalid package name: $NAME"; exit 1;
