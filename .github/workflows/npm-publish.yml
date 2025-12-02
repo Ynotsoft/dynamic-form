@@ -139,7 +139,7 @@ jobs:
           fi
 
       - name: Final provenance validation
-        run: node -e "console.log('repository.url =', require('./package.json').repository?.url)"
+        run: node -e "console.log('repository.url =', require('./packages/dynamic-form-lib/package.json').repository?.url)"
 
       # ➡️ Replaced npm publish with bun publish
       - name: Publish to npm (if new, with Bun)
