@@ -20,6 +20,8 @@ export default function ExampleNormalPage() {
         value: "John Doe",
         disabled: true,
         maxLength: 100,
+
+        override: true,
         validate: (value) => {
           if (value.length < 2) return "Name must be at least 2 characters";
           return null;
@@ -28,8 +30,10 @@ export default function ExampleNormalPage() {
       {
         name: "email",
         label: "Email Address",
+        disabled: true,
         type: "email",
         required: true,
+        override: true,
         placeholder: "you@example.com",
         value: "john@example.com",
       },
@@ -50,6 +54,8 @@ export default function ExampleNormalPage() {
         // label: "I agree to terms",
         type: "checkbox",
         required: true,
+        disable: true,
+        override: true,
         value: false,
         description: "By checking this, you agree to our terms and conditions",
         options: [

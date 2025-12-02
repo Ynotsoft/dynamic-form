@@ -1,8 +1,11 @@
 import React from 'react';
 
-function EmailField({ field, formValues, handleChange, handleBlur, error }) {
-  const isDisabled = field.readOnly && field.disabled;
-  
+// The 'disabled' prop is the effective state calculated in DynamicForm
+// (isFundamentallyDisabled && !isOverridden).
+function EmailField({ field, formValues, handleChange, handleBlur, error, disabled }) {
+  // Use the calculated disabled state directly.
+  const isDisabled = disabled;
+	
   return (
     <>
       <input
@@ -11,6 +14,7 @@ function EmailField({ field, formValues, handleChange, handleBlur, error }) {
         value={formValues[field.name] || ""}
         onChange={(e) => handleChange(field.name, e.target.value)}
         onBlur={() => handleBlur(field.name)}
+        // Apply the effective disabled state
         disabled={isDisabled}
         name={field.name}
         placeholder={field.placeholder}
