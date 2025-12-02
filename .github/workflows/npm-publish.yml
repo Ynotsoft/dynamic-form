@@ -109,11 +109,11 @@ jobs:
       - name: Bump version in package.json (with Bun)
         run: |
           TARGET="${{ steps.ver.outputs.version }}"
-          CURRENT=$(node -p "require('./package.json').version")
+          CURRENT=$(node -p "require('./packages/dynamic-form-lib/package.json').version")
           if [ "$CURRENT" != "$TARGET" ]; then
             bun version "$TARGET" --no-git-tag-version
           fi
-          echo "Updated version to $(node -p "require('./package.json').version")"
+          echo "Updated version to $(node -p "require('./packages/dynamic-form-lib/package.json').version")"
 
       - name: Pick npm dist-tag
         id: tag
