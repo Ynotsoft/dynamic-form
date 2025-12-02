@@ -1,16 +1,11 @@
 name: Publish ynotsoft-dynamic-form
 
 on:
-  # Runs automatically when a new GitHub Release is published
   release:
     types: [published]
-
-  # Also runs automatically when a version tag like "v1.0.32" is pushed
   push:
     tags:
       - "v*"
-
-  # Optional manual trigger
   workflow_dispatch:
     inputs:
       version:
@@ -33,19 +28,29 @@ jobs:
       contents: read
       id-token: write
     env:
-      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      # Renamed for clarity, but the secret remains the same
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }} 
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} # Needed for some npm utility commands below
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      # ➡️ Replaced actions/setup-node@v4 with oven-sh/setup-bun@v1
+      - name: Setup Bun and Node.js
+        uses: oven-sh/setup-bun@v1
         with:
-          node-version: 20
-          registry-url: https://registry.npmjs.org/
-          cache: npm
+          bun-version: latest # Or specify a version like '1.1.9'
+          # NOTE: registry-url is now configured via the NODE_AUTH_TOKEN env and .npmrc/bunconfig
 
+      # The rest of the workflow relies on Node, so we don't need to change the runtime environment, just the package manager commands.
+      
+      # ⚠️ IMPORTANT: You must ensure an .npmrc file is created or the registry/token is set in Bun config
+      # For simplicity, we rely on NODE_AUTH_TOKEN for the registry URL configured in the next step
+      - name: Set up .npmrc for authentication (Node/Bun)
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > .npmrc
+          
       - name: Ensure repository field (for provenance)
         run: |
           REPO_URL="https://github.com/${GITHUB_REPOSITORY}"
@@ -58,16 +63,19 @@ jobs:
           "
           node -p "require('./package.json').repository"
 
-      - name: Install dependencies
+      # ➡️ Replaced npm ci/install with bun install
+      - name: Install dependencies with Bun
         run: |
-          echo "Installing deps..."
-          rm -f package-lock.json
-          npm ci --no-audit --no-fund || npm install --no-audit --no-fund
+          echo "Installing deps with Bun..."
+          rm -f package-lock.json # Remove old lock file
+          # Use bun install with --no-save to mimic ci behavior for performance
+          bun install --no-save
 
-      - name: Build with Vite
+      # ➡️ Replaced npm run build with bun run build
+      - name: Build with Vite (using Bun)
         run: |
-          echo "Building with Vite..."
-          npm run build
+          echo "Building with Vite with Bun..."
+          bun run build
 
       - name: Verify built files
         run: |
@@ -97,12 +105,13 @@ jobs:
           echo "Publishing version $VERSION"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
-      - name: Bump version in package.json
+      # ➡️ Replaced npm version with bun version
+      - name: Bump version in package.json (with Bun)
         run: |
           TARGET="${{ steps.ver.outputs.version }}"
           CURRENT=$(node -p "require('./package.json').version")
           if [ "$CURRENT" != "$TARGET" ]; then
-            npm version "$TARGET" --no-git-tag-version
+            bun version "$TARGET" --no-git-tag-version
           fi
           echo "Updated version to $(node -p "require('./package.json').version")"
 
@@ -117,7 +126,8 @@ jobs:
             if [[ "$VER" == *-* ]]; then echo "tag=next"  >> "$GITHUB_OUTPUT"; else echo "tag=latest" >> "$GITHUB_OUTPUT"; fi
           fi
 
-      - name: Check if version exists
+      # ⚠️ Retained npm view as Bun does not have a native equivalent for querying the registry
+      - name: Check if version exists (using npm)
         id: exists
         run: |
           PKG="${{ steps.pkg.outputs.name }}"
@@ -131,11 +141,13 @@ jobs:
       - name: Final provenance validation
         run: node -e "console.log('repository.url =', require('./package.json').repository?.url)"
 
-      - name: Publish to npm (if new)
+      # ➡️ Replaced npm publish with bun publish
+      - name: Publish to npm (if new, with Bun)
         if: steps.exists.outputs.exists == 'false'
-        run: npm publish --access public --provenance --tag "${{ steps.tag.outputs.tag }}"
+        run: bun publish --access public --provenance --tag "${{ steps.tag.outputs.tag }}"
 
-      - name: Promote existing version
+      # ⚠️ Retained npm dist-tag as Bun does not have a native equivalent for managing distribution tags
+      - name: Promote existing version (using npm)
         if: steps.exists.outputs.exists == 'true'
         run: |
           PKG="${{ steps.pkg.outputs.name }}"
