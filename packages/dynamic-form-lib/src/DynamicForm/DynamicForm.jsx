@@ -20,20 +20,23 @@ import { default as RenderHeaderField } from "./fields/HeaderField.jsx";
 import { default as RenderDatePickerField } from "./fields/DatePickerField.jsx";
 import { default as RenderTimeField } from "./fields/timeField.jsx";
 import { default as RenderAlertMessageField } from "./fields/AlertMessageField.jsx";
+import { Lock, LockIcon, LockOpen, LockOpenIcon } from "lucide-react";
 const DynamicForm = ({
 	apiClient,
 	api_URL,
 	footerMode = "normal",
 	formDefinition,
-	sendFormValues,
+	sendFormValues = () => {},
 	children,
 	defaultValues = {},
 	onFieldsChange = () => {},
+	debugMode = false,
 }) => {
 	const [formValues, setFormValues] = useState({ ...defaultValues });
 	const [errors, setErrors] = useState({});
 	const [touched, setTouched] = useState({});
 	const [charCounts, setCharCounts] = useState({});
+	const [overrideStatus, setOverrideStatus] = useState({});
 	const excludeFromFieldFormat = [
 		"hidden",
 		"html",
@@ -114,18 +117,20 @@ const DynamicForm = ({
 				if (field.optionsUrl) loadOptionsForField(field);
 			});
 
-		// Initialise form values
-		const initialValues = {};
-		formDefinition.fields.forEach((field) => {
-			// Initialize arrays for multiselect and checkbox groups (checkboxes with options)
-			const shouldBeArray = field.type === "multiselect" || 
-				(field.type === "checkbox" && field.options && field.options.length > 0);
-			
-			initialValues[field.name] =
-				defaultValues[field.name] ??
-				field.value ??
-				(shouldBeArray ? [] : "");
-		});			setFormValues(initialValues);
+			// Initialise form values
+			const initialValues = {};
+			formDefinition.fields.forEach((field) => {
+				// Initialize arrays for multiselect and checkbox groups (checkboxes with options)
+				const shouldBeArray =
+					field.type === "multiselect" ||
+					(field.type === "checkbox" &&
+						field.options &&
+						field.options.length > 0);
+
+				initialValues[field.name] =
+					defaultValues[field.name] ?? field.value ?? (shouldBeArray ? [] : "");
+			});
+			setFormValues(initialValues);
 		}
 	}, [formDefinition]);
 
@@ -234,7 +239,8 @@ const DynamicForm = ({
 		if (field.type === "select") {
 			formDefinition.fields.forEach((f) => {
 				if (f.showIf && !f.showIf(newValues)) {
-					const shouldBeArray = f.type === "multiselect" || 
+					const shouldBeArray =
+						f.type === "multiselect" ||
 						(f.type === "checkbox" && f.options && f.options.length > 0);
 					newValues[f.name] = shouldBeArray ? [] : "";
 				}
@@ -244,7 +250,8 @@ const DynamicForm = ({
 		formDefinition.fields.forEach((f) => {
 			if (typeof f.disabled === "function" && f.disabled(newValues)) {
 				// ... rest of the logic
-				const shouldBeArray = f.type === "multiselect" || 
+				const shouldBeArray =
+					f.type === "multiselect" ||
 					(f.type === "checkbox" && f.options && f.options.length > 0);
 				newValues[f.name] = shouldBeArray ? [] : "";
 			}
@@ -256,25 +263,27 @@ const DynamicForm = ({
 		const newErrors = {};
 		formDefinition.fields.forEach((field) => {
 			// 1. Determine the disabled state safely (handles both function and boolean)
-			const isFieldDisabled =
+			const isFundamentallyDisabled =
 				typeof field.disabled === "function"
-					? field.disabled(formValues) // Call function if it's dynamic
-					: !!field.disabled; // Use the boolean value if static (!! converts undefined/null to false, true to true)
+					? field.disabled(newValues)
+					: !!field.disabled;
+
+			// 2. Check override status
+			const isOverridden = overrideStatus[field.name] === true;
+
+			// 3. Effective disabled state
+			const effectiveDisabled = isFundamentallyDisabled && !isOverridden;
 
 			if (
 				// Check if the field is shown
-				(!field.showIf || field.showIf(formValues)) &&
-				// Check if the field is NOT disabled
-				!isFieldDisabled
+				(!field.showIf || field.showIf(newValues)) &&
+				// Check if the field is NOT effectively disabled
+				!effectiveDisabled
 			) {
-				const error = validateField(field, formValues[field.name], formValues);
+				const error = validateField(field, newValues[field.name], newValues);
 				if (error) newErrors[field.name] = error;
 			}
 		});
-
-		setErrors(newErrors);
-		// ... rest of handleSubmit
-		// ...
 
 		setErrors(newErrors);
 	};
@@ -294,10 +303,21 @@ const DynamicForm = ({
 
 		const newErrors = {};
 		formDefinition.fields.forEach((field) => {
-			if (
-				(!field.showIf || field.showIf(formValues)) &&
-				(!field.disabled || !field.disabled(formValues))
-			) {
+			// Restore robust disabled check for validation in handleSubmit
+			// 1. Calculate fundamental disabled status safely
+			const isFundamentallyDisabled =
+				typeof field.disabled === "function"
+					? field.disabled(formValues) // Call if it's a dynamic function
+					: !!field.disabled; // Use boolean value if static
+
+			// 2. Calculate the user's explicit override state
+			const isOverridden = overrideStatus[field.name] === true;
+
+			// 3. Calculate the effective disabled state (Disabled unless explicitly overridden)
+			const effectiveDisabled = isFundamentallyDisabled && !isOverridden;
+
+			// Validate if the field is shown AND is NOT effectively disabled (i.e., is currently enabled)
+			if ((!field.showIf || field.showIf(formValues)) && !effectiveDisabled) {
 				const error = validateField(field, formValues[field.name], formValues);
 				if (error) newErrors[field.name] = error;
 			}
@@ -306,12 +326,13 @@ const DynamicForm = ({
 		setErrors(newErrors);
 
 		if (Object.keys(newErrors).length === 0) {
-			sendFormValues(formValues);
+			debugMode
+				? console.log("Form submitted with values:", formValues)
+				: sendFormValues(formValues);
 		} else {
 			toast.error("Please correct the errors in the form");
 		}
 	};
-
 	useEffect(() => {
 		onFieldsChange(formValues);
 	}, [formValues, onFieldsChange]);
@@ -343,49 +364,134 @@ const DynamicForm = ({
 				? `rounded-lg border text-card-foreground shadow-sm p-4 ${field.containerClassName || FIELD_COLOR_VARIANTS[color] || FIELD_COLOR_VARIANTS.blue}`
 				: "";
 
-		const content = (
+		// --- Override Logic Calculation (using closure state/props) ---
+		// Note: isFundamentallyDisabled is calculated here for determining if the button should be shown
+
+		// 1. Check if the user has overridden the disabled state
+		const isOverridden = overrideStatus[field.name] === true;
+
+		// 2. Determine if we should show the toggle button
+		// RENDER ONLY IF field.disabled is TRUE (static disable) AND field.override is TRUE
+		const showToggleButton = field.disabled === true && field.override === true;
+
+		const toggleOverride = () => {
+			setOverrideStatus((prev) => ({
+				...prev,
+				[field.name]: !prev[field.name],
+			}));
+		};
+		// --- End Override Logic Calculation ---
+
+		const fieldContent = (
 			<>
 				{field.label && (
 					<label
 						htmlFor={field.name}
-						className="block text-sm font-medium mb-3.5"
+						className="block text-sm font-medium mb-1"
 					>
 						{field.label}
 						{field.required && <span className="text-red-500 ml-1">*</span>}
+						<button
+							type="button"
+							onClick={toggleOverride}
+							className={`ml-2 p-[0.25rem] rounded-sm transition-all duration-150 
+								${
+									isOverridden
+										? " text-gray-600 bg-gray-100"
+										: " text-gray-600 hover:bg-gray-300"
+								}`}
+							title={
+								isOverridden
+									? "Field is Overridden (Enabled)"
+									: "Field is Locked (Disabled)"
+							}
+						>
+							{isOverridden ? <LockOpen size={14} /> : <Lock size={14} />}
+						</button>
 					</label>
 				)}
 
-				{/* InputField or any other field goes here */}
-				<div>{children}</div>
+				{/* Field Rendering Block (with or without toggle button) */}
+				{showToggleButton ? (
+					<div className="flex flex-row gap-2 items-start relative">
+						<div className="flex-grow">{children}</div>
+						{/* Override Toggle Button */}
+						<button
+							type="button"
+							onClick={toggleOverride}
+							className={` p-2.5  rounded-md transition-all duration-150 shadow-sm
+								${
+									isOverridden
+										? "bg-indigo-600 text-white ring-2 ring-indigo-500"
+										: "bg-gray-200 text-gray-500 hover:bg-gray-300"
+								}`}
+							title={
+								isOverridden
+									? "Field is Overridden (Enabled)"
+									: "Field is Locked (Disabled)"
+							}
+						>
+							{isOverridden ? (
+								<>
+									Unlock
+									<LockOpen size={20} />
+								</>
+							) : (
+								<Lock size={20} />
+							)}
+						</button>
+					</div>
+				) : (
+					// Original field rendering
+					<div>{children}</div>
+				)}
+
+				{error && <p className="text-sm text-red-500 mt-1">{error}</p>}
 			</>
 		);
 
 		return (
 			<div className={`mb-4 ${field.fieldClass || "col-span-8"}`}>
 				{containerStyle === "card" ? (
-					<div className={containerClasses}>{content}</div>
+					<div className={containerClasses}>{fieldContent}</div>
 				) : (
-					content
+					fieldContent
 				)}
 			</div>
 		);
 	}
-
+	// This is the function that renders each field and handles the override button logic
 	const renderField = (field) => {
 		if (field.showIf && !field.showIf(formValues)) return null;
 
 		const FieldComponent = FIELD_RENDERERS[field.type] || RenderInputField;
+
+		// Initialize value if missing
 		if (formValues[field.name] === undefined) {
+			const shouldBeArray =
+				field.type === "multiselect" ||
+				(field.type === "checkbox" &&
+					field.options &&
+					field.options.length > 0);
 			formValues[field.name] =
-				field.value !== undefined
-					? field.value
-					: field.type === "multiselect"
-						? []
-						: "";
+				field.value !== undefined ? field.value : shouldBeArray ? [] : "";
 		}
 
-		const error =
-			touched[field.name] && errors[field.name] ? errors[field.name] : null;
+		const error = errors[field.name] ? errors[field.name] : null;
+
+		// --- Disable/Override Logic for FieldComponent Prop ---
+
+		// 1. Calculate fundamental disabled status safely
+		const isFundamentallyDisabled =
+			typeof field.disabled === "function"
+				? field.disabled(formValues)
+				: !!field.disabled;
+
+		// 2. Check if the user has overridden the disabled state
+		const isOverridden = overrideStatus[field.name] === true;
+
+		// 3. The field is visually disabled if it is fundamentally disabled AND the user has NOT overridden it.
+		const effectiveDisabled = isFundamentallyDisabled && !isOverridden;
 
 		return fieldFormat(
 			<FieldComponent
@@ -397,11 +503,13 @@ const DynamicForm = ({
 				charCount={charCounts[field.name] || 0}
 				api_URL={api_URL}
 				error={error}
+				// Pass the effective disabled state to the field component
+				disabled={effectiveDisabled}
 			/>,
 			field,
+			error,
 		);
 	};
-
 	return (
 		<form
 			onSubmit={handleSubmit}
@@ -423,7 +531,7 @@ const DynamicForm = ({
 						: "col-span-full mt-4 flex justify-end gap-2"
 				}
 			>
-				{children} 
+				{children}
 			</div>
 		</form>
 	);

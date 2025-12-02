@@ -4,14 +4,6 @@ export default function ExampleNormalPage() {
   const formDefinition = {
     fields: [
       {
-        type: "header",
-        label: "Personal Information",
-        size: "xl", // 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl'
-        align: "left", // 'left' | 'center' | 'right'
-        underline: true, // Boolean - adds bottom border
-      },
-
-      {
         name: "fullName",
         label: "Full Name",
         type: "input",
@@ -19,8 +11,11 @@ export default function ExampleNormalPage() {
         placeholder: "Enter your name",
         value: "John Doe",
         disabled: true,
+        override: false,
         maxLength: 100,
+        onChange: (value) => console.log("input selection: ", value),
         validate: (value) => {
+          console.log(value);
           if (value.length < 2) return "Name must be at least 2 characters";
           return null;
         },
@@ -30,6 +25,8 @@ export default function ExampleNormalPage() {
         label: "Email Address",
         type: "email",
         required: true,
+        disabled: true,
+        override: true,
         placeholder: "you@example.com",
         value: "john@example.com",
       },
@@ -53,23 +50,48 @@ export default function ExampleNormalPage() {
         value: false,
         description: "By checking this, you agree to our terms and conditions",
         options: [
-          { value: 'sports', label: 'Sports', description: 'Athletic activities' },
-          { value: 'music', label: 'Music', description: 'Playing or listening' },
-          { value: 'art', label: 'Art', description: 'Creative visual arts' },
-          { value: 'technology', label: 'Technology', description: 'Tech gadgets and news' },
-          { value: 'travel', label: 'Travel', description: 'Exploring new places' },
-          { value: 'food', label: 'Food', description: 'Culinary delights' },
-          { value: 'fitness', label: 'Fitness', description: 'Health and exercise' },
-          { value: 'gaming', label: 'Gaming', description: 'Video games and esports' },
+          {
+            value: "sports",
+            label: "Sports",
+            description: "Athletic activities",
+          },
+          {
+            value: "music",
+            label: "Music",
+            description: "Playing or listening",
+          },
+          { value: "art", label: "Art", description: "Creative visual arts" },
+          {
+            value: "technology",
+            label: "Technology",
+            description: "Tech gadgets and news",
+          },
+          {
+            value: "travel",
+            label: "Travel",
+            description: "Exploring new places",
+          },
+          { value: "food", label: "Food", description: "Culinary delights" },
+          {
+            value: "fitness",
+            label: "Fitness",
+            description: "Health and exercise",
+          },
+          {
+            value: "gaming",
+            label: "Gaming",
+            description: "Video games and esports",
+          },
         ],
         // Layout options
         layout: "inline", // 'inline' | 'stacked' | 'default',
-        onChange: () => console.log("checkbox selection: ", formValues.agreeTerms),
+        onChange: () =>
+          console.log("checkbox selection: ", formValues.agreeTerms),
         // Card container styling
         containerStyle: "card", // Wraps in bordered card
         color: "blue", // 'green' | 'blue' | 'red' | 'yellow' | 'purple' | 'indigo' | 'gray' | 'pink' | 'orange'
-        fieldClass: "flex-start"
-      },      
+        fieldClass: "flex-start",
+      },
       {
         name: "paymentMethod",
         label: "Payment Method",
@@ -109,7 +131,11 @@ export default function ExampleNormalPage() {
     <div className="p-6 bg-white text-black rounded shadow border">
       <h2 className="text-xl font-semibold mb-4">Normal Page Form</h2>
 
-      <DynamicForm formDefinition={formDefinition} footerMode="normal">
+      <DynamicForm
+        formDefinition={formDefinition}
+        footerMode="normal"
+        debugMode={true}
+      >
         <div className="flex justify-end gap-4 mt-4">
           <button className="px-3 py-2 bg-gray-300 rounded" type="button">
             Cancel
