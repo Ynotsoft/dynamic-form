@@ -414,7 +414,6 @@ const DynamicForm = ({
 						htmlFor={field.name}
 						className="block text-sm font-medium mb-1"
 					>
-						{field.label}
 						{field.required && <span className="text-red-500 ml-1">*</span>}
 
 						{showToggleButton && (

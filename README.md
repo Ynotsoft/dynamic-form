@@ -56,6 +56,47 @@ npm run dev --workspace ynotsoft-dynamic-form
 > **IMPORTANT NOTE ON HMR (Hot Module Replacement):**
 > If HMR fails for changes made in the `packages/dynamic-form-lib/` source code, ensure your `example-app/vite.config.js` has the necessary **Path Aliasing** configured to bypass the symlink watcher issue. This is configured to resolve HMR issues and is essential for local development.
 
+### 5\. How to push changes
+
+#### For Regular Development Changes:
+```bash
+# 1. Commit your changes
+git add .
+git commit -m "feat: your change description"
+
+# 2. Create tag
+git tag v1.0.[version-number]
+```
+
+#### For NPM Package Releases:
+```bash
+# 1. Update version in package.json (in packages/dynamic-form-lib/)
+npm version patch   # for bug fixes (1.0.0 → 1.0.1)
+
+# 2. Build the library
+npm run build
+
+# 3. Create and push version tag
+git push origin v1.0.[version-number]   # Replace with your actual version
+
+# 4. GitHub Actions will automatically publish to NPM
+```
+
+#### Version Management:
+- **Single Source of Truth:** Version is maintained in `packages/dynamic-form-lib/package.json`
+- **Git Tags:** Use format `v1.0.[version-number]` (matches package.json version with "v" prefix)
+- **NPM Registry:** GitHub Actions reads git tag, strips "v" prefix, publishes as `1.0.[version-number]` to NPM
+- **Auto-Sync:** Git tag version must match package.json version for successful deployment
+
+**Quick Check:**
+```bash
+# Verify versions match before pushing
+cat packages/dynamic-form-lib/package.json | grep version
+git tag --list | tail -1
+```
+
+> **Note:** The GitHub Actions workflow automatically publishes to NPM when you push a version tag (e.g., `v1.0.[version-number]`). No manual `npm publish` required unless you are not logged into NPM already.
+
 ---
 
 ## Overview

@@ -83,6 +83,7 @@ export default function ExampleNormalPage() {
             description: "Video games and esports",
           },
         ],
+        onChange: () => console.log("checkbox changed", formValues.agreeTerms),
         // Layout options
         layout: "inline", // 'inline' | 'stacked' | 'default',
         // Card container styling
