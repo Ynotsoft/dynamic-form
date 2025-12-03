@@ -44,7 +44,7 @@ export default function ExampleNormalPage() {
 
       {
         name: "agreeTerms",
-        // label: "I agree to terms",
+        label: "Sports",
         type: "checkbox",
         required: true,
         value: false,
@@ -85,8 +85,6 @@ export default function ExampleNormalPage() {
         ],
         // Layout options
         layout: "inline", // 'inline' | 'stacked' | 'default',
-        onChange: () =>
-          console.log("checkbox selection: ", formValues.agreeTerms),
         // Card container styling
         containerStyle: "card", // Wraps in bordered card
         color: "blue", // 'green' | 'blue' | 'red' | 'yellow' | 'purple' | 'indigo' | 'gray' | 'pink' | 'orange'
@@ -97,7 +95,11 @@ export default function ExampleNormalPage() {
         label: "Payment Method",
         type: "radiogroup",
         required: true,
+        isMulti: true,
+        disabled: true,
+        override: true,
         value: "card",
+        renderType: "segment",
         variant: "cards", // 'default' | 'cards'
         options: [
           { value: "card", label: "Credit Card" },
@@ -114,15 +116,51 @@ export default function ExampleNormalPage() {
         // Card container styling
         containerStyle: "card",
       },
-
+      {
+        name: "documents",
+        label: "Upload Documents",
+        type: "multifile", // or 'multifile' for multiple
+        required: false,
+        accept: ".pdf,.doc,.docx,.jpg,.jpeg,.png",
+        maxSize: 5 * 1024 * 1024, // 5 MB
+        multiple: false,
+      },
       {
         name: "birthDate",
         label: "Birth Date",
         fieldClass: "col-span-8",
         type: "date",
-        required: true,
+        required: false,
         placeholder: "Select date",
         value: new Date("1990-01-01"),
+      },
+      {
+        type: "header",
+        label: "Personal Information",
+        size: "xl", // 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl'
+        align: "left", // 'left' | 'center' | 'right'
+        underline: true, // Boolean - adds bottom border
+      },
+      {
+        type: "litertext",
+        content: '<div class="alert">Important notice here</div>',
+      },
+      {
+        name: "interests",
+        label: "Interests",
+        type: "multiselect",
+        required: true,
+        value: ["sports", "tech"],
+        options: [
+          { value: "sports", label: "Sports" },
+          { value: "music", label: "Music" },
+          { value: "tech", label: "Technology" },
+          { value: "travel", label: "Travel" },
+        ],
+        validate: (value) => {
+          if (value && value.length > 3) return "Select up to 3 interests";
+          return null;
+        },
       },
     ],
   };

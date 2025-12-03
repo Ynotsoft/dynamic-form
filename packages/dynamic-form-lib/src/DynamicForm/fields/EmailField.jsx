@@ -28,7 +28,6 @@ function EmailField({
 						: "border-input focus-visible:ring-blue-500"
 				} ${isDisabled ? "bg-gray-100 text-gray-500 cursor-not-allowed" : "bg-background"}`}
 			/>
-			{error && <p className="mt-1 text-sm text-red-500">{error}</p>}
 		</>
 	);
 }

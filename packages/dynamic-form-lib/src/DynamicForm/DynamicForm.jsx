@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { toast } from "react-hot-toast";
 import dayjs from "dayjs";
-// import "dayjs/locale/de"; // Remove this to avoid module resolution issues
 // Removed: import apiClient from "../services/Interceptors.jsx"; - now passed as prop
 import { default as RenderHiddenField } from "./fields/HiddenField.jsx";
 import { default as RenderMultiSelectField } from "./fields/MultiSelectField.jsx";
@@ -20,7 +19,8 @@ import { default as RenderHeaderField } from "./fields/HeaderField.jsx";
 import { default as RenderDatePickerField } from "./fields/DatePickerField.jsx";
 import { default as RenderTimeField } from "./fields/timeField.jsx";
 import { default as RenderAlertMessageField } from "./fields/AlertMessageField.jsx";
-import { Lock, LockIcon, LockOpen, LockOpenIcon } from "lucide-react";
+import { Lock, LockOpen } from "lucide-react";
+
 const DynamicForm = ({
 	apiClient,
 	api_URL,
@@ -37,6 +37,10 @@ const DynamicForm = ({
 	const [touched, setTouched] = useState({});
 	const [charCounts, setCharCounts] = useState({});
 	const [overrideStatus, setOverrideStatus] = useState({});
+
+	// FIX: Initialize the ref object here to hold references to file inputs
+	const fileInputRefs = useRef({});
+
 	const excludeFromFieldFormat = [
 		"hidden",
 		"html",
@@ -72,7 +76,10 @@ const DynamicForm = ({
 		// Check if apiClient is provided, if not throw an error
 		if (!apiClient) {
 			const errorMsg = `apiClient prop is required when using fields with optionsUrl. Field "${field.name}" requires optionsUrl but no apiClient was provided.`;
-			console.error(errorMsg);
+
+			if (debugMode) {
+				console.error(errorMsg);
+			}
 			toast.error(errorMsg);
 			return;
 		}
@@ -101,7 +108,9 @@ const DynamicForm = ({
 			});
 			//setFieldOptions((prev) => ({ ...prev, [field.name]: options }));
 		} catch (error) {
-			console.error(`Failed to load options for ${field.name}:`, error);
+			if (debugMode) {
+				console.error(`Failed to load options for ${field.name}:`, error);
+			}
 		} finally {
 		}
 	};
@@ -120,6 +129,9 @@ const DynamicForm = ({
 			// Initialise form values
 			const initialValues = {};
 			formDefinition.fields.forEach((field) => {
+				// FIX: Skip any field that does not have a name defined to prevent {undefined: ''} key
+				if (!field.name) return;
+
 				// Initialize arrays for multiselect and checkbox groups (checkboxes with options)
 				const shouldBeArray =
 					field.type === "multiselect" ||
@@ -135,14 +147,8 @@ const DynamicForm = ({
 	}, [formDefinition]);
 
 	const validateField = (field, value, allValues) => {
-		if (typeof field.disabled === "function" && field.disabled(allValues)) {
-			return null;
-		}
-
-		// You may also want to handle static disabling explicitly here:
-		if (field.disabled === true) {
-			return null;
-		}
+		// IMPORTANT FIX: Remove all disabled checks from here.
+		// Validation must run on all fields regardless of their disabled state.
 
 		// Detect only plain objects (not Date)
 		const isPlainObject =
@@ -161,6 +167,10 @@ const DynamicForm = ({
 			(isPlainObject && Object.keys(value).length === 0);
 
 		if (field.required && isEmpty) {
+			// DEBUG: Log when a required field is generating an error
+			if (debugMode) {
+				console.warn(`VALIDATION FAILED (REQUIRED): ${field.name} is empty.`);
+			}
 			return `${field.label} is required`;
 		}
 
@@ -262,6 +272,7 @@ const DynamicForm = ({
 		// Validate all fields
 		const newErrors = {};
 		formDefinition.fields.forEach((field) => {
+			if (!field.name) return;
 			// 1. Determine the disabled state safely (handles both function and boolean)
 			const isFundamentallyDisabled =
 				typeof field.disabled === "function"
@@ -271,18 +282,20 @@ const DynamicForm = ({
 			// 2. Check override status
 			const isOverridden = overrideStatus[field.name] === true;
 
-			// 3. Effective disabled state
-			const effectiveDisabled = isFundamentallyDisabled && !isOverridden;
+			// 3. Effective disabled state is calculated but NOT used to skip validation here
+			// const effectiveDisabled = isFundamentallyDisabled && !isOverridden;
 
 			if (
-				// Check if the field is shown
-				(!field.showIf || field.showIf(newValues)) &&
-				// Check if the field is NOT effectively disabled
-				!effectiveDisabled
+				// Only check if the field is shown
+				!field.showIf ||
+				field.showIf(newValues)
 			) {
 				const error = validateField(field, newValues[field.name], newValues);
-				if (error) newErrors[field.name] = error;
+				if (error) {
+					newErrors[field.name] = error;
+				}
 			}
+			// REMOVED: The check for effectiveDisabled and the validation skip log
 		});
 
 		setErrors(newErrors);
@@ -303,7 +316,7 @@ const DynamicForm = ({
 
 		const newErrors = {};
 		formDefinition.fields.forEach((field) => {
-			// Restore robust disabled check for validation in handleSubmit
+			if (!field.name) return;
 			// 1. Calculate fundamental disabled status safely
 			const isFundamentallyDisabled =
 				typeof field.disabled === "function"
@@ -314,13 +327,14 @@ const DynamicForm = ({
 			const isOverridden = overrideStatus[field.name] === true;
 
 			// 3. Calculate the effective disabled state (Disabled unless explicitly overridden)
-			const effectiveDisabled = isFundamentallyDisabled && !isOverridden;
+			// const effectiveDisabled = isFundamentallyDisabled && !isOverridden;
 
-			// Validate if the field is shown AND is NOT effectively disabled (i.e., is currently enabled)
-			if ((!field.showIf || field.showIf(formValues)) && !effectiveDisabled) {
+			// Validation runs if the field is shown, regardless of disabled status
+			if (!field.showIf || field.showIf(formValues)) {
 				const error = validateField(field, formValues[field.name], formValues);
 				if (error) newErrors[field.name] = error;
 			}
+			// REMOVED: The check for effectiveDisabled and the submission skip log
 		});
 
 		setErrors(newErrors);
@@ -351,6 +365,19 @@ const DynamicForm = ({
 	};
 
 	function fieldFormat(children, field, error) {
+		// DEBUG: Log the error being passed to the renderer
+		if (debugMode) {
+			if (error) {
+				console.log(
+					`[fieldFormat RENDER] Rendering error for ${field.name}: ${error}`,
+				);
+			} else if (errors[field.name]) {
+				console.log(
+					`[fieldFormat RENDER] Error exists in state for ${field.name} but not passed in props!`,
+				);
+			}
+		}
+
 		if (excludeFromFieldFormat.includes(field.type)) {
 			return (
 				<div className={field.fieldClass || "col-span-full"}>{children}</div>
@@ -365,8 +392,6 @@ const DynamicForm = ({
 				: "";
 
 		// --- Override Logic Calculation (using closure state/props) ---
-		// Note: isFundamentallyDisabled is calculated here for determining if the button should be shown
-
 		// 1. Check if the user has overridden the disabled state
 		const isOverridden = overrideStatus[field.name] === true;
 
@@ -396,7 +421,7 @@ const DynamicForm = ({
 							<button
 								type="button"
 								onClick={toggleOverride}
-								className={`ml-2 p-[0.25rem] rounded-sm transition-all duration-150 
+								className={`ml-2 p-[0.25rem] rounded-sm transition-all duration-150 
 								${
 									isOverridden
 										? " text-gray-600 bg-gray-100"
@@ -416,6 +441,7 @@ const DynamicForm = ({
 
 				<div>{children}</div>
 
+				{/* THIS IS THE ERROR RENDERING LINE */}
 				{error && <p className="text-sm text-red-500 mt-1">{error}</p>}
 			</>
 		);
@@ -447,6 +473,7 @@ const DynamicForm = ({
 				field.value !== undefined ? field.value : shouldBeArray ? [] : "";
 		}
 
+		// Error is derived directly from the errors state
 		const error = errors[field.name] ? errors[field.name] : null;
 
 		// --- Disable/Override Logic for FieldComponent Prop ---
@@ -473,6 +500,8 @@ const DynamicForm = ({
 				charCount={charCounts[field.name] || 0}
 				api_URL={api_URL}
 				error={error}
+				// PASS THE FILE INPUT REFS HERE
+				fileInputRefs={fileInputRefs}
 				// Pass the effective disabled state to the field component
 				disabled={effectiveDisabled}
 			/>,
@@ -483,7 +512,7 @@ const DynamicForm = ({
 	return (
 		<form
 			onSubmit={handleSubmit}
-			className="grid grid-cols-12 gap-x-4 mx-auto w-full  "
+			className="grid grid-cols-12 gap-x-4 mx-auto w-full  "
 		>
 			{formDefinition ? (
 				formDefinition.fields.map((field) => (
@@ -497,7 +526,7 @@ const DynamicForm = ({
 			<div
 				className={
 					footerMode === "sticky"
-						? "absolute col-span-full w-full bottom-0  bg-white py-4 flex justify-end gap-2 z-50"
+						? "absolute col-span-full w-full bottom-0  bg-white py-4 flex justify-end gap-2 z-50"
 						: "col-span-full mt-4 flex justify-end gap-2"
 				}
 			>
