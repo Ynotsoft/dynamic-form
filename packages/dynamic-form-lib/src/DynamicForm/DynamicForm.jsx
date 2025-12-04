@@ -19,7 +19,7 @@ import { default as RenderHeaderField } from "./fields/HeaderField.jsx";
 import { default as RenderDatePickerField } from "./fields/DatePickerField.jsx";
 import { default as RenderTimeField } from "./fields/timeField.jsx";
 import { default as RenderAlertMessageField } from "./fields/AlertMessageField.jsx";
-import { Lock, LockOpen } from "lucide-react";
+import { Lock, LockOpen, X } from "lucide-react"; // Imported X for modal close button
 
 const DynamicForm = ({
 	apiClient,
@@ -37,6 +37,12 @@ const DynamicForm = ({
 	const [touched, setTouched] = useState({});
 	const [charCounts, setCharCounts] = useState({});
 	const [overrideStatus, setOverrideStatus] = useState({});
+
+	// NEW: State for managing the confirmation modal
+	const [confirmModal, setConfirmModal] = useState({
+		isOpen: false,
+		fieldName: null,
+	});
 
 	// FIX: Initialize the ref object here to hold references to file inputs
 	const fileInputRefs = useRef({});
@@ -364,6 +370,22 @@ const DynamicForm = ({
 		orange: "border-orange-500 bg-orange-50",
 	};
 
+	// Confirmation handlers for the modal
+	const handleConfirm = () => {
+		if (confirmModal.fieldName) {
+			// Execute the actual toggle (set override to true)
+			setOverrideStatus((prev) => ({
+				...prev,
+				[confirmModal.fieldName]: true,
+			}));
+		}
+		setConfirmModal({ isOpen: false, fieldName: null });
+	};
+
+	const handleCancel = () => {
+		setConfirmModal({ isOpen: false, fieldName: null });
+	};
+
 	function fieldFormat(children, field, error) {
 		// DEBUG: Log the error being passed to the renderer
 		if (debugMode) {
@@ -400,10 +422,22 @@ const DynamicForm = ({
 		const showToggleButton = field.disabled === true && field.override === true;
 
 		const toggleOverride = () => {
-			setOverrideStatus((prev) => ({
-				...prev,
-				[field.name]: !prev[field.name],
-			}));
+			const fieldName = field.name;
+			const willBeEnabled = !isOverridden; // We are currently locked, clicking will unlock
+
+			if (willBeEnabled) {
+				// Show confirmation ONLY when enabling (unlocking)
+				setConfirmModal({
+					isOpen: true,
+					fieldName: fieldName,
+				});
+			} else {
+				// If it's currently enabled (overridden), just disable it back immediately.
+				setOverrideStatus((prev) => ({
+					...prev,
+					[fieldName]: false, // Lock it back (set override to false)
+				}));
+			}
 		};
 		// --- End Override Logic Calculation ---
 
@@ -412,12 +446,10 @@ const DynamicForm = ({
 				{field.label && (
 					<label
 						htmlFor={field.name}
-						className="block text-sm font-medium mb-3"
+						className="block text-sm font-medium mb-1"
 					>
 						{field.label}
-						<span>
-							{field.required && <span className="text-red-500 ml-1">*</span>}
-						</span>
+						{field.required && <span className="text-red-500 ml-1">*</span>}
 
 						{showToggleButton && (
 							<button
@@ -511,6 +543,13 @@ const DynamicForm = ({
 			error,
 		);
 	};
+
+	// Find the field object for the modal
+	const fieldToConfirm = formDefinition?.fields?.find(
+		(f) => f.name === confirmModal.fieldName,
+	);
+	const fieldLabelToConfirm = fieldToConfirm?.label || confirmModal.fieldName;
+
 	return (
 		<form
 			onSubmit={handleSubmit}
@@ -534,6 +573,62 @@ const DynamicForm = ({
 			>
 				{children}
 			</div>
+
+			{/* Confirmation Modal Overlay and Content (Separated structure) */}
+			{confirmModal.isOpen && (
+				// Overlay component (fixed position, semi-transparent background)
+				<>
+					<div className="fixed inset-0 bg-black opacity-50 "></div>
+					<div className="fixed inset-0  z-[100] flex items-center justify-center p-4">
+						{/* Modal Content Box (relative position, white background) */}
+						<button
+							type="button"
+							className="bg-white rounded-xl shadow-2xl w-full max-w-sm transform transition-all"
+							onClick={(e) => e.stopPropagation()}
+						>
+							<div className="flex justify-between items-center border-b p-4">
+								<h3 className="text-xl font-bold text-gray-900">
+									Confirm Field Unlock
+								</h3>
+								<button
+									type="button"
+									onClick={handleCancel}
+									className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition"
+									aria-label="Close"
+								>
+									<X size={20} />
+								</button>
+							</div>
+							<div className="p-6">
+								<p className="text-gray-700 leading-relaxed mb-4">
+									Are you sure you want to{" "}
+									<span className="font-extrabold text-red-600">unlock</span>{" "}
+									the field{" "}
+									<span className="font-bold">"{fieldLabelToConfirm}"</span>
+									<br />
+									This action allows editing of a protected value.
+								</p>
+								<div className="flex justify-end gap-3">
+									<button
+										type="button"
+										onClick={handleCancel}
+										className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition"
+									>
+										Cancel
+									</button>
+									<button
+										type="button"
+										onClick={handleConfirm}
+										className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition shadow-md"
+									>
+										Unlock Field
+									</button>
+								</div>
+							</div>
+						</button>
+					</div>
+				</>
+			)}
 		</form>
 	);
 };
