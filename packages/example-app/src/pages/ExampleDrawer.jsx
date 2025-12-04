@@ -27,6 +27,8 @@ export default function ExampleDrawer({ onClose }) {
         label: "Budget",
         name: "Budget",
         required: true,
+        disabled: true,
+        override: true,
         placeholder: "Enter environment description",
         helpText: "A descriptive name for this environment",
         fieldClass: "col-span-full",

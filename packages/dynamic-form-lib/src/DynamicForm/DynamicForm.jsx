@@ -574,18 +574,23 @@ const DynamicForm = ({
 				{children}
 			</div>
 
-			{/* Confirmation Modal Overlay and Content (Separated structure) */}
 			{confirmModal.isOpen && (
-				// Overlay component (fixed position, semi-transparent background)
 				<>
-					<div className="fixed inset-0 bg-black opacity-50 "></div>
-					<div className="fixed inset-0  z-[100] flex items-center justify-center p-4">
-						{/* Modal Content Box (relative position, white background) */}
+					<div className="fixed inset-0 z-[99] bg-black opacity-40"></div>
+					<button
+						type="button"
+						className="fixed inset-0 z-[100]  flex items-center justify-center p-4"
+						// We use onClick on the fixed overlay to handle closing when clicking outside the modal content
+						onClick={handleCancel}
+					>
+						{/* Modal Content Box (centered by the parent fixed container) */}
 						<button
 							type="button"
 							className="bg-white rounded-xl shadow-2xl w-full max-w-sm transform transition-all"
+							// Crucial: Stop propagation so clicking the modal content doesn't trigger the overlay's close handler
 							onClick={(e) => e.stopPropagation()}
 						>
+							{/* Header */}
 							<div className="flex justify-between items-center border-b p-4">
 								<h3 className="text-xl font-bold text-gray-900">
 									Confirm Field Unlock
@@ -599,16 +604,21 @@ const DynamicForm = ({
 									<X size={20} />
 								</button>
 							</div>
-							<div className="p-6">
-								<p className="text-gray-700 leading-relaxed mb-4">
+							{/* Body */}
+							<div className="p-6 flex flex-col gap-2">
+								<p className="text-gray-700 text-sm leading-relaxed ">
 									Are you sure you want to{" "}
-									<span className="font-extrabold text-red-600">unlock</span>{" "}
-									the field{" "}
-									<span className="font-bold">"{fieldLabelToConfirm}"</span>
-									<br />
-									This action allows editing of a protected value.
+									<span className="font-extrabold text-destructive">
+										unlock{" "}
+									</span>
+									the field
 								</p>
-								<div className="flex justify-end gap-3">
+
+								<p className="font-bold">"{fieldLabelToConfirm}"</p>
+								<div className="italic text-sm   text-gray-500 mb-2">
+									This action allows editing of a protected value.
+								</div>
+								<div className="flex justify-end gap-3 ">
 									<button
 										type="button"
 										onClick={handleCancel}
@@ -619,14 +629,14 @@ const DynamicForm = ({
 									<button
 										type="button"
 										onClick={handleConfirm}
-										className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition shadow-md"
+										className="px-4 py-2 text-sm font-medium text-white bg-destructive rounded-lg hover:bg-red-700 transition shadow-md" // Changed text-destructive to bg-red-600 for consistency with the screenshot style
 									>
 										Unlock Field
 									</button>
 								</div>
 							</div>
 						</button>
-					</div>
+					</button>
 				</>
 			)}
 		</form>
