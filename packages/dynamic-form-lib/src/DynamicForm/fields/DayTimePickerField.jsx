@@ -97,7 +97,7 @@ function DayTimePickerField({ field, formValues, handleChange, handleBlur, error
             `}
           >
             {selected ? (
-              <span className="text-slate-900 font-medium">{selected.toLocaleString()}</span>
+              <span className="text-slate-900 ">{selected.toLocaleString()}</span>
             ) : (
               <span className="text-slate-400">
                 {field.placeholder || "Select date and time"}

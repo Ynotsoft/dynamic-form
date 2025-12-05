@@ -37,6 +37,7 @@ export default function ExampleNormalPage() {
         required: false,
         placeholder: "Enter description...",
         rows: 4,
+        fieldType: "String",
         maxLength: 500,
         showCharCount: true,
         value: "Initial description",
@@ -45,7 +46,7 @@ export default function ExampleNormalPage() {
         name: "birthDateTime",
         label: "Birth Date and Time",
         type: "dayTimePicker",
-        fieldType: "string",
+        fieldType: "Date",
         required: false,
         placeholder: "Select date and time",
         value: new Date("1990-01-01T12:00"),
@@ -57,6 +58,7 @@ export default function ExampleNormalPage() {
         type: "checkbox",
         required: true,
         value: false,
+
         description: "By checking this, you agree to our terms and conditions",
         options: [
           {
@@ -139,6 +141,7 @@ export default function ExampleNormalPage() {
         name: "birthDate",
         label: "Birth Date",
         fieldClass: "col-span-8",
+        fieldType: "Date",
         type: "date",
         required: false,
         placeholder: "Select date",
@@ -182,6 +185,7 @@ export default function ExampleNormalPage() {
       <DynamicForm
         formDefinition={formDefinition}
         footerMode="normal"
+        sendFormValues={(values) => console.log("Form Submitted: ", values)}
         debugMode={true}
       >
         <div className="flex justify-end gap-4 mt-4">

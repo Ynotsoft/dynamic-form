@@ -346,9 +346,19 @@ const DynamicForm = ({
 		setErrors(newErrors);
 
 		if (Object.keys(newErrors).length === 0) {
+			const formattedValues = {};
+			formDefinition.fields.forEach((field) => {
+				if (field.name) {
+					formattedValues[field.name] = {
+						value: formValues[field.name],
+						fieldType: field.fieldType || "string",
+					};
+				}
+			});
+
 			debugMode
-				? console.log("Form submitted with values:", formValues)
-				: sendFormValues(formValues);
+				? console.log("Form submitted with values:", formattedValues)
+				: sendFormValues(formattedValues);
 		} else {
 			toast.error("Please correct the errors in the form");
 		}
