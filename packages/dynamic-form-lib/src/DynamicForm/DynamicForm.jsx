@@ -26,10 +26,10 @@ const DynamicForm = ({
 	api_URL,
 	footerMode = "normal",
 	formDefinition,
-	sendFormValues = () => { },
+	sendFormValues = () => {},
 	children,
 	defaultValues = {},
-	onFieldsChange = () => { },
+	onFieldsChange = () => {},
 	debugMode = false,
 }) => {
 	const [formValues, setFormValues] = useState({ ...defaultValues });
@@ -229,8 +229,8 @@ const DynamicForm = ({
 			newValues[fieldName] = Array.isArray(value)
 				? value
 				: Array.from(value.target.selectedOptions).map(
-					(option) => option.value,
-				);
+						(option) => option.value,
+					);
 		}
 		// Handle DateRangePicker (dayPicker)
 		else if (field.type === "dateRange") {
@@ -466,10 +466,11 @@ const DynamicForm = ({
 								type="button"
 								onClick={toggleOverride}
 								className={`ml-2 p-[0.25rem] rounded-sm transition-all duration-150 
-								${isOverridden
+								${
+									isOverridden
 										? " text-gray-600 bg-gray-100"
 										: " text-gray-600 hover:bg-gray-300"
-									}`}
+								}`}
 								title={
 									isOverridden
 										? "Field is Overridden (Enabled)"
@@ -585,19 +586,37 @@ const DynamicForm = ({
 
 			{confirmModal.isOpen && (
 				<>
-					<div className="fixed inset-0 z-[99] bg-black opacity-40"></div>
-					<button
-						type="button"
-						className="fixed inset-0 z-[100]  flex items-center justify-center p-4"
-						// We use onClick on the fixed overlay to handle closing when clicking outside the modal content
+					{/* Modal Backdrop - This should remain non-interactive and just handle the click-to-cancel */}
+					<div
+						className="fixed inset-0 z-30 bg-black opacity-40"
 						onClick={handleCancel}
-					>
-						{/* Modal Content Box (centered by the parent fixed container) */}
-						<button
-							type="button"
+						tabIndex={0}
+						role="button"
+						onKeyDown={(e) => {
+							// Allows the element to be activated with Enter or Space
+							if (e.key === "Enter" || e.key === " ") {
+								handleCancel();
+							}
+						}}
+					></div>
+
+					{/* Modal Wrapper/Overlay - The backdrop is separate, so this wrapper no longer needs tabIndex/role/onKeyDown. */}
+					{/* We use a focus trap or the content box itself for keyboard interaction. */}
+					<div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+						{/* Modal Content Box - This is the actual dialog. */}
+						{/* It should manage focus and keyboard events for the dialog itself. */}
+						<div
 							className="bg-white rounded-xl shadow-2xl w-full max-w-sm transform transition-all"
-							// Crucial: Stop propagation so clicking the modal content doesn't trigger the overlay's close handler
 							onClick={(e) => e.stopPropagation()}
+							tabIndex={-1} // tabIndex is fine here as it's the dialog root, set to -1 to allow programmatic focus
+							role="dialog"
+							aria-modal="true"
+							// Listen for Escape key on the dialog container
+							onKeyDown={(e) => {
+								if (e.key === "Escape") {
+									handleCancel();
+								}
+							}}
 						>
 							{/* Header */}
 							<div className="flex justify-between items-center border-b p-4">
@@ -624,7 +643,7 @@ const DynamicForm = ({
 								</p>
 
 								<p className="font-bold">"{fieldLabelToConfirm}"</p>
-								<div className="italic text-sm   text-gray-500 mb-2">
+								<div className="italic text-sm text-gray-500 mb-2">
 									This action allows editing of a protected value.
 								</div>
 								<div className="flex justify-end gap-3 ">
@@ -638,14 +657,14 @@ const DynamicForm = ({
 									<button
 										type="button"
 										onClick={handleConfirm}
-										className="px-4 py-2 text-sm font-medium text-white bg-destructive rounded-lg hover:bg-red-700 transition shadow-md" // Changed text-destructive to bg-red-600 for consistency with the screenshot style
+										className="px-4 py-2 text-sm font-medium text-white bg-destructive rounded-lg hover:bg-red-700 transition shadow-md"
 									>
 										Unlock Field
 									</button>
 								</div>
 							</div>
-						</button>
-					</button>
+						</div>
+					</div>
 				</>
 			)}
 		</form>
