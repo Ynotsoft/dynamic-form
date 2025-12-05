@@ -41,6 +41,15 @@ export default function ExampleNormalPage() {
         showCharCount: true,
         value: "Initial description",
       },
+      {
+        name: "birthDateTime",
+        label: "Birth Date and Time",
+        type: "dayTimePicker",
+        fieldType: "string",
+        required: false,
+        placeholder: "Select date and time",
+        value: new Date("1990-01-01T12:00"),
+      },
 
       {
         name: "agreeTerms",
