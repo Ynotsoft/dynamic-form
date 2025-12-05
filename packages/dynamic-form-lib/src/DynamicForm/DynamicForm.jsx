@@ -26,10 +26,10 @@ const DynamicForm = ({
 	api_URL,
 	footerMode = "normal",
 	formDefinition,
-	sendFormValues = () => {},
+	sendFormValues = () => { },
 	children,
 	defaultValues = {},
-	onFieldsChange = () => {},
+	onFieldsChange = () => { },
 	debugMode = false,
 }) => {
 	const [formValues, setFormValues] = useState({ ...defaultValues });
@@ -229,8 +229,8 @@ const DynamicForm = ({
 			newValues[fieldName] = Array.isArray(value)
 				? value
 				: Array.from(value.target.selectedOptions).map(
-						(option) => option.value,
-					);
+					(option) => option.value,
+				);
 		}
 		// Handle DateRangePicker (dayPicker)
 		else if (field.type === "dateRange") {
@@ -466,11 +466,10 @@ const DynamicForm = ({
 								type="button"
 								onClick={toggleOverride}
 								className={`ml-2 p-[0.25rem] rounded-sm transition-all duration-150 
-								${
-									isOverridden
+								${isOverridden
 										? " text-gray-600 bg-gray-100"
 										: " text-gray-600 hover:bg-gray-300"
-								}`}
+									}`}
 								title={
 									isOverridden
 										? "Field is Overridden (Enabled)"
