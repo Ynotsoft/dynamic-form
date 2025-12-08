@@ -275,36 +275,7 @@ const DynamicForm = ({
 
 		setFormValues(newValues);
 
-		// Validate all fields
-		const newErrors = {};
-		formDefinition.fields.forEach((field) => {
-			if (!field.name) return;
-			// 1. Determine the disabled state safely (handles both function and boolean)
-			const isFundamentallyDisabled =
-				typeof field.disabled === "function"
-					? field.disabled(newValues)
-					: !!field.disabled;
 
-			// 2. Check override status
-			const isOverridden = overrideStatus[field.name] === true;
-
-			// 3. Effective disabled state is calculated but NOT used to skip validation here
-			// const effectiveDisabled = isFundamentallyDisabled && !isOverridden;
-
-			if (
-				// Only check if the field is shown
-				!field.showIf ||
-				field.showIf(newValues)
-			) {
-				const error = validateField(field, newValues[field.name], newValues);
-				if (error) {
-					newErrors[field.name] = error;
-				}
-			}
-			// REMOVED: The check for effectiveDisabled and the validation skip log
-		});
-
-		setErrors(newErrors);
 	};
 
 	const handleBlur = (fieldName) => {
@@ -328,12 +299,6 @@ const DynamicForm = ({
 				typeof field.disabled === "function"
 					? field.disabled(formValues) // Call if it's a dynamic function
 					: !!field.disabled; // Use boolean value if static
-
-			// 2. Calculate the user's explicit override state
-			const isOverridden = overrideStatus[field.name] === true;
-
-			// 3. Calculate the effective disabled state (Disabled unless explicitly overridden)
-			// const effectiveDisabled = isFundamentallyDisabled && !isOverridden;
 
 			// Validation runs if the field is shown, regardless of disabled status
 			if (!field.showIf || field.showIf(formValues)) {

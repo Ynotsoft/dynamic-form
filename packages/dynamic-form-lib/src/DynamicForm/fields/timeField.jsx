@@ -75,10 +75,9 @@ function TimeField({ field, formValues, handleChange, handleBlur, error }) {
               hover:bg-gray-50 hover:text-gray-900
               focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
               disabled:cursor-not-allowed disabled:opacity-50
-              ${
-								error
-									? "border-red-500 focus-visible:ring-red-500"
-									: "border-gray-300 focus-visible:ring-blue-500"
+              ${error
+								? "border-red-500 focus-visible:ring-red-500"
+								: "border-gray-300 focus-visible:ring-blue-500"
 							}
             `}
 					>
@@ -231,10 +230,9 @@ function TimeField({ field, formValues, handleChange, handleBlur, error }) {
 									onClick={() => setPeriod("AM")}
 									className={`
                     px-3 py-1 text-sm font-medium rounded
-                    ${
-											period === "AM"
-												? "bg-blue-600 text-white"
-												: "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    ${period === "AM"
+											? "bg-blue-600 text-white"
+											: "bg-gray-100 text-gray-700 hover:bg-gray-200"
 										}
                   `}
 								>
@@ -245,10 +243,9 @@ function TimeField({ field, formValues, handleChange, handleBlur, error }) {
 									onClick={() => setPeriod("PM")}
 									className={`
                     px-3 py-1 text-sm font-medium rounded
-                    ${
-											period === "PM"
-												? "bg-blue-600 text-white"
-												: "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    ${period === "PM"
+											? "bg-blue-600 text-white"
+											: "bg-gray-100 text-gray-700 hover:bg-gray-200"
 										}
                   `}
 								>
@@ -277,7 +274,6 @@ function TimeField({ field, formValues, handleChange, handleBlur, error }) {
 					</div>
 				</PopoverContent>
 			</Popover>
-			{error && <p className="mt-1 text-sm text-red-500">{error}</p>}
 		</div>
 	);
 }

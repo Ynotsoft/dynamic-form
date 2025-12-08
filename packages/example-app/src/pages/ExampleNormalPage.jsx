@@ -34,7 +34,7 @@ export default function ExampleNormalPage() {
         name: "description",
         label: "Description",
         type: "textarea",
-        required: false,
+        required: true,
         placeholder: "Enter description...",
         rows: 4,
         fieldType: "String",
@@ -132,7 +132,7 @@ export default function ExampleNormalPage() {
         name: "documents",
         label: "Upload Documents",
         type: "multifile", // or 'multifile' for multiple
-        required: false,
+        required: true,
         accept: ".pdf,.doc,.docx,.jpg,.jpeg,.png",
         maxSize: 5 * 1024 * 1024, // 5 MB
         multiple: false,
@@ -143,7 +143,7 @@ export default function ExampleNormalPage() {
         fieldClass: "col-span-8",
         fieldType: "Date",
         type: "date",
-        required: false,
+        required: true,
         placeholder: "Select date",
         value: new Date("1990-01-01"),
       },
