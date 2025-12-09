@@ -253,8 +253,7 @@ const DynamicForm = ({
 		} else if (field.type === "number") {
 
 			newValues[fieldName] = value === "" ? "" : Number(value);
-		} 
-		
+		}
 		else {
 			newValues[fieldName] = value;
 		}
