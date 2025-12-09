@@ -116,6 +116,7 @@ const formDefinition = {
 
 <DynamicForm
   formDefinition={formDefinition}
+  returnType= {false}
   defaultValues={{ name: "John Doe" }}
   sendFormValues={(values) => console.log(values)}
   onFieldsChange={(values) => console.log("Changed:", values)}

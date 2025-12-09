@@ -43,6 +43,13 @@ export default function ExampleNormalPage() {
         value: "Initial description",
       },
       {
+        name: "number",
+        label: "Number",
+        type: "number",
+        required: true,
+        placeholder: "Enter number...",
+      },
+      {
         name: "birthDateTime",
         label: "Birth Date and Time",
         type: "dayTimePicker",
@@ -132,7 +139,7 @@ export default function ExampleNormalPage() {
         name: "documents",
         label: "Upload Documents",
         type: "multifile", // or 'multifile' for multiple
-        required: true,
+        required: false,
         accept: ".pdf,.doc,.docx,.jpg,.jpeg,.png",
         maxSize: 5 * 1024 * 1024, // 5 MB
         multiple: false,
@@ -184,6 +191,7 @@ export default function ExampleNormalPage() {
 
       <DynamicForm
         formDefinition={formDefinition}
+        returnType={false}
         footerMode="normal"
         sendFormValues={(values) => console.log("Form Submitted: ", values)}
         debugMode={true}

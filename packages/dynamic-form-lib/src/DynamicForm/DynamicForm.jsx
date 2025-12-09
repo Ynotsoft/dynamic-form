@@ -7,6 +7,7 @@ import { default as RenderMultiSelectField } from "./fields/MultiSelectField.jsx
 import { default as RenderSelectField } from "./fields/SelectField.jsx";
 import { default as RenderEmailField } from "./fields/EmailField.jsx";
 import { default as RenderInputField } from "./fields/InputField.jsx";
+import { default as RenderNumberField } from "./fields/NumberField.jsx";
 import { default as RenderHtmlField } from "./fields/HtmlField.jsx";
 import { default as RenderCheckboxField } from "./fields/CheckboxField.jsx";
 import { default as RenderDayPickerField } from "./fields/DateRangePickerField.jsx";
@@ -26,10 +27,11 @@ const DynamicForm = ({
 	api_URL,
 	footerMode = "normal",
 	formDefinition,
-	sendFormValues = () => {},
+	returnType = false,
+	sendFormValues = () => { },
 	children,
 	defaultValues = {},
-	onFieldsChange = () => {},
+	onFieldsChange = () => { },
 	debugMode = false,
 }) => {
 	const [formValues, setFormValues] = useState({ ...defaultValues });
@@ -70,6 +72,7 @@ const DynamicForm = ({
 			checkbox: RenderCheckboxField,
 			radiogroup: RenderRadioGroupField,
 			input: RenderInputField,
+			number: RenderNumberField,
 			textarea: RenderTextAreaField,
 			header: RenderHeaderField,
 			alert: RenderAlertMessageField,
@@ -229,8 +232,8 @@ const DynamicForm = ({
 			newValues[fieldName] = Array.isArray(value)
 				? value
 				: Array.from(value.target.selectedOptions).map(
-						(option) => option.value,
-					);
+					(option) => option.value,
+				);
 		}
 		// Handle DateRangePicker (dayPicker)
 		else if (field.type === "dateRange") {
@@ -247,7 +250,12 @@ const DynamicForm = ({
 			newValues[fieldName] = value
 				? dayjs(value).format("YYYY-MM-DD HH:mm:ss")
 				: "";
-		} else {
+		} else if (field.type === "number") {
+
+			newValues[fieldName] = value === "" ? "" : Number(value);
+		} 
+		
+		else {
 			newValues[fieldName] = value;
 		}
 
@@ -314,10 +322,14 @@ const DynamicForm = ({
 			const formattedValues = {};
 			formDefinition.fields.forEach((field) => {
 				if (field.name) {
-					formattedValues[field.name] = {
-						value: formValues[field.name],
-						fieldType: field.fieldType || "string",
-					};
+					if (returnType) {
+						formattedValues[field.name] = {
+							value: formValues[field.name],
+							fieldType: field.fieldType || "string",
+						};
+					} else {
+						formattedValues[field.name] = formValues[field.name];
+					}
 				}
 			});
 
@@ -431,11 +443,10 @@ const DynamicForm = ({
 								type="button"
 								onClick={toggleOverride}
 								className={`ml-2 p-[0.25rem] rounded-sm transition-all duration-150 
-								${
-									isOverridden
+								${isOverridden
 										? " text-gray-600 bg-gray-100"
 										: " text-gray-600 hover:bg-gray-300"
-								}`}
+									}`}
 								title={
 									isOverridden
 										? "Field is Overridden (Enabled)"
