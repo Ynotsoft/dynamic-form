@@ -56,7 +56,7 @@ export default function ExampleNormalPage() {
         fieldType: "Date",
         required: false,
         placeholder: "Select date and time",
-        value: new Date("1990-01-01T12:00"),
+        value: null,
       },
 
       {

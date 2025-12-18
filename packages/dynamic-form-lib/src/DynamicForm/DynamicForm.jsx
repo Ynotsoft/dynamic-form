@@ -28,10 +28,10 @@ const DynamicForm = ({
 	footerMode = "normal",
 	formDefinition,
 	returnType = false,
-	sendFormValues = () => { },
+	sendFormValues = () => {},
 	children,
 	defaultValues = {},
-	onFieldsChange = () => { },
+	onFieldsChange = () => {},
 	debugMode = false,
 }) => {
 	const [formValues, setFormValues] = useState({ ...defaultValues });
@@ -232,8 +232,8 @@ const DynamicForm = ({
 			newValues[fieldName] = Array.isArray(value)
 				? value
 				: Array.from(value.target.selectedOptions).map(
-					(option) => option.value,
-				);
+						(option) => option.value,
+					);
 		}
 		// Handle DateRangePicker (dayPicker)
 		else if (field.type === "dateRange") {
@@ -251,10 +251,8 @@ const DynamicForm = ({
 				? dayjs(value).format("YYYY-MM-DD HH:mm:ss")
 				: "";
 		} else if (field.type === "number") {
-
 			newValues[fieldName] = value === "" ? "" : Number(value);
-		}
-		else {
+		} else {
 			newValues[fieldName] = value;
 		}
 
@@ -281,8 +279,6 @@ const DynamicForm = ({
 		});
 
 		setFormValues(newValues);
-
-
 	};
 
 	const handleBlur = (fieldName) => {
@@ -294,51 +290,89 @@ const DynamicForm = ({
 
 		const allTouched = {};
 		formDefinition.fields.forEach((field) => {
-			allTouched[field.name] = true;
+			if (field.name) allTouched[field.name] = true;
 		});
 		setTouched(allTouched);
 
 		const newErrors = {};
+
 		formDefinition.fields.forEach((field) => {
 			if (!field.name) return;
-			// 1. Calculate fundamental disabled status safely
-			const isFundamentallyDisabled =
-				typeof field.disabled === "function"
-					? field.disabled(formValues) // Call if it's a dynamic function
-					: !!field.disabled; // Use boolean value if static
 
-			// Validation runs if the field is shown, regardless of disabled status
+			// Validation runs if the field is shown
 			if (!field.showIf || field.showIf(formValues)) {
 				const error = validateField(field, formValues[field.name], formValues);
 				if (error) newErrors[field.name] = error;
 			}
-			// REMOVED: The check for effectiveDisabled and the submission skip log
 		});
 
 		setErrors(newErrors);
 
 		if (Object.keys(newErrors).length === 0) {
+			// --- TYPE CONVERSION HELPER ---
+			const castValue = (value, type) => {
+				if (value === "" || value === null || value === undefined) return null;
+
+				const typeLower = type?.toLowerCase();
+
+				// 1. Handle Arrays (e.g., number arrays for multi-select)
+				if (Array.isArray(value)) {
+					if (typeLower === "number" || typeLower === "integer") {
+						return value.map((val) => (val === "" ? null : Number(val)));
+					}
+					return value;
+				}
+
+				// 2. Handle Single Values
+				switch (typeLower) {
+					case "number":
+					case "integer":
+					case "float":
+						return Number(value);
+					case "boolean":
+					case "bool":
+						return String(value).toLowerCase() === "true" || value === true;
+					case "date":
+					case "datetime": {
+						// FIXED: Using block scope {} to avoid ESLint errors
+						// .toISOString() produces the YYYY-MM-DDTHH:mm:ss.sssZ format
+						// which C# DateTime and Json.NET/System.Text.Json prefer.
+						const dateObj = dayjs(value);
+						return dateObj.isValid() ? dateObj.toISOString() : value;
+					}
+					default:
+						return value;
+				}
+			};
+
 			const formattedValues = {};
 			formDefinition.fields.forEach((field) => {
 				if (field.name) {
+					const rawValue = formValues[field.name];
+					const type = field.fieldType || "string";
+					const convertedValue = castValue(rawValue, type);
+
 					if (returnType) {
 						formattedValues[field.name] = {
-							value: formValues[field.name],
-							fieldType: field.fieldType || "string",
+							value: convertedValue,
+							fieldType: type,
 						};
 					} else {
-						formattedValues[field.name] = formValues[field.name];
+						formattedValues[field.name] = convertedValue;
 					}
 				}
 			});
 
-			debugMode
-				? console.log("Form submitted with values:", formattedValues)
-				: sendFormValues(formattedValues);
+			if (debugMode) {
+				console.log("Form submitted with values:", formattedValues);
+			} else {
+				sendFormValues(formattedValues);
+			}
 		} else {
 			toast.error("Please correct the errors in the form");
 		}
 	};
+
 	useEffect(() => {
 		onFieldsChange(formValues);
 	}, [formValues, onFieldsChange]);
@@ -442,10 +476,11 @@ const DynamicForm = ({
 								type="button"
 								onClick={toggleOverride}
 								className={`ml-2 p-[0.25rem] rounded-sm transition-all duration-150 
-								${isOverridden
+								${
+									isOverridden
 										? " text-gray-600 bg-gray-100"
 										: " text-gray-600 hover:bg-gray-300"
-									}`}
+								}`}
 								title={
 									isOverridden
 										? "Field is Overridden (Enabled)"
