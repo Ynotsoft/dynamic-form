@@ -242,6 +242,25 @@ Multiple selection dropdown.
 }
 ```
 
+### 6\. MultiSelectSearch Field
+
+Search for selections and select multiple/single
+
+```javascript
+    {
+      name: "username",
+      label: "Search for Users",
+      type: "multiselectsearch",
+      required: true,
+      placeholder: "Type to search users...",
+      // layout: "inline", // default inline
+      layout: "dialog", 
+      optionsUrl: "/api/users/search", // API endpoint
+      minSearchLength: 2, // Minimum characters before search (default: 2)      
+      selectMode: "single", // 'single' | 'multiple' (default: 'single')  
+    }
+```
+
 ### 7\. Checkbox Field
 
 Single checkbox with flexible layouts and card styling.
