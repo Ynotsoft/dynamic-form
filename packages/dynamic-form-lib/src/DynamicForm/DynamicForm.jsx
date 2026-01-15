@@ -4,7 +4,7 @@ import dayjs from "dayjs";
 // Removed: import apiClient from "../services/Interceptors.jsx"; - now passed as prop
 import { default as RenderHiddenField } from "./fields/HiddenField.jsx";
 import { default as RenderMultiSelectField } from "./fields/MultiSelectField.jsx";
-import { default as RenderMultiSelectSearchField } from "./fields/MultiSelectSearchField.jsx";
+import { default as SearchSelectField } from "./fields/SearchSelectField.jsx";
 import { default as RenderSelectField } from "./fields/SelectField.jsx";
 import { default as RenderEmailField } from "./fields/EmailField.jsx";
 import { default as RenderInputField } from "./fields/InputField.jsx";
@@ -67,7 +67,8 @@ const DynamicForm = ({
 			time: RenderTimeField,
 			hidden: RenderHiddenField,
 			multiselect: RenderMultiSelectField,
-			multiselectsearch: RenderMultiSelectSearchField,
+			searchselect: SearchSelectField,
+			searchselect: SearchSelectField,
 			select: RenderSelectField,
 			email: RenderEmailField,
 			litertext: RenderHtmlField,
@@ -145,7 +146,8 @@ const DynamicForm = ({
 
 				// Initialize arrays for multiselect and checkbox groups (checkboxes with options)
 				const shouldBeArray =
-					field.type === "multiselect" || field.type === "multiselectsearch" ||
+				field.type === "multiselect" || 
+				field.type === "searchselect" ||
 					(field.type === "checkbox" &&
 						field.options &&
 						field.options.length > 0);
@@ -230,7 +232,7 @@ const DynamicForm = ({
 
 		const newValues = { ...formValues };
 		// Handle multiselect values
-		if (field.type === "multiselect" || field.type === "multiselectsearch") {
+		if (field.type === "multiselect" || field.type === "searchselect") {
 			newValues[fieldName] = Array.isArray(value)
 				? value
 				: Array.from(value.target.selectedOptions).map(
@@ -263,7 +265,8 @@ const DynamicForm = ({
 			formDefinition.fields.forEach((f) => {
 				if (f.showIf && !f.showIf(newValues)) {
 					const shouldBeArray =
-						f.type === "multiselect" || f.type === "multiselectsearch" ||
+						f.type === "multiselect" || 
+						f.type === "searchselect" ||
 						(f.type === "checkbox" && f.options && f.options.length > 0);
 					newValues[f.name] = shouldBeArray ? [] : "";
 				}
@@ -274,7 +277,8 @@ const DynamicForm = ({
 			if (typeof f.disabled === "function" && f.disabled(newValues)) {
 				// ... rest of the logic
 				const shouldBeArray =
-					f.type === "multiselect" || f.type === "multiselectsearch" ||
+					f.type === "multiselect" || 
+					f.type === "searchselect" ||
 					(f.type === "checkbox" && f.options && f.options.length > 0);
 				newValues[f.name] = shouldBeArray ? [] : "";
 			}
@@ -521,7 +525,7 @@ const DynamicForm = ({
 		// Initialize value if missing
 		if (formValues[field.name] === undefined) {
 			const shouldBeArray =
-				field.type === "multiselect" || field.type === "multiselectsearch" ||
+				field.type === "multiselect" || field.type === "searchselect" ||
 				(field.type === "checkbox" &&
 					field.options &&
 					field.options.length > 0);

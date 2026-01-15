@@ -24,7 +24,7 @@ export default function ExampleNormalPage() {
       {
         name: "username",
         label: "Search for Users",
-        type: "multiselectsearch",
+        type: "searchselect",
         required: true,
         placeholder: "Type to search users...",
         // layout: "inline",
@@ -208,7 +208,7 @@ export default function ExampleNormalPage() {
         footerMode="normal"
         sendFormValues={(values) => console.log("Form Submitted: ", values)}
         debugMode={true}
-        apiClient={mockApiClient}
+        apiClient={optionsUrl => mockApiClient(optionsUrl.formValues)}
       >
         <div className="flex justify-end gap-4 mt-4">
           <button className="px-3 py-2 bg-gray-300 rounded" type="button">

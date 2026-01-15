@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from "react";
 import { X, ChevronDown, Search, Loader2, Check } from "lucide-react";
 
-function MultiSelectSearchField({
+function SearchSelectField({
   field,
   formValues,
   handleChange,
@@ -471,4 +471,4 @@ function MultiSelectSearchField({
     </div>
   );
 }
-export default MultiSelectSearchField;
+export default SearchSelectField;

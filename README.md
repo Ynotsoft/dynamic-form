@@ -242,7 +242,7 @@ Multiple selection dropdown.
 }
 ```
 
-### 6\. MultiSelectSearch Field
+### 6\. Search Select Field
 
 Search for selections and select multiple/single
 
@@ -250,7 +250,7 @@ Search for selections and select multiple/single
     {
       name: "username",
       label: "Search for Users",
-      type: "multiselectsearch",
+      type: "searchselect",
       required: true,
       placeholder: "Type to search users...",
       // layout: "inline", // default inline
