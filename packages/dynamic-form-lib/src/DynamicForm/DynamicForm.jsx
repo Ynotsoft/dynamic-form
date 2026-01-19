@@ -68,7 +68,6 @@ const DynamicForm = ({
 			hidden: RenderHiddenField,
 			multiselect: RenderMultiSelectField,
 			searchselect: SearchSelectField,
-			searchselect: SearchSelectField,
 			select: RenderSelectField,
 			email: RenderEmailField,
 			litertext: RenderHtmlField,
@@ -146,8 +145,8 @@ const DynamicForm = ({
 
 				// Initialize arrays for multiselect and checkbox groups (checkboxes with options)
 				const shouldBeArray =
-				field.type === "multiselect" || 
-				field.type === "searchselect" ||
+					field.type === "multiselect" ||
+					field.type === "searchselect" ||
 					(field.type === "checkbox" &&
 						field.options &&
 						field.options.length > 0);
@@ -265,7 +264,7 @@ const DynamicForm = ({
 			formDefinition.fields.forEach((f) => {
 				if (f.showIf && !f.showIf(newValues)) {
 					const shouldBeArray =
-						f.type === "multiselect" || 
+						f.type === "multiselect" ||
 						f.type === "searchselect" ||
 						(f.type === "checkbox" && f.options && f.options.length > 0);
 					newValues[f.name] = shouldBeArray ? [] : "";
@@ -277,7 +276,7 @@ const DynamicForm = ({
 			if (typeof f.disabled === "function" && f.disabled(newValues)) {
 				// ... rest of the logic
 				const shouldBeArray =
-					f.type === "multiselect" || 
+					f.type === "multiselect" ||
 					f.type === "searchselect" ||
 					(f.type === "checkbox" && f.options && f.options.length > 0);
 				newValues[f.name] = shouldBeArray ? [] : "";
@@ -525,7 +524,8 @@ const DynamicForm = ({
 		// Initialize value if missing
 		if (formValues[field.name] === undefined) {
 			const shouldBeArray =
-				field.type === "multiselect" || field.type === "searchselect" ||
+				field.type === "multiselect" ||
+				field.type === "searchselect" ||
 				(field.type === "checkbox" &&
 					field.options &&
 					field.options.length > 0);
