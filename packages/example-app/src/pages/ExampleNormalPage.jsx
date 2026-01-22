@@ -1,5 +1,5 @@
-import { DynamicForm } from "@ynotsoft/dynamic-form";
-import { mockApiClient, searchUsers } from "../services/mockApi";
+import { DynamicForm } from "ynotsoft-dynamic-form";
+import { mockApiClient } from "../services/mockApi";
 
 export default function ExampleNormalPage() {
   const formDefinition = {
@@ -28,10 +28,10 @@ export default function ExampleNormalPage() {
         required: true,
         placeholder: "Type to search users...",
         // layout: "inline",
-        layout: "dialog", 
+        layout: "dialog",
         optionsUrl: "/api/users/search", // API endpoint
-        minSearchLength: 2, // Minimum characters before search (default: 2)      
-        selectMode: "single", // 'single' | 'multiple' (default: 'single')  
+        minSearchLength: 2, // Minimum characters before search (default: 2)
+        selectMode: "single", // 'single' | 'multiple' (default: 'single')
       },
       {
         name: "email",
@@ -208,7 +208,7 @@ export default function ExampleNormalPage() {
         footerMode="normal"
         sendFormValues={(values) => console.log("Form Submitted: ", values)}
         debugMode={true}
-        apiClient={optionsUrl => mockApiClient(optionsUrl.formValues)}
+        apiClient={(optionsUrl) => mockApiClient(optionsUrl.formValues)}
       >
         <div className="flex justify-end gap-4 mt-4">
           <button className="px-3 py-2 bg-gray-300 rounded" type="button">

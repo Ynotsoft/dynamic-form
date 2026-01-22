@@ -1,0 +1,90 @@
+{
+  "headers": [
+    {
+      "title": "Product ID",
+      "sortKey": "ProductID",
+      "display": false,
+      "field": "ProductID",
+      "isPrimaryKey": true
+    },
+    {
+      "title": "Product Name",
+      "sortKey": "ProductName",
+      "display": true,
+      "field": "ProductName",
+      "isPrimaryKey": false
+    },
+    {
+      "title": "Category",
+      "sortKey": "Category",
+      "display": true,
+      "field": "Category",
+      "isPrimaryKey": false
+    },
+    {
+      "title": "In Stock",
+      "sortKey": "InStock",
+      "display": true,
+      "field": "InStock",
+      "isPrimaryKey": false
+    },
+    {
+      "title": "Available Date",
+      "sortKey": "AvailableDate",
+      "display": true,
+      "field": "AvailableDate",
+      "isPrimaryKey": false
+    }
+  ],
+  "filters": {
+    "ProductName": {
+      "field": "ProductName",
+      "type": "Text",
+      "title": "Product Name",
+      "operator": null,
+      "source": {}
+    },
+    "Category": {
+      "field": "Category",
+      "type": "Text",
+      "title": "Category",
+      "operator": null,
+      "source": {}
+    },
+    "InStock": {
+      "field": "InStock",
+      "type": "Checkbox",
+      "title": "In Stock",
+      "operator": null,
+      "source": {
+        "1": "Yes",
+        "2": "No"
+      }
+    },
+    "AvailableDate": {
+      "field": "AvailableDate",
+      "type": "Date",
+      "title": "Available Date",
+      "operator": null,
+      "source": {}
+    }
+  },
+  "enableCheckbox": true,
+  "records": [
+    {
+      "ProductID": 1,
+      "ProductName": "Wireless Mouse",
+      "Category": "Accessories",
+      "InStock": true,
+      "AvailableDate": "2024-03-01"
+    },
+    {
+      "ProductID": 2,
+      "ProductName": "USB-C Hub",
+      "Category": "Accessories",
+      "InStock": false,
+      "AvailableDate": "2024-03-10"
+    }
+  ],
+  "totalCount": 2
+}

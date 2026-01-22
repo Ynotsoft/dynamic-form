@@ -1,41 +1,65 @@
 import "./App.css";
 import { useState } from "react";
-import { DynamicForm } from "@ynotsoft/dynamic-form";
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import ExampleNormalPage from "./pages/ExampleNormalPage.jsx";
 import ExampleDrawer from "./pages/ExampleDrawer.jsx";
 import ExampleDialog from "./pages/ExampleDialog.jsx";
+import ExampleGridPage from "./pages/ExampleGridPage.jsx"; // Importing the new component
 
 export default function App() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
 
   return (
-    <div className="max-w-3xl w-full mx-auto mt-10">
-      <div className="w-full max-w-4xl  mx-auto p-8 space-y-8">
-        <h1 className="text-3xl font-bold">DynamicForm Example</h1>
+    <Router>
+      <div className=" w-full mx-auto mt-10">
+        <div className="w-full  mx-auto p-8 space-y-8">
+          <h1 className="text-3xl font-bold">DynamicForm Example</h1>
 
-        <div className="flex gap-4">
-          <button
-            className="px-4 py-2 bg-blue-600 text-white rounded"
-            onClick={() => setDrawerOpen(true)}
-          >
-            Open Drawer Example
-          </button>
+          <nav className="flex gap-4 mb-6">
+            <Link
+              to="/"
+              className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded"
+            >
+              Normal Page
+            </Link>
+            <Link
+              to="/grid"
+              className="px-4 py-2 bg-green-600 text-white hover:bg-green-700 rounded"
+            >
+              Grid Page
+            </Link>
+          </nav>
 
-          <button
-            className="px-4 py-2 bg-purple-600 text-white rounded"
-            onClick={() => setDialogOpen(true)}
-          >
-            Open Dialog Example
-          </button>
+          <div className="flex gap-4">
+            <button
+              className="px-4 py-2 bg-blue-600 text-white rounded"
+              onClick={() => setDrawerOpen(true)}
+            >
+              Open Drawer Example
+            </button>
+
+            <button
+              className="px-4 py-2 bg-purple-600 text-white rounded"
+              onClick={() => setDialogOpen(true)}
+            >
+              Open Dialog Example
+            </button>
+          </div>
+
+          <hr className="my-6" />
+
+          {/* Route Definitions */}
+          <Routes>
+            <Route path="/" element={<ExampleNormalPage />} />
+            <Route path="/grid" element={<ExampleGridPage />} />
+          </Routes>
+
+          {/* Overlays (Drawer/Dialog) */}
+          {drawerOpen && <ExampleDrawer onClose={() => setDrawerOpen(false)} />}
+          {dialogOpen && <ExampleDialog onClose={() => setDialogOpen(false)} />}
         </div>
-
-        <div className="">
-          <ExampleNormalPage />
-        </div>
-        {drawerOpen && <ExampleDrawer onClose={() => setDrawerOpen(false)} />}
-        {dialogOpen && <ExampleDialog onClose={() => setDialogOpen(false)} />}
       </div>
-    </div>
+    </Router>
   );
 }
