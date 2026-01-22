@@ -1,4 +1,5 @@
 import { Grid } from "ynotsoft-dynamic-grid";
+import FilterBuilder from "ynotsoft-dynamic-grid";
 
 import axios from "axios";
 
@@ -107,7 +108,12 @@ export default function ExampleGridPage() {
         onSelectedRows={(selectedIds) => {
           console.log("Selected Application IDs:", selectedIds);
         }}
-      ></Grid>
+      >
+        <Grid.Filters fieldClass="p-4 rounded-md mb-4" type="inline">
+          <FilterBuilder.Field name="ProductName" fieldClass="col-span-6" />
+          <FilterBuilder.Field name="ProductID" fieldClass="col-span-6" />
+        </Grid.Filters>
+      </Grid>
     </div>
   );
 }

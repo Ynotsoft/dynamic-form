@@ -527,4 +527,3 @@ Grid.SelectedActions = SelectedActions;
 Grid.Filters = Filters;
 
 export default Grid;
-

@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "build": "bun run --filter ynotsoft-dynamic-form build",
+    "build-form": "bun run --filter ynotsoft-dynamic-form build",
+    "build-grid": "bun run --filter ynotsoft-dynamic-grid build",
     "example": "bun --filter example dev"
   },
   "workspaces": [
