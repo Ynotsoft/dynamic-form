@@ -1,157 +1,149 @@
-name: Publish ynotsoft-dynamic-form
+name: Publish Libraries
 
 on:
-  release:
-    types: [published]
   push:
-    tags:
-      - "v*"
+    branches:
+      - main
+    paths:
+      - "packages/dynamic-form-lib/**"
+      - "packages/dynamic-grid-lib/**"
   workflow_dispatch:
     inputs:
-      version:
-        description: "Version to publish (e.g. v1.0.32 or v1.0.32-beta.1)"
+      target_package:
+        description: "Which package to manually publish?"
         required: true
-      dist_tag:
-        description: "npm dist-tag (latest/next/beta/alpha). Leave blank for auto."
+        default: "form"
+        type: choice
+        options:
+          - form
+          - grid
+      version:
+        description: "Version (e.g. 1.0.32). Leave blank for auto-detection from package.json"
         required: false
-        default: ""
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
-  publish:
-    name: Build & Publish
+  # 1. Detect which package changed
+  changes:
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
-    permissions:
-      contents: read
-      id-token: write
-    env:
-      # Renamed for clarity, but the secret remains the same
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }} 
-      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} # Needed for some npm utility commands below
-
+    outputs:
+      form: ${{ steps.filter.outputs.form }}
+      grid: ${{ steps.filter.outputs.grid }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      # ➡️ Replaced actions/setup-node@v4 with oven-sh/setup-bun@v1
-      - name: Setup Bun and Node.js
-        uses: oven-sh/setup-bun@v1
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
         with:
-          bun-version: latest # Or specify a version like '1.1.9'
-          # NOTE: registry-url is now configured via the NODE_AUTH_TOKEN env and .npmrc/bunconfig
+          filters: |
+            form:
+              - 'packages/dynamic-form-lib/**'
+            grid:
+              - 'packages/dynamic-grid-lib/**'
 
-      # The rest of the workflow relies on Node, so we don't need to change the runtime environment, just the package manager commands.
-      
-      # ⚠️ IMPORTANT: You must ensure an .npmrc file is created or the registry/token is set in Bun config
-      # For simplicity, we rely on NODE_AUTH_TOKEN for the registry URL configured in the next step
-      - name: Set up .npmrc for authentication (Node/Bun)
-        run: |
-          echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > .npmrc
-          
-      - name: Ensure repository field (for provenance)
-        run: |
-          REPO_URL="https://github.com/${GITHUB_REPOSITORY}"
-          echo "Setting repository.url = $REPO_URL"
-          node -e "
-            const fs = require('fs');
-            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-            pkg.repository = { type: 'git', url: '${REPO_URL}' };
-            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
-          "
-          node -p "require('./package.json').repository"
+  # 2. Job for Dynamic Form Library
+  publish-form:
+    needs: changes
+    if: |
+      needs.changes.outputs.form == 'true' || 
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.target_package == 'form')
+    runs-on: ubuntu-latest
+    env:
+      PKG_PATH: "packages/dynamic-form-lib"
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v1
 
-      # ➡️ Replaced npm ci/install with bun install
-      - name: Install dependencies with Bun
-        run: |
-          echo "Installing deps with Bun..."
-          rm -f package-lock.json # Remove old lock file
-          # Use bun install with --no-save to mimic ci behavior for performance
-          bun install --no-save
+      - name: Set up .npmrc
+        run: echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > .npmrc
 
-      # ➡️ Replaced npm run build with bun run build
-      - name: Build with Vite (using Bun)
-        run: |
-          echo "Building with Vite with Bun..."
-          bun run build
+      - name: Install dependencies
+        run: bun install --no-save
 
-      # Corrected paths to look inside the package subdirectory.
-      - name: Verify built files
-        run: |
-          echo "Verifying dist files..."
-          ls -l packages/dynamic-form-lib/dist
-          test -f packages/dynamic-form-lib/dist/dynamic-form.js
-          test -f packages/dynamic-form-lib/dist/dynamic-form.umd.cjs
+      - name: Build
+        run: bun run build
 
-      - name: Validate package name
-        id: pkg
+      - name: Determine Version and Tag
+        id: info
         run: |
-          NAME=$(node -p "require('./packages/dynamic-form-lib/package.json').name")
+          # Detect version from package.json
+          VER=$(node -p "require('./${{ env.PKG_PATH }}/package.json').version")
+          NAME=$(node -p "require('./${{ env.PKG_PATH }}/package.json').name")
+
+          # Logic for dist-tag (latest vs next)
+          if [[ "$VER" == *-* ]]; then TAG="next"; else TAG="latest"; fi
+
+          echo "version=$VER" >> "$GITHUB_OUTPUT"
           echo "name=$NAME" >> "$GITHUB_OUTPUT"
-          if [ "$NAME" != "ynotsoft-dynamic-form" ]; then
-            echo "::error::Invalid package name: $NAME"; exit 1;
-          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
 
-      - name: Determine version
-        id: ver
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            RAW="${{ github.event.inputs.version }}"
-          else
-            RAW="${GITHUB_REF_NAME}"
-          fi
-          VERSION="${RAW#v}"
-          echo "Publishing version $VERSION"
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-
-      # ➡️ Replaced npm version with bun version
-      - name: Bump version in package.json (with Bun)
-        run: |
-          TARGET="${{ steps.ver.outputs.version }}"
-          CURRENT=$(node -p "require('./packages/dynamic-form-lib/package.json').version")
-          if [ "$CURRENT" != "$TARGET" ]; then
-            bun version "$TARGET" --no-git-tag-version
-          fi
-          echo "Updated version to $(node -p "require('./packages/dynamic-form-lib/package.json').version")"
-
-      - name: Pick npm dist-tag
-        id: tag
-        run: |
-          INPUT="${{ github.event.inputs.dist_tag }}"
-          if [ -n "$INPUT" ]; then
-            echo "tag=$INPUT" >> "$GITHUB_OUTPUT"
-          else
-            VER="${{ steps.ver.outputs.version }}"
-            if [[ "$VER" == *-* ]]; then echo "tag=next"  >> "$GITHUB_OUTPUT"; else echo "tag=latest" >> "$GITHUB_OUTPUT"; fi
-          fi
-
-      # ⚠️ Retained npm view as Bun does not have a native equivalent for querying the registry
-      - name: Check if version exists (using npm)
+      - name: Check if version exists
         id: exists
         run: |
-          PKG="${{ steps.pkg.outputs.name }}"
-          VER="${{ steps.ver.outputs.version }}"
-          if npm view "$PKG@$VER" version >/dev/null 2>&1; then
+          if npm view "${{ steps.info.outputs.name }}@${{ steps.info.outputs.version }}" version >/dev/null 2>&1; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Final provenance validation
-        run: node -e "console.log('repository.url =', require('./packages/dynamic-form-lib/package.json').repository?.url)"
-
-      # ➡️ Replaced npm publish with bun publish
-      - name: Publish to npm (if new, with Bun)
+      - name: Publish to npm
         if: steps.exists.outputs.exists == 'false'
-        run: bun publish --cwd packages/dynamic-form-lib --access public --provenance --tag "${{ steps.tag.outputs.tag }}"
+        run: |
+          bun publish --cwd ${{ env.PKG_PATH }} --access public --provenance --tag "${{ steps.info.outputs.tag }}"
 
-      # ⚠️ Retained npm dist-tag as Bun does not have a native equivalent for managing distribution tags
-      - name: Promote existing version (using npm)
+      - name: Promote existing version
         if: steps.exists.outputs.exists == 'true'
         run: |
-          PKG="${{ steps.pkg.outputs.name }}"
-          VER="${{ steps.ver.outputs.version }}"
-          TAG="${{ steps.tag.outputs.tag }}"
-          npm dist-tag add "$PKG@$VER" "$TAG" || true
+          npm dist-tag add "${{ steps.info.outputs.name }}@${{ steps.info.outputs.version }}" "${{ steps.info.outputs.tag }}"
+
+  # 3. Job for Dynamic Grid Library
+  publish-grid:
+    needs: changes
+    if: |
+      needs.changes.outputs.grid == 'true' || 
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.target_package == 'grid')
+    runs-on: ubuntu-latest
+    env:
+      PKG_PATH: "packages/dynamic-grid-lib"
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v1
+
+      - name: Set up .npmrc
+        run: echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > .npmrc
+
+      - name: Install dependencies
+        run: bun install --no-save
+
+      - name: Build
+        run: bun run build
+
+      - name: Determine Version and Tag
+        id: info
+        run: |
+          VER=$(node -p "require('./${{ env.PKG_PATH }}/package.json').version")
+          NAME=$(node -p "require('./${{ env.PKG_PATH }}/package.json').name")
+          if [[ "$VER" == *-* ]]; then TAG="next"; else TAG="latest"; fi
+          echo "version=$VER" >> "$GITHUB_OUTPUT"
+          echo "name=$NAME" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Check if version exists
+        id: exists
+        run: |
+          if npm view "${{ steps.info.outputs.name }}@${{ steps.info.outputs.version }}" version >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish to npm
+        if: steps.exists.outputs.exists == 'false'
+        run: |
+          bun publish --cwd ${{ env.PKG_PATH }} --access public --provenance --tag "${{ steps.info.outputs.tag }}" --dry-run
