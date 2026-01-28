@@ -47,7 +47,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PKG_DIR: "packages/dynamic-form-lib"
-      PKG_NAME: "dynamic-form-lib" # This should match the "name" in your package.json
+      PKG_NAME: "ynotsoft-dynamic-form" # This should match the "name" in your package.json
       NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: actions/checkout@v4
@@ -59,7 +59,6 @@ jobs:
       - name: Install dependencies
         run: bun install --no-save
 
-      # ➡️ FIXED: Run build for the specific workspace
       - name: Build Library
         run: bun run --filter ${{ env.PKG_NAME }} build
 
@@ -95,7 +94,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PKG_DIR: "packages/dynamic-grid-lib"
-      PKG_NAME: "dynamic-grid-lib" # This should match the "name" in your package.json
+      PKG_NAME: "ynotsoft-dynamic-grid" # This should match the "name" in your package.json
       NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: actions/checkout@v4
@@ -107,7 +106,6 @@ jobs:
       - name: Install dependencies
         run: bun install --no-save
 
-      # ➡️ FIXED: Run build for the specific workspace
       - name: Build Library
         run: bun run --filter ${{ env.PKG_NAME }} build
 
