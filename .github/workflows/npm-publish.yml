@@ -17,16 +17,12 @@ on:
         options:
           - form
           - grid
-      version:
-        description: "Version (e.g. 1.0.32). Leave blank for auto-detection from package.json"
-        required: false
 
 permissions:
   contents: read
   id-token: write
 
 jobs:
-  # 1. Detect which package changed
   changes:
     runs-on: ubuntu-latest
     outputs:
@@ -43,7 +39,6 @@ jobs:
             grid:
               - 'packages/dynamic-grid-lib/**'
 
-  # 2. Job for Dynamic Form Library
   publish-form:
     needs: changes
     if: |
@@ -51,8 +46,8 @@ jobs:
       (github.event_name == 'workflow_dispatch' && github.event.inputs.target_package == 'form')
     runs-on: ubuntu-latest
     env:
-      PKG_PATH: "packages/dynamic-form-lib"
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      PKG_DIR: "packages/dynamic-form-lib"
+      PKG_NAME: "dynamic-form-lib" # This should match the "name" in your package.json
       NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: actions/checkout@v4
@@ -64,19 +59,16 @@ jobs:
       - name: Install dependencies
         run: bun install --no-save
 
-      - name: Build
-        run: bun run build
+      # ➡️ FIXED: Run build for the specific workspace
+      - name: Build Library
+        run: bun run --filter ${{ env.PKG_NAME }} build
 
       - name: Determine Version and Tag
         id: info
         run: |
-          # Detect version from package.json
-          VER=$(node -p "require('./${{ env.PKG_PATH }}/package.json').version")
-          NAME=$(node -p "require('./${{ env.PKG_PATH }}/package.json').name")
-
-          # Logic for dist-tag (latest vs next)
+          VER=$(node -p "require('./${{ env.PKG_DIR }}/package.json').version")
+          NAME=$(node -p "require('./${{ env.PKG_DIR }}/package.json').name")
           if [[ "$VER" == *-* ]]; then TAG="next"; else TAG="latest"; fi
-
           echo "version=$VER" >> "$GITHUB_OUTPUT"
           echo "name=$NAME" >> "$GITHUB_OUTPUT"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
@@ -93,14 +85,8 @@ jobs:
       - name: Publish to npm
         if: steps.exists.outputs.exists == 'false'
         run: |
-          bun publish --cwd ${{ env.PKG_PATH }} --access public --provenance --tag "${{ steps.info.outputs.tag }}"
+          bun publish --cwd ${{ env.PKG_DIR }} --access public --provenance --tag "${{ steps.info.outputs.tag }}"
 
-      - name: Promote existing version
-        if: steps.exists.outputs.exists == 'true'
-        run: |
-          npm dist-tag add "${{ steps.info.outputs.name }}@${{ steps.info.outputs.version }}" "${{ steps.info.outputs.tag }}"
-
-  # 3. Job for Dynamic Grid Library
   publish-grid:
     needs: changes
     if: |
@@ -108,8 +94,8 @@ jobs:
       (github.event_name == 'workflow_dispatch' && github.event.inputs.target_package == 'grid')
     runs-on: ubuntu-latest
     env:
-      PKG_PATH: "packages/dynamic-grid-lib"
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      PKG_DIR: "packages/dynamic-grid-lib"
+      PKG_NAME: "dynamic-grid-lib" # This should match the "name" in your package.json
       NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: actions/checkout@v4
@@ -121,14 +107,15 @@ jobs:
       - name: Install dependencies
         run: bun install --no-save
 
-      - name: Build
-        run: bun run build
+      # ➡️ FIXED: Run build for the specific workspace
+      - name: Build Library
+        run: bun run --filter ${{ env.PKG_NAME }} build
 
       - name: Determine Version and Tag
         id: info
         run: |
-          VER=$(node -p "require('./${{ env.PKG_PATH }}/package.json').version")
-          NAME=$(node -p "require('./${{ env.PKG_PATH }}/package.json').name")
+          VER=$(node -p "require('./${{ env.PKG_DIR }}/package.json').version")
+          NAME=$(node -p "require('./${{ env.PKG_DIR }}/package.json').name")
           if [[ "$VER" == *-* ]]; then TAG="next"; else TAG="latest"; fi
           echo "version=$VER" >> "$GITHUB_OUTPUT"
           echo "name=$NAME" >> "$GITHUB_OUTPUT"
@@ -146,4 +133,4 @@ jobs:
       - name: Publish to npm
         if: steps.exists.outputs.exists == 'false'
         run: |
-          bun publish --cwd ${{ env.PKG_PATH }} --access public --provenance --tag "${{ steps.info.outputs.tag }}" --dry-run
+          bun publish --cwd ${{ env.PKG_DIR }} --access public --provenance --tag "${{ steps.info.outputs.tag }}" --dry-run
