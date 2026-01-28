@@ -47,7 +47,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PKG_DIR: "packages/dynamic-form-lib"
-      PKG_NAME: "ynotsoft-dynamic-form" # This should match the "name" in your package.json
+      PKG_NAME: "ynotsoft-dynamic-form"
       NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: actions/checkout@v4
@@ -72,17 +72,16 @@ jobs:
           echo "name=$NAME" >> "$GITHUB_OUTPUT"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
 
-      - name: Check if version exists
-        id: exists
+      - name: Validate Version Bump
         run: |
-          if npm view "${{ steps.info.outputs.name }}@${{ steps.info.outputs.version }}" version >/dev/null 2>&1; then
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
+          PKG="${{ steps.info.outputs.name }}"
+          VER="${{ steps.info.outputs.version }}"
+          if npm view "$PKG@$VER" version >/dev/null 2>&1; then
+            echo "::error::Version $VER of $PKG already exists on NPM. Please bump the version in ${{ env.PKG_DIR }}/package.json"
+            exit 1
           fi
 
       - name: Publish to npm
-        if: steps.exists.outputs.exists == 'false'
         run: |
           bun publish --cwd ${{ env.PKG_DIR }} --access public --provenance --tag "${{ steps.info.outputs.tag }}"
 
@@ -94,7 +93,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PKG_DIR: "packages/dynamic-grid-lib"
-      PKG_NAME: "ynotsoft-dynamic-grid" # This should match the "name" in your package.json
+      PKG_NAME: "ynotsoft-dynamic-grid"
       NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: actions/checkout@v4
@@ -119,16 +118,15 @@ jobs:
           echo "name=$NAME" >> "$GITHUB_OUTPUT"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
 
-      - name: Check if version exists
-        id: exists
+      - name: Validate Version Bump
         run: |
-          if npm view "${{ steps.info.outputs.name }}@${{ steps.info.outputs.version }}" version >/dev/null 2>&1; then
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
+          PKG="${{ steps.info.outputs.name }}"
+          VER="${{ steps.info.outputs.version }}"
+          if npm view "$PKG@$VER" version >/dev/null 2>&1; then
+            echo "::error::Version $VER of $PKG already exists on NPM. Please bump the version in ${{ env.PKG_DIR }}/package.json"
+            exit 1
           fi
 
       - name: Publish to npm
-        if: steps.exists.outputs.exists == 'false'
         run: |
-          bun publish --cwd ${{ env.PKG_DIR }} --access public --provenance --tag "${{ steps.info.outputs.tag }}" --dry-run
+          bun publish --cwd ${{ env.PKG_DIR }} --access public --provenance --tag "${{ steps.info.outputs.tag }}"
