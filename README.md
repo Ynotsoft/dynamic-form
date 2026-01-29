@@ -1,6 +1,6 @@
 # Ynotsoft Dynamic Libraries
 
-Welcome to the **Ynotsoft** monorepo. This workspace contains a suite of high-performance, declarative React component libraries designed to streamline UI development through configuration-driven patterns.
+This workspace contains a suite of declarative React component libraries designed to streamline UI development through configuration-driven patterns.
 
 ## 📂 Monorepo Structure
 
