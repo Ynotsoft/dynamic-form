@@ -1,632 +1,482 @@
-# DynamicForm Component - Complete Field Reference
+## Dynamic Grid for React
 
-## Install and Development Setup (Bun Monorepo)
+A lightweight, data-driven grid for React with built‑in filtering, sorting, pagination, exporting, and row selection. It renders from your API response (headers + records) and gives you slots to add actions and custom tools.
 
-This project uses **Bun** as the package manager and **Vite** with custom path aliasing for Hot Module Replacement (HMR) in the monorepo workspace.
-
-### 1\. Prerequisites
-
-You **must** have **Bun** installed to manage dependencies and run development scripts.  
-( <https://bun.com/docs/installation> )
-
-> Can now use npm instead of bun </br>
-> node ^v22.7.0 required
-
-### 2\. Install Dependencies
-
-From the root of the repository (`dynamic-form/`):
+## Installation
 
 ```bash
-# Install all dependencies and create workspace symlinks using Bun
-bun install
+npm install ynotsoft-dynamic-grid
 ```
 
-### 3\. Build the Library (Initial Setup)
-
-Because the library's `package.json` entry points point to files in the `/dist` directory, you must run an initial build so the example app can resolve the dependency.
-
-From the root of the repository:
-
-```bash
-npm run build    #runs: bun run --filter @ynotsoft/dynamic-form build
-```
-
-or you can use npm commands using the workspace (--workspace) flag and passing in the name of the package
+Make sure to import the grid.css file into your main.css
 
 ```
-npm run build --workspace ynotsoft-dynamic-form
+@import "tailwindcss";
+// import grid.css below
+@import "ynotsoft-dynamic-grid/grid.css";
+
+@theme {
+
+  /* === PRIMARY === */
+  --color-primary: oklch(0% 0.00 0);
+  --color-primary-hover: #6c6c6c;
+  --color-primary-foreground: white;
+
+  /* === SECONDARY === */
+  --color-secondary: oklch(0.85 0.05 250);
+  --color-secondary-hover: oklch(0.8 0.06 250);
+  --color-secondary-foreground: oklch(0.25 0.1 250);
+
+    ...
+}
+
 ```
 
-### 4\. Start the Example App
+Requirements:
 
-Run the development server for the example application.
+- React 18+ (tested with React 19)
+- An HTTP client you provide (Axios or a compatible wrapper) via the `apiClient` prop
 
-From the root of the repository:
+> Important: frontend-only
+>
+> This package provides the grid UI only. Pagination, sorting, filtering, selection, and export depend on your server implementation. If your backend doesn’t accept the documented query params/body or doesn’t return the expected shape (headers, filters, records, totalCount), the UI will render but features like filters and pagination will not function.
 
-```bash
-npm run example  #runs: bun --filter example dev
-```
+## Quick start
 
-or you can use npm commands using the workspace (--workspace) flag and passing in the name of the package
+```jsx
+import { DynamicGrid as Grid } from "ynotsoft-dynamic-grid";
 
-```
-npm run dev --workspace ynotsoft-dynamic-form
-```
-
-> **IMPORTANT NOTE ON HMR (Hot Module Replacement):**
-> If HMR fails for changes made in the `packages/dynamic-form-lib/` source code, ensure your `example-app/vite.config.js` has the necessary **Path Aliasing** configured to bypass the symlink watcher issue. This is configured to resolve HMR issues and is essential for local development.
-
-### 5\. How to push changes
-
-#### For Regular Development Changes:
-```bash
-# 1. Commit your changes
-git add .
-git commit -m "feat: your change description"
-
-# 2. Create tag
-git tag v1.0.[version-number]
-```
-
-#### For NPM Package Releases:
-```bash
-# 1. Update version in package.json (in packages/dynamic-form-lib/)
-npm version patch   # for bug fixes (1.0.0 → 1.0.1)
-
-# 2. Build the library
-npm run build
-
-# 3. Create and push version tag
-git push origin v1.0.[version-number]   # Replace with your actual version
-
-# 4. GitHub Actions will automatically publish to NPM
-```
-
-#### Version Management:
-- **Single Source of Truth:** Version is maintained in `packages/dynamic-form-lib/package.json`
-- **Git Tags:** Use format `v1.0.[version-number]` (matches package.json version with "v" prefix)
-- **NPM Registry:** GitHub Actions reads git tag, strips "v" prefix, publishes as `1.0.[version-number]` to NPM
-- **Auto-Sync:** Git tag version must match package.json version for successful deployment
-
-**Quick Check:**
-```bash
-# Verify versions match before pushing
-cat packages/dynamic-form-lib/package.json | grep version
-git tag --list | tail -1
-```
-
-> **Note:** The GitHub Actions workflow automatically publishes to NPM when you push a version tag (e.g., `v1.0.[version-number]`). No manual `npm publish` required unless you are not logged into NPM already.
-
----
-
-## Overview
-
-The DynamicForm component provides a flexible, declarative way to build forms with various field types, validation, conditional logic, and styling options.
-
-## Basic Usage
-
-```javascript
-import { DynamicForm } from "@ynotsoft/dynamic-form"; // Note the package name
-
-const formDefinition = {
-  fields: [
-    // Field definitions here
+// Dummy products dataset returned by your server normally
+const productsResponse = {
+  headers: [
+    {
+      title: "Product ID",
+      sortKey: "ProductID",
+      display: false,
+      field: "ProductID",
+      isPrimaryKey: true,
+    },
+    {
+      title: "Product Name",
+      sortKey: "ProductName",
+      display: true,
+      field: "ProductName",
+      isPrimaryKey: false,
+    },
+    {
+      title: "Category",
+      sortKey: "Category",
+      display: true,
+      field: "Category",
+      isPrimaryKey: false,
+    },
+    {
+      title: "In Stock",
+      sortKey: "InStock",
+      display: true,
+      field: "InStock",
+      isPrimaryKey: false,
+    },
+    {
+      title: "Available Date",
+      sortKey: "AvailableDate",
+      display: true,
+      field: "AvailableDate",
+      isPrimaryKey: false,
+    },
   ],
+  filters: {
+    ProductName: {
+      field: "ProductName",
+      type: "Text",
+      title: "Product Name",
+      source: {},
+    },
+    Category: {
+      field: "Category",
+      type: "Text",
+      title: "Category",
+      source: {},
+    },
+    InStock: {
+      field: "InStock",
+      type: "Checkbox",
+      title: "In Stock",
+      source: { 1: "Yes", 2: "No" },
+    },
+    AvailableDate: {
+      field: "AvailableDate",
+      type: "Date",
+      title: "Available Date",
+      source: {},
+    },
+  },
+  enableCheckbox: true,
+  records: [
+    {
+      ProductID: 1,
+      ProductName: "Wireless Mouse",
+      Category: "Accessories",
+      InStock: true,
+      AvailableDate: "2024-03-01",
+    },
+    {
+      ProductID: 2,
+      ProductName: "USB-C Hub",
+      Category: "Accessories",
+      InStock: false,
+      AvailableDate: "2024-03-10",
+    },
+  ],
+  totalCount: 2,
 };
 
-<DynamicForm
-  formDefinition={formDefinition}
-  returnType= {false}
-  defaultValues={{ name: "John Doe" }}
-  sendFormValues={(values) => console.log(values)}
-  onFieldsChange={(values) => console.log("Changed:", values)}
-/>;
-```
+// Simple mock client implementing the axios-like post(url, body) API
+const apiClient = {
+  post: async (_url, _body) => ({ data: productsResponse }),
+};
 
----
+export default function Example() {
+  return (
+    <Grid
+      apiUrl="/products" // just a label used for building the request URL
+      apiClient={apiClient} // your HTTP client (mocked here)
+      pageLength={10}
+      onSelectedRows={(ids) => console.log("Selected IDs", ids)}
+    >
+      {/* Optional: a button rendered in the top-right toolbar */}
+      <button
+        className="btn outline"
+        onClick={() => console.log("Create Product")}
+      >
+        Create Product
+      </button>
 
-## Field Types
+      {/* Optional action column rendered for each row */}
+      <Grid.Action>
+        {(record) => (
+          <div className="flex gap-2">
+            <button
+              className="btn outline"
+              onClick={() => console.log("View", record)}
+            >
+              View
+            </button>
+            <button
+              className="btn destructive"
+              onClick={() => console.log("Delete", record)}
+            >
+              Delete
+            </button>
+          </div>
+        )}
+      </Grid.Action>
 
-### 1\. Header Field
-
-Used for section titles and form organization.
-
-```javascript
-{
-  type: 'header',
-  label: 'Personal Information',
-  size: 'xl',              // 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl'
-  align: 'left',           // 'left' | 'center' | 'right'
-  underline: true          // Boolean - adds bottom border
+      {/* Optional bulk actions bar shown when rows are selected */}
+      <Grid.SelectedActions>
+        {(selectedIds) => (
+          <button
+            className="btn destructive"
+            onClick={() => console.log("Bulk delete", selectedIds)}
+          >
+            Delete {selectedIds.length}
+          </button>
+        )}
+      </Grid.SelectedActions>
+    </Grid>
+  );
 }
 ```
 
-### 2\. Input Field
+### Examples
 
-Standard text input with shadcn/ui styling.
+All examples below reuse `productsResponse` and `apiClient` from the Quick start.
 
-```javascript
-{
-  name: 'fullName',
-  label: 'Full Name',
-  type: 'input',
-  required: true,
-  placeholder: 'Enter your name',
-  value: 'John Doe',
-  disabled: false,
-  maxLength: 100,
-  validate: (value) => {
-    if (value.length < 2) return 'Name must be at least 2 characters';
-    return null;
-  }
+#### Example: top-right toolbar buttons (Children)
+
+```jsx
+import { DynamicGrid as Grid } from "ynotsoft-dynamic-grid";
+
+export default function ToolbarExample() {
+  return (
+    <Grid apiUrl="/products" apiClient={apiClient} pageLength={10}>
+      {/* Any non-special child renders on the top-right toolbar */}
+      <button
+        className="btn outline"
+        onClick={() => console.log("Add product")}
+      >
+        Add product
+      </button>
+      <button className="btn outline" onClick={() => console.log("Refresh")}>
+        Refresh
+      </button>
+    </Grid>
+  );
 }
 ```
 
-### 3\. Email Field
+#### Example: per-row actions column (Grid.Action)
 
-Email input with validation and shadcn/ui styling.
+```jsx
+import { DynamicGrid as Grid } from "ynotsoft-dynamic-grid";
 
-```javascript
-{
-  name: 'email',
-  label: 'Email Address',
-  type: 'email',
-  required: true,
-  placeholder: 'you@example.com',
-  value: 'john@example.com'
+export default function ActionColumnExample() {
+  return (
+    <Grid apiUrl="/products" apiClient={apiClient} pageLength={10}>
+      <Grid.Action>
+        {(record) => (
+          <div className="flex gap-2">
+            <button
+              className="btn outline"
+              onClick={() => console.log("Edit", record)}
+            >
+              Edit
+            </button>
+            <button
+              className="btn destructive"
+              onClick={() => console.log("Delete", record)}
+            >
+              Delete
+            </button>
+          </div>
+        )}
+      </Grid.Action>
+    </Grid>
+  );
 }
 ```
 
-### 4\. TextArea Field
+#### Example: in-line filter fields (Grid.Filter)
 
-Multi-line text input.
+#### Example: custom cell renderer (Grid.Field)
 
-```javascript
-{
-  name: 'description',
-  label: 'Description',
-  type: 'textarea',
-  required: false,
-  placeholder: 'Enter description...',
-  rows: 4,
-  maxLength: 500,
-  showCharCount: true,
-  value: 'Initial description'
+```jsx
+import FilterBuilder from "@/DynamicGrid/FilterBuilder";
+
+const Filters = FilterBuilder;
+
+export default function CustomFieldExample() {
+  return (
+    <Grid apiUrl="/products" apiClient={apiClient} pageLength={10}>
+      {/* Render ProductName in bold and show Category in the tooltip */}
+      <Grid.Filters fieldClass="p-4 rounded-md mb-4" type="inline">
+        <Filters.Field name="Name" fieldClass="col-span-12" />
+        <Filters.Field name="IsEnabledFlag" fieldClass="col-span-6" />
+        <Filters.Field
+          name="Date"
+          fieldClass="col-span-12"
+          includeTime={true}
+        />
+      </Grid.Filters>
+    </Grid>
+  );
 }
 ```
 
-### 5\. Select Field
+#### Example: bulk actions bar (Grid.SelectedActions)
 
-Dropdown selection with single choice.
+```jsx
+import { DynamicGrid as Grid } from "ynotsoft-dynamic-grid";
 
-```javascript
-{
-  name: 'country',
-  label: 'Country',
-  type: 'select',
-  required: true,
-  value: 'us',
-  options: [
-    { value: '', label: 'Select a country' },
-    { value: 'us', label: 'United States' },
-    { value: 'uk', label: 'United Kingdom' },
-    { value: 'ca', label: 'Canada' }
-  ],
-  // Dynamic options from API
-  optionsUrl: '/api/countries',
-  dependsOn: 'region'  // Reload when 'region' changes
+export default function SelectedActionsExample() {
+  return (
+    <Grid apiUrl="/products" apiClient={apiClient} pageLength={10}>
+      <Grid.SelectedActions>
+        {(selectedIds) => (
+          <div className="flex gap-2">
+            <button
+              className="btn destructive"
+              onClick={() => console.log("Bulk delete", selectedIds)}
+            >
+              Delete {selectedIds.length}
+            </button>
+            <button
+              className="btn outline"
+              onClick={() => console.log("Export selected", selectedIds)}
+            >
+              Export selected
+            </button>
+          </div>
+        )}
+      </Grid.SelectedActions>
+    </Grid>
+  );
 }
 ```
 
-### 6\. MultiSelect Field
+## Data contract (server response)
 
-Multiple selection dropdown.
+Dynamic Grid calls your API with POST requests and expects a JSON payload shaped like this:
 
-```javascript
+```json
 {
-  name: 'interests',
-  label: 'Interests',
-  type: 'multiselect',
-  required: true,
-  value: ['sports', 'tech'],
-  options: [
-    { value: 'sports', label: 'Sports' },
-    { value: 'music', label: 'Music' },
-    { value: 'tech', label: 'Technology' },
-    { value: 'travel', label: 'Travel' }
-  ],
-  validate: (value) => {
-    if (value && value.length > 3) return 'Select up to 3 interests';
-    return null;
-  }
-}
-```
-
-### 6\. Search Select Field
-
-Search for selections and select multiple/single
-
-```javascript
+  "headers": [
     {
-      name: "username",
-      label: "Search for Users",
-      type: "searchselect",
-      required: true,
-      placeholder: "Type to search users...",
-      // layout: "inline", // default inline
-      layout: "dialog", 
-      optionsUrl: "/api/users/search", // API endpoint
-      minSearchLength: 2, // Minimum characters before search (default: 2)      
-      selectMode: "single", // 'single' | 'multiple' (default: 'single')  
+      "title": "Product ID",
+      "sortKey": "ProductID",
+      "display": false,
+      "field": "ProductID",
+      "isPrimaryKey": true
+    },
+    {
+      "title": "Product Name",
+      "sortKey": "ProductName",
+      "display": true,
+      "field": "ProductName",
+      "isPrimaryKey": false
+    },
+    {
+      "title": "Category",
+      "sortKey": "Category",
+      "display": true,
+      "field": "Category",
+      "isPrimaryKey": false
+    },
+    {
+      "title": "In Stock",
+      "sortKey": "InStock",
+      "display": true,
+      "field": "InStock",
+      "isPrimaryKey": false
+    },
+    {
+      "title": "Available Date",
+      "sortKey": "AvailableDate",
+      "display": true,
+      "field": "AvailableDate",
+      "isPrimaryKey": false
     }
-```
-
-### 7\. Checkbox Field
-
-Single checkbox with flexible layouts and card styling.
-
-```javascript
-{
-  name: 'agreeTerms',
-  label: 'I agree to terms',
-  type: 'checkbox',
-  required: true,
-  value: false,
-  description: 'By checking this, you agree to our terms and conditions',
-    options: [
-      { value: 'option1', label: 'Option 1', description: '' },
-      { value: 'option2', label: 'Option 2', description: '' },
-      { value: 'option3', label: 'Option 3', description: '' },
-  // Layout options
-  layout: 'inline',        // 'inline' | 'stacked' | 'default'
-
-  // Card container styling
-  containerStyle: 'card',  // Wraps in bordered card
-  color: 'blue',           // 'green' | 'blue' | 'red' | 'yellow' | 'purple' | 'indigo' | 'gray' | 'pink' | 'orange'
-}
-```
-
-**Checkbox Layouts:**
-
-- `default`: Standard checkbox with label above
-- `inline`: Checkbox and label side-by-side
-- `stacked`: Checkbox, label, and description stacked vertically
-
-### 8\. Radio Group Field
-
-Single selection from multiple options using Radix UI.
-
-```javascript
-{
-  name: 'paymentMethod',
-  label: 'Payment Method',
-  type: 'radiogroup',
-  required: true,
-  value: 'card',
-  options: [
-    { value: 'card', label: 'Credit Card' },
-    { value: 'paypal', label: 'PayPal' },
-    { value: 'bank', label: 'Bank Transfer' }
   ],
-
-  // Layout options
-  inline: true,            // Display options horizontally
-
-  // Color variants
-  color: 'blue',           // 'green' | 'blue' | 'red' | 'yellow' | 'purple' | 'indigo' | 'gray' | 'pink' | 'orange'
-
-  // Card container styling
-  containerStyle: 'card',
-  color: 'green'
+  "filters": {
+    "ProductName": {
+      "field": "ProductName",
+      "type": "Text",
+      "title": "Product Name",
+      "source": {}
+    },
+    "Category": {
+      "field": "Category",
+      "type": "Text",
+      "title": "Category",
+      "source": {}
+    },
+    "InStock": {
+      "field": "InStock",
+      "type": "Checkbox",
+      "title": "In Stock",
+      "source": { "1": "Yes", "2": "No" }
+    },
+    "AvailableDate": {
+      "field": "AvailableDate",
+      "type": "Date",
+      "title": "Available Date",
+      "source": {}
+    }
+  },
+  "enableCheckbox": true,
+  "records": [
+    {
+      "ProductID": 1,
+      "ProductName": "Wireless Mouse",
+      "Category": "Accessories",
+      "InStock": true,
+      "AvailableDate": "2024-03-01"
+    },
+    {
+      "ProductID": 2,
+      "ProductName": "USB-C Hub",
+      "Category": "Accessories",
+      "InStock": false,
+      "AvailableDate": "2024-03-10"
+    }
+  ],
+  "totalCount": 2
 }
 ```
 
-### 9\. Date Picker Field
+Notes:
 
-Single date selection with shadcn/ui calendar.
+- If `enableCheckbox` is true, exactly one header must have `isPrimaryKey: true` so the grid can track selected rows.
+- The grid supports an alternative envelope. If your API returns `{ list: { ...above }, totalCount }`, it will still work.
 
-```javascript
-{
-  name: 'birthDate',
-  label: 'Birth Date',
-  type: 'date',
-  required: true,
-  placeholder: 'Select date',
-  value: new Date('1990-01-01')
-}
-```
+## How the grid calls your API
 
-**Features:**
+- List: `POST {apiUrl}?page={pageIndex}&page_size={pageSize}&sort_key={sortKey}&sort_order={ASC|DESC}` with the current filters object as the request body.
+- Export: `POST {apiUrl}?export=csv` with the current filters object. Expected response: `{ file: "https://download-url" }`.
 
-- Year/month dropdown selectors
-- Clear and Done buttons
-- Blue highlight for selected date
-- Popover interface
+Your `apiClient` only needs a `post(url, body)` method that returns `{ data: any }` or `any`. Axios works out of the box.
 
-### 10\. Date Range Picker Field
+## Features at a glance
 
-Select date ranges (from/to).
-
-```javascript
-{
-  name: 'projectDates',
-  label: 'Project Timeline',
-  type: 'dateRange',
-  required: true,
-  placeholder: 'Select date range',
-  value: {
-    from: new Date('2025-01-01'),
-    to: new Date('2025-12-31')
-  }
-}
-```
-
-### 11\. Time Field
-
-Time picker with AM/PM selection.
-
-```javascript
-{
-  name: 'appointmentTime',
-  label: 'Appointment Time',
-  type: 'time',
-  required: true,
-  placeholder: 'Select time',
-  value: '03:45 PM'
-}
-```
-
-**Features:**
-
-- Hour/minute spinners
-- AM/PM toggle buttons
-- Clear and Done buttons
-- Format: "HH:MM AM/PM"
-
-### 12\. Date Time Picker Field
-
-Combined date and time selection.
-
-```javascript
-{
-  name: 'meetingDateTime',
-  label: 'Meeting Date & Time',
-  type: 'dayTimePicker',
-  required: true,
-  value: new Date('2025-10-17T15:30:00')
-}
-```
-
-### 13\. File Upload Field
-
-Single or multiple file uploads.
-
-```javascript
-{
-  name: 'documents',
-  label: 'Upload Documents',
-  type: 'file',           // or 'multifile' for multiple
-  required: true,
-  accept: '.pdf,.doc,.docx,.jpg,.jpeg,.png',
-  maxSize: 5 * 1024 * 1024,  // 5 MB
-  multiple: false
-}
-```
-
-### 14\. Hidden Field
-
-Store hidden values in the form.
-
-```javascript
-{
-  name: 'userId',
-  type: 'hidden',
-  value: '12345'
-}
-```
-
-### 15\. HTML/Literal Field
-
-Display rich HTML content (non-editable).
-
-```javascript
-{
-  type: 'litertext',
-  content: '<div class="alert">Important notice here</div>'
-}
-```
-
-### 16\. Alert Message Field
-
-Display contextual alert messages with icons (info, success, warning, error).
-
-```javascript
-{
-  type: 'alert',
-  variant: 'info',         // 'info' | 'success' | 'warning' | 'error' | 'danger'
-  message: 'This is an informational message'
-}
-
-// Success alert
-{
-  type: 'alert',
-  variant: 'success',
-  message: 'Your form was submitted successfully!'
-}
-// ... other variants omitted for brevity ...
-```
-
-### 17\. Line Break Field
-
-Add visual spacing between sections.
-
-```javascript
-{
-  type: "linebreak";
-}
-```
-
----
-
-## Global Field Format Options
-
-Apply consistent styling to all fields (except header, html, linebreak, hidden, alert):
-
-```javascript
-{
-  name: 'email',
-  label: 'Email',
-  type: 'email',
-
-  // Card container
-  containerStyle: 'card',
-  color: 'blue',           // Card border/accent color
-
-  // Layout for checkbox/radio
-  layout: 'inline',        // or 'stacked' | 'default'
-  inline: true,            // For radio groups
-}
-```
-
----
-
-## Advanced Features
-
-### Conditional Display
-
-Show/hide fields based on other values:
-
-```javascript
-{
-  name: 'state',
-  label: 'State',
-  type: 'select',
-  showIf: (values) => values.country === 'us',
-  options: [...]
-}
-```
-
-### Conditional Disable
-
-Disable fields based on conditions:
-
-```javascript
-{
-  name: 'billingAddress',
-  label: 'Billing Address',
-  type: 'input',
-  disabled: (values) => values.sameAsShipping === true
-}
-```
-
-### Custom Validation
-
-Field-level validation functions:
-
-```javascript
-{
-  name: 'password',
-  label: 'Password',
-  type: 'input',
-  validate: (value) => {
-    if (value.length < 8) return 'Password must be at least 8 characters';
-    if (!/[A-Z]/.test(value)) return 'Must contain uppercase letter';
-    if (!/[0-9]/.test(value)) return 'Must contain a number';
-    return null;
-  }
-}
-```
-
-### Dynamic Options
-
-Load options from API:
-
-```javascript
-{
-  name: 'city',
-  label: 'City',
-  type: 'select',
-  optionsUrl: '/api/cities',
-  dependsOn: 'state',  // Reload when state changes
-}
-```
-
----
-
-## Complete Example
-
-```javascript
-// ... formDefinition omitted for brevity ...
-
-// Usage
-<DynamicForm
-  formDefinition={formDefinition}
-  defaultValues={{
-    fullName: "John Doe",
-    email: "john@example.com",
-    contactMethod: "email",
-  }}
-  sendFormValues={(values) => {
-    console.log("Form submitted:", values);
-  }}
-  onFieldsChange={(values) => {
-    console.log("Form changed:", values);
-  }}
-/>
-```
-
----
-
-## Styling Reference
-
-### Card Container Colors
-
-Available for `containerStyle='card'`:
-
-- `green` - Green border and accent
-- `blue` - Blue border and accent
-- `red` - Red border and accent
-- `yellow` - Yellow border and accent
-- `purple` - Purple border and accent
-- `indigo` - Indigo border and accent
-- `gray` - Gray border and accent
-- `pink` - Pink border and accent
-- `orange` - Orange border and accent
-
-### Header Sizes
-
-- `sm` - Small header
-- `md` - Medium header
-- `lg` - Large header
-- `xl` - Extra large (default)
-- `2xl` - 2X large
-- `3xl` - 3X large
-- `4xl` - 4X large
-
-### Layout Options (Checkbox/Radio)
-
-- `default` - Standard vertical layout
-- `inline` - Horizontal with label beside control
-- `stacked` - Vertical with description below
-
----
+- Columns from your `headers` array (hide any with `display: false`).
+- Sorting by clicking on a column whose header includes `sortKey`.
+- Filters UI driven entirely by your `filters` object.
+  - Text: operators = contains | equals | starts with
+  - Date: operator = between (start–end)
+  - Checkbox: operator = in (multi-select)
+- Pagination with selectable page size (10, 50, 100, 200, 500).
+- Row selection when `enableCheckbox` is true, with bulk actions slot.
+- CSV export with your current filter applied.
 
 ## Props
 
-### DynamicForm Props
+- `apiUrl` (string, required): Base endpoint for list/export requests.
+- `apiClient` (object, required): Axios-like client providing `post(url, body)`.
+- `pageLength` (number, default 10): Initial page size.
+- `refresh` (boolean, optional): Toggle to force a reload from outside.
+- `setRefreshGrid` (fn, optional): Setter the grid calls to reset `refresh` to false.
+- `onSelectedRows(ids: string[] | number[])` (fn, optional): Fired when selection changes.
+- `children` (ReactNode, optional): Slots described below.
 
-- `formDefinition` - Object containing field definitions
-- `defaultValues` - Initial form values
-- `sendFormValues` - Callback when form is submitted
-- `onFieldsChange` - Callback when any field changes
-- `children` - Additional content (e.g., submit button)
+## Children (slots)
 
----
+- Top toolbar: Any child that is not one of the special slots is rendered on the right side of the grid’s top bar.
+- `<Grid.Action>{(record) => ReactNode}</Grid.Action>`: Renders an action cell per row.
+- `<Grid.SelectedActions>{(selectedIds) => ReactNode}</Grid.SelectedActions>`: Renders a bulk actions bar when one or more rows are selected.
 
-## Notes
+- `<Grid.Column name="FieldName">{(value, record) => ReactNode}</Grid.Column>`: Custom cell renderer for a specific field. Use this to override how a single column renders.
 
-- All fields support `required`, `disabled`, `showIf` properties
-- Fields are automatically validated on blur and submit
-- Error messages display below invalid fields
-- Form values are managed internally with React state
-- shadcn/ui components used for consistent styling
+Tip: Keep action buttons minimal to avoid cramped layouts on small screens.
+
+## Styling
+
+Styling is bundled with the library and injected automatically; you don’t need Tailwind in your app. Utility classes are already included in the compiled CSS.
+
+## Local development (contributing)
+
+Start the example project for testing or development.
+
+From the repo root:
+
+```bash
+npm i
+npm run build
+npm link
+```
+
+Link it into the example app and run it:
+
+```bash
+cd example
+npm link ynotsoft-dynamic-grid
+npm i
+npm run dev
+```
+
+## FAQ
+
+What does the request body look like for filters?
+
+- The grid sends the current filter object you build via the UI, e.g. `{ JobName: { field, title, operator: "contains", value: "foo", displayValue: "foo" }, ... }`.
+
+How do I reset the grid from outside?
+
+- Maintain a `refresh` boolean in your parent component and pass `setRefreshGrid` so the grid can reset it after reloading.
+
+Can I customize how a specific cell renders?
+
+- The current release focuses on server‑defined headers and values, an actions column, and bulk actions. A dedicated custom cell slot is planned.
+
+## License
+
+MIT
