@@ -275,7 +275,7 @@ function SearchSelectField({
 
       {/* Options list */}
       <div
-        className={`overflow-y-auto p-2 max-h-96 flex flex-col gap-0.5 ${
+        className={`overflow-y-auto p-2 max-h-96 flex flex-col gap-0.5 bg-white ${
           isDialogMode ? "max-h-96" : "max-h-60"
         }`}
       >
