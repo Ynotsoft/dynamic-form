@@ -1,5 +1,5 @@
 import React from "react";
-import type { Field, FormValues } from "../../types";
+import type { Field, FormValues } from "@/types";
 
 type CheckboxOption =
 	| string
