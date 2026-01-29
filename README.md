@@ -6,9 +6,9 @@ Welcome to the **Ynotsoft** monorepo. This workspace contains a suite of high-pe
 
 Click on a library name to view its specific documentation and API reference.
 
-- **[📝 Dynamic Form Lib](packages/dynamic-form-lib/README.md)** — Core `ynotsoft-dynamic-form` package.
-- **[📊 Dynamic Grid Lib](packages/dynamic-grid-lib/README.md)** — Core `ynotsoft-dynamic-grid` package.
-- **[🚀 Example App](packages/example-app/README.md)** — Sandbox for local development and HMR testing.
+- **[📝 Dynamic Form Lib](packages/dynamic-form-lib/)** — Core `ynotsoft-dynamic-form` package.
+- **[📊 Dynamic Grid Lib](packages/dynamic-grid-lib/)** — Core `ynotsoft-dynamic-grid` package.
+- **[🚀 Example App](packages/example-app/)** — Sandbox for local development and HMR testing.
 
 ---
 
