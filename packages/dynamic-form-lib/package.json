@@ -26,7 +26,8 @@
   ],
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "bun run build:types && vite build",
+    "build:types": "tsc -p tsconfig.json",
     "preview": "vite preview"
   },
   "peerDependencies": {
