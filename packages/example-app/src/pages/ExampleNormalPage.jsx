@@ -206,22 +206,9 @@ export default function ExampleNormalPage() {
         formDefinition={formDefinition}
         returnType={false}
         footerMode="normal"
-        sendFormValues={(values) => console.log("Form Submitted: ", values)}
         debugMode={true}
         apiClient={(optionsUrl) => mockApiClient(optionsUrl.formValues)}
-      >
-        <div className="flex justify-end gap-4 mt-4">
-          <button className="px-3 py-2 bg-gray-300 rounded" type="button">
-            Cancel
-          </button>
-          <button
-            className="px-3 py-2 bg-blue-600 text-white rounded"
-            type="submit"
-          >
-            Save
-          </button>
-        </div>
-      </DynamicForm>
+      ></DynamicForm>
     </div>
   );
 }
