@@ -1,6 +1,6 @@
 import "./index.css";
 
-export { default as DynamicForm } from "./DynamicForm/DynamicForm";
+export { DynamicForm } from "./DynamicForm/DynamicForm";
 export type {
 	DynamicFormProps,
 	Field,

@@ -20,7 +20,7 @@ import RenderEmailField from "./fields/EmailField.jsx";
 import RenderInputField from "./fields/InputField.jsx";
 import RenderNumberField from "./fields/NumberField.jsx";
 import RenderHtmlField from "./fields/HtmlField.jsx";
-import RenderCheckboxField from "./fields/CheckboxField.jsx";
+import RenderCheckboxField from "./fields/CheckboxField.js";
 import RenderDayPickerField from "./fields/DateRangePickerField.jsx";
 import RenderFileInputField from "./fields/FileField.jsx";
 import RenderTextAreaField from "./fields/TextArea.jsx";
@@ -28,7 +28,7 @@ import DayTimePickerField from "./fields/DayTimePickerField.jsx";
 import RenderLineBreakField from "./fields/LineBreakField.jsx";
 import RenderRadioGroupField from "./fields/RadioGroups.jsx";
 import RenderHeaderField from "./fields/HeaderField.jsx";
-import RenderDatePickerField from "./fields/DatePickerField.jsx";
+import RenderDatePickerField from "./fields/DatePickerField.js";
 import RenderTimeField from "./fields/timeField.jsx";
 import RenderAlertMessageField from "./fields/AlertMessageField.js";
 
@@ -55,7 +55,7 @@ type FieldRenderer = ComponentType<any>;
 
 type ConfirmModalState = { isOpen: boolean; fieldName: string | null };
 
-const DynamicForm = ({
+export const DynamicForm = ({
 	formDefinition,
 	defaultValues = {},
 	apiClient,
