@@ -27,11 +27,15 @@ export default function ExampleNormalPage() {
         type: "searchselect",
         required: true,
         placeholder: "Type to search users...",
-        // layout: "inline",
-        layout: "dialog",
+        layout: "inline",
+        // layout: "dialog",
         optionsUrl: "/api/users/search", // API endpoint
         minSearchLength: 2, // Minimum characters before search (default: 2)
         selectMode: "single", // 'single' | 'multiple' (default: 'single')
+        valueId: "userId",
+        onChange: (valueId) => {
+          console.log("searchselect changed: ", valueId);
+        },
       },
       {
         name: "email",
@@ -207,7 +211,7 @@ export default function ExampleNormalPage() {
         returnType={false}
         footerMode="normal"
         debugMode={true}
-        apiClient={(optionsUrl) => mockApiClient(optionsUrl.formValues)}
+        apiClient={(url, valueId) => mockApiClient(url, valueId)}
       ></DynamicForm>
     </div>
   );

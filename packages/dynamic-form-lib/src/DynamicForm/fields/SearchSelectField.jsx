@@ -26,6 +26,7 @@ function SearchSelectField({
 	const [isLoading, setIsLoading] = useState(false);
 	const [isOpen, setIsOpen] = useState(false);
 	const [searchTerm, setSearchTerm] = useState("");
+	const [searchError, setSearchError] = useState(null);
 	const [selectedOptionsCache, setSelectedOptionsCache] = useState({}); // Cache for selected option labels
 	const debounceTimerRef = useRef(null);
 	const dropdownRef = useRef(null);
@@ -97,6 +98,7 @@ function SearchSelectField({
 			}
 
 			setIsLoading(true);
+			setSearchError(null); // Clear previous errors
 
 			try {
 				let results = [];
@@ -117,7 +119,7 @@ function SearchSelectField({
 								inputValue,
 							)}`;
 
-					const response = await apiClient(url);
+					const response = await apiClient(url, field.valueId);
 
 					// Handle different response structures
 					results = response.data || response;
@@ -132,15 +134,19 @@ function SearchSelectField({
 				}
 
 				setOptions(results);
+				setSearchError(null);
 				return results;
 			} catch (error) {
-				console.error(`Search failed for ${field.name}:`, error);
-				return options; // Return existing options on error
+				console.error(`Cannot find search results for ${field.name}`, error);
+				setSearchError(
+					error.message || "Failed to load search results. Please try again."
+				);
+				setOptions([]);
 			} finally {
 				setIsLoading(false);
 			}
 		},
-		[field, options, apiClient, formValues],
+		[field, apiClient, formValues],
 	);
 
 	// Focus search input when dropdown opens and load initial options
@@ -313,6 +319,11 @@ function SearchSelectField({
 							</div>
 						);
 					})
+				) : searchError ? (
+					<div className="py-8 px-4 text-center">
+						<div className="text-red-500 text-sm font-medium mb-2">⚠️ Search Error</div>
+						<div className="text-gray-600 text-xs">{searchError}</div>
+					</div>
 				) : (
 					<div className="py-8 text-center text-gray-500 text-sm">
 						{field.optionsUrl || field.onSearch

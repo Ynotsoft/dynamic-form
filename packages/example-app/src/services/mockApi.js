@@ -1,9 +1,10 @@
 // Mock API with sample user data for testing search functionality
 
+import { use } from "react";
+
 const mockUsers = [
-  { id: "1", name: "John Doe", email: "john.doe@example.com", role: "Developer" },
-  { id: "2", name: "Jane Smith", email: "jane.smith@example.com", role: "Designer" },
-  { id: "3", name: "Michael Johnson", email: "michael.j@example.com", role: "Manager" },
+  { userId: "1", name: "John Doe", email: "john.doe@example.com", role: "Developer" },
+  { userId: "3", name: "Michael Johnson", email: "michael.j@example.com", role: "Manager" },
   { id: "4", name: "Sarah Williams", email: "sarah.w@example.com", role: "Developer" },
   { id: "5", name: "David Brown", email: "david.b@example.com", role: "Analyst" },
   { id: "6", name: "Emily Davis", email: "emily.d@example.com", role: "Designer" },
@@ -31,9 +32,10 @@ const mockUsers = [
 /**
  * Mock API client that simulates a real API with search functionality
  * @param {string} url - The API endpoint URL (e.g., "/api/users/search?q=john")
+ * @param {string} valueIdField - The field name to use as the ID (e.g., "userId", "id", "empId")
  * @returns {Promise<{data: Array}>} - Returns filtered user data
  */
-export const mockApiClient = async (url) => {
+export const mockApiClient = async (url, valueIdField = 'id') => {
   // Simulate network delay (300-800ms)
   const delay = Math.random() * 500 + 300;
   await new Promise(resolve => setTimeout(resolve, delay));
@@ -47,12 +49,14 @@ export const mockApiClient = async (url) => {
   // If no search term, return all users
   if (!searchTerm || searchTerm.trim() === '') {
     return { 
-      data: mockUsers.map(user => ({
-        value: user.id,
-        label: `${user.name} (${user.role})`,
-        email: user.email,
-        role: user.role
-      }))
+      data: mockUsers
+        .filter(user => user[valueIdField] !== undefined) // Only include users with the specified ID field
+        .map(user => ({
+          value: user[valueIdField],
+          label: `${user.name} (${user.role})`,
+          email: user.email,
+          role: user.role
+        }))
     };
   }
   
@@ -66,12 +70,14 @@ export const mockApiClient = async (url) => {
   
   // Transform to the format expected by the component
   return { 
-    data: filtered.map(user => ({
-      value: user.id,
-      label: `${user.name} (${user.role})`,
-      email: user.email,
-      role: user.role
-    }))
+    data: filtered
+      .filter(user => user[valueIdField] !== undefined) // Only include users with the specified ID field
+      .map(user => ({
+        value: user[valueIdField],
+        label: `${user.name} (${user.role})`,
+        email: user.email,
+        role: user.role
+      }))
   };
 };
 
@@ -79,9 +85,10 @@ export const mockApiClient = async (url) => {
  * Alternative: Custom search function that can be passed directly to the field
  * @param {string} searchTerm - The search term entered by the user
  * @param {object} formValues - Current form values (if needed for context)
+ * @param {string} valueIdField - The field name to use as the ID
  * @returns {Promise<Array>} - Returns filtered options
  */
-export const searchUsers = async (searchTerm, formValues) => {
+export const searchUsers = async (searchTerm, formValues, valueIdField = 'id') => {
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 400));
   
@@ -92,20 +99,22 @@ export const searchUsers = async (searchTerm, formValues) => {
     user.role.toLowerCase().includes(searchLower)
   );
   
-  return filtered.map(user => ({
-    value: user.id,
-    label: `${user.name} (${user.role})`,
-  }));
+  return filtered
+    .filter(user => user[valueIdField] !== undefined) // Only include users with the specified ID field
+    .map(user => ({
+      value: user[valueIdField],
+      label: `${user.name} (${user.role})`,
+    }));
 };
 
 /**
  * Get user by ID (useful for initial value display)
  */
-export const getUserById = (id) => {
-  const user = mockUsers.find(u => u.id === id);
+export const getUserById = (id, valueIdField) => {
+  const user = mockUsers.find(u => u[valueIdField] === id);
   if (user) {
     return {
-      value: user.id,
+      value: user[valueIdField],
       label: `${user.name} (${user.role})`,
     };
   }
@@ -115,8 +124,8 @@ export const getUserById = (id) => {
 /**
  * Get multiple users by IDs
  */
-export const getUsersByIds = (ids) => {
-  return ids.map(id => getUserById(id)).filter(Boolean);
+export const getUsersByIds = (ids, valueIdField = 'id') => {
+  return ids.map(id => getUserById(id, valueIdField)).filter(Boolean);
 };
 
 export default mockApiClient;
