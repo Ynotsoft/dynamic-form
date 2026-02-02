@@ -1,3 +1,4 @@
+import type { FieldBase } from "@/types";
 import {
 	ErrorAlert,
 	InfoAlert,
@@ -14,7 +15,7 @@ type AlertVariant =
 	| "info"
 	| "information";
 
-type AlertField = {
+export type AlertField = FieldBase & {
 	variant?: AlertVariant | string;
 	message?: string;
 	content?: string;
@@ -25,7 +26,7 @@ type Props = {
 };
 
 export default function AlertMessageField({ field }: Props) {
-	const variant = (field.variant ?? "info").toLowerCase();
+	const variant = String(field.variant ?? "info").toLowerCase();
 	const alertMessage = field.message ?? field.content ?? "";
 
 	switch (variant) {
@@ -40,6 +41,8 @@ export default function AlertMessageField({ field }: Props) {
 		case "warn":
 			return <WarningAlert message={alertMessage} />;
 
+		case "info":
+		case "information":
 		default:
 			return <InfoAlert message={alertMessage} />;
 	}

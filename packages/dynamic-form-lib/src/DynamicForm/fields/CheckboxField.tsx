@@ -1,5 +1,9 @@
-import React from "react";
-import type { Field, FormValues } from "@/types";
+import type {
+	FieldComponentProps,
+	FieldRuntime,
+	FormValues,
+	InputProps,
+} from "@/types";
 
 type CheckboxOption =
 	| string
@@ -9,16 +13,15 @@ type CheckboxOption =
 			description?: string;
 	  };
 
-type Props = {
-	field: Field & {
-		options?: CheckboxOption[];
-		inline?: boolean;
-		layout?: "inline" | "stacked";
-		props?: React.InputHTMLAttributes<HTMLInputElement>;
-	};
+export type CheckboxFieldType = FieldRuntime<InputProps> & {
+	options?: CheckboxOption[];
+	inline?: boolean;
+	layout?: "inline" | "stacked";
+};
+
+type Props = Omit<FieldComponentProps<unknown, InputProps>, "field"> & {
+	field: CheckboxFieldType;
 	formValues: FormValues;
-	handleChange: (name: string, value: unknown) => void;
-	handleBlur: (name: string) => void;
 	error?: string | null;
 };
 
@@ -28,17 +31,14 @@ export default function CheckboxField({
 	handleChange,
 	handleBlur,
 	error,
+	disabled,
 }: Props) {
-	// Field name is required for this component to work.
-	// Your Field type allows it to be optional, so we guard here.
-	if (!field.name) return null;
-
 	const name = field.name;
 
 	const isDisabled =
 		typeof field.disabled === "function"
 			? field.disabled(formValues)
-			: !!field.disabled;
+			: (disabled ?? !!field.disabled);
 
 	const options = field.options ?? [];
 	const isInline = field.inline || field.layout === "inline";
@@ -81,7 +81,7 @@ export default function CheckboxField({
 						<div key={value} className="relative flex items-start">
 							<div className="flex h-6 items-center">
 								<input
-									{...field.props}
+									{...(field.props ?? {})}
 									id={id}
 									type="checkbox"
 									checked={checked}
@@ -93,7 +93,11 @@ export default function CheckboxField({
 									className={`
 										size-4 rounded border-gray-300 text-blue-600 transition-all
 										focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-										${isDisabled ? "opacity-50 cursor-not-allowed bg-gray-100" : "cursor-pointer hover:border-blue-400"}
+										${
+											isDisabled
+												? "opacity-50 cursor-not-allowed bg-gray-100"
+												: "cursor-pointer hover:border-blue-400"
+										}
 										${showError ? "border-red-500" : ""}
 									`}
 								/>
@@ -113,7 +117,9 @@ export default function CheckboxField({
 
 								{description && !isInline && (
 									<p
-										className={`text-sm ${isDisabled ? "text-gray-400" : "text-gray-500"}`}
+										className={`text-sm ${
+											isDisabled ? "text-gray-400" : "text-gray-500"
+										}`}
 									>
 										{description}
 									</p>
@@ -133,7 +139,7 @@ export default function CheckboxField({
 		<div className="mt-1">
 			<div className="space-x-2">
 				<input
-					{...field.props}
+					{...(field.props ?? {})}
 					id={`id_${name}`}
 					type="checkbox"
 					checked={Boolean(formValues[name])}

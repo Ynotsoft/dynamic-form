@@ -8,13 +8,12 @@ import {
 	PopoverTrigger,
 } from "@/components/ui/popover";
 
-import type { Field, FormValues } from "../../types";
+import type { FieldComponentProps, FieldRuntime, InputProps } from "@/types";
 
-type Props = {
-	field: Field;
-	formValues: FormValues;
-	handleChange: (fieldName: string, value: unknown) => void;
-	handleBlur: (fieldName: string) => void;
+type DatePickerFieldType = FieldRuntime<InputProps>;
+
+type Props = Omit<FieldComponentProps<Date | null, InputProps>, "field"> & {
+	field: DatePickerFieldType;
 	error?: string | null;
 };
 
@@ -25,19 +24,10 @@ export default function DatePickerField({
 	handleBlur,
 	error,
 }: Props) {
-	// Hooks must run on every render, so do NOT return before this.
 	const [open, setOpen] = useState(false);
 
-	// Field name guard AFTER hooks.
 	const name = field.name;
-	if (!name) return null;
-
-	// Field type currently doesn't include placeholder, so read it safely for now.
-	const placeholder =
-		typeof (field as unknown as { placeholder?: string }).placeholder ===
-		"string"
-			? (field as unknown as { placeholder?: string }).placeholder
-			: undefined;
+	const placeholder = field.placeholder;
 
 	const selected = (formValues[name] as Date | null | undefined) ?? null;
 
@@ -60,18 +50,18 @@ export default function DatePickerField({
 						onKeyDown={(e) => e.key === "Enter" && setOpen(true)}
 						onBlur={() => handleBlur(name)}
 						className={`
-              inline-flex items-center justify-between gap-2
-              w-full h-9 rounded-md border bg-white
-              px-3 py-2 text-sm font-normal shadow-sm
-              hover:bg-gray-50 hover:text-gray-900
-              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
-              disabled:cursor-not-allowed disabled:opacity-50
-              ${
+							inline-flex items-center justify-between gap-2
+							w-full h-9 rounded-md border bg-white
+							px-3 py-2 text-sm font-normal shadow-sm
+							hover:bg-gray-50 hover:text-gray-900
+							focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
+							disabled:cursor-not-allowed disabled:opacity-50
+							${
 								error
 									? "border-red-500 focus-visible:ring-red-500"
 									: "border-gray-300 focus-visible:ring-blue-500"
 							}
-            `}
+						`}
 					>
 						{selected ? (
 							<span>{selected.toLocaleDateString()}</span>
@@ -81,7 +71,6 @@ export default function DatePickerField({
 							</span>
 						)}
 
-						{/* Decorative icon: mark aria-hidden to satisfy a11y lint */}
 						<svg
 							aria-hidden="true"
 							focusable="false"

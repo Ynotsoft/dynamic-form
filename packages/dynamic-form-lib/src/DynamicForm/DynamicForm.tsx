@@ -1,47 +1,48 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type {
-	FormEvent,
-	ReactNode,
-	Dispatch,
-	SetStateAction,
-	RefObject,
-	ComponentType,
-} from "react";
+import type { FormEvent, ReactNode } from "react";
 import { toast } from "react-hot-toast";
 import dayjs from "dayjs";
 
 import { Lock as LucideLock, LockOpen as LucideLockOpen } from "lucide-react";
 
-import RenderHiddenField from "./fields/HiddenField.jsx";
-import RenderMultiSelectField from "./fields/MultiSelectField.jsx";
-import SearchSelectField from "./fields/SearchSelectField.jsx";
-import RenderSelectField from "./fields/SelectField.jsx";
-import RenderEmailField from "./fields/EmailField.jsx";
-import RenderInputField from "./fields/InputField.jsx";
-import RenderNumberField from "./fields/NumberField.jsx";
-import RenderHtmlField from "./fields/HtmlField.jsx";
-import RenderCheckboxField from "./fields/CheckboxField.js";
-import RenderDayPickerField from "./fields/DateRangePickerField.jsx";
-import RenderFileInputField from "./fields/FileField.jsx";
-import RenderTextAreaField from "./fields/TextArea.jsx";
-import DayTimePickerField from "./fields/DayTimePickerField.jsx";
-import RenderLineBreakField from "./fields/LineBreakField.jsx";
-import RenderRadioGroupField from "./fields/RadioGroups.jsx";
-import RenderHeaderField from "./fields/HeaderField.jsx";
-import RenderDatePickerField from "./fields/DatePickerField.js";
-import RenderTimeField from "./fields/timeField.jsx";
-import RenderAlertMessageField from "./fields/AlertMessageField.js";
+import RenderHiddenField from "./fields/HiddenField";
+import RenderMultiSelectField from "./fields/MultiSelectField";
+import SearchSelectField from "./fields/SearchSelectField";
+import RenderSelectField from "./fields/SelectField";
+import RenderEmailField from "./fields/EmailField";
+import RenderInputField from "./fields/InputField";
+import RenderNumberField from "./fields/NumberField";
+import RenderHtmlField from "./fields/HtmlField";
+import RenderCheckboxField from "./fields/CheckboxField";
+import RenderDayPickerField from "./fields/DateRangePickerField";
+import RenderFileInputField from "./fields/FileField";
+import RenderTextAreaField from "./fields/TextAreaField";
+import DayTimePickerField from "./fields/DayTimePickerField";
+import RenderLineBreakField from "./fields/LineBreakField";
+import RenderRadioGroupField from "./fields/RadioGroupsField";
+import RenderHeaderField from "./fields/HeaderField";
+import RenderDatePickerField from "./fields/DatePickerField";
+import RenderTimeField from "./fields/TimeField";
+import RenderAlertMessageField from "./fields/AlertMessageField";
 
 import type { DynamicFormProps, Field, FormValues } from "../types";
 
-type FileInputRefs = RefObject<Record<string, HTMLInputElement | null>>;
+type FileInputRefs = React.MutableRefObject<
+	Record<string, HTMLInputElement | null>
+>;
+
+type ConfirmModalState = {
+	isOpen: boolean;
+	fieldName: string | null;
+};
+
 type FieldRendererProps = {
 	field: Field;
 	formValues: FormValues;
 	handleChange: (fieldName: string, value: unknown) => void;
-	handleBlur: () => void;
+	handleBlur: (fieldName: string) => void;
 	onFieldsChange?: (values: FormValues) => void;
-	setCharCounts: Dispatch<SetStateAction<Record<string, number>>>;
+	setCharCounts: React.Dispatch<React.SetStateAction<Record<string, number>>>;
 	charCount: number;
 	api_URL?: string;
 	error: string | null;
@@ -51,9 +52,7 @@ type FieldRendererProps = {
 	apiClient?: DynamicFormProps["apiClient"];
 };
 
-type FieldRenderer = ComponentType<any>;
-
-type ConfirmModalState = { isOpen: boolean; fieldName: string | null };
+type FieldRenderer = (props: FieldRendererProps) => ReactNode;
 
 export const DynamicForm = ({
 	formDefinition,
@@ -77,6 +76,7 @@ export const DynamicForm = ({
 		{},
 	);
 	const [fileUploads, setFileUploads] = useState<unknown>(null);
+
 	const [confirmModal, setConfirmModal] = useState<ConfirmModalState>({
 		isOpen: false,
 		fieldName: null,
@@ -106,26 +106,26 @@ export const DynamicForm = ({
 
 	const FIELD_RENDERERS = useMemo<Record<string, FieldRenderer>>(
 		() => ({
-			file: RenderFileInputField,
-			multifile: RenderFileInputField,
-			dateRange: RenderDayPickerField,
-			date: RenderDatePickerField,
-			dayTimePicker: DayTimePickerField,
-			time: RenderTimeField,
-			hidden: RenderHiddenField,
-			multiselect: RenderMultiSelectField,
-			searchselect: SearchSelectField,
-			select: RenderSelectField,
-			email: RenderEmailField,
-			litertext: RenderHtmlField,
-			checkbox: RenderCheckboxField,
-			radiogroup: RenderRadioGroupField,
-			input: RenderInputField,
-			number: RenderNumberField,
-			textarea: RenderTextAreaField,
-			header: RenderHeaderField,
-			alert: RenderAlertMessageField,
-			linebreak: RenderLineBreakField,
+			file: RenderFileInputField as unknown as FieldRenderer,
+			multifile: RenderFileInputField as unknown as FieldRenderer,
+			dateRange: RenderDayPickerField as unknown as FieldRenderer,
+			date: RenderDatePickerField as unknown as FieldRenderer,
+			dayTimePicker: DayTimePickerField as unknown as FieldRenderer,
+			time: RenderTimeField as unknown as FieldRenderer,
+			hidden: RenderHiddenField as unknown as FieldRenderer,
+			multiselect: RenderMultiSelectField as unknown as FieldRenderer,
+			searchselect: SearchSelectField as unknown as FieldRenderer,
+			select: RenderSelectField as unknown as FieldRenderer,
+			email: RenderEmailField as unknown as FieldRenderer,
+			litertext: RenderHtmlField as unknown as FieldRenderer,
+			checkbox: RenderCheckboxField as unknown as FieldRenderer,
+			radiogroup: RenderRadioGroupField as unknown as FieldRenderer,
+			input: RenderInputField as unknown as FieldRenderer,
+			number: RenderNumberField as unknown as FieldRenderer,
+			textarea: RenderTextAreaField as unknown as FieldRenderer,
+			header: RenderHeaderField as unknown as FieldRenderer,
+			alert: RenderAlertMessageField as unknown as FieldRenderer,
+			linebreak: RenderLineBreakField as unknown as FieldRenderer,
 		}),
 		[],
 	);
@@ -140,7 +140,7 @@ export const DynamicForm = ({
 			}
 
 			try {
-				const response = await apiClient(`/${field.optionsUrl}`);
+				const response = await apiClient(`/${String(field.optionsUrl ?? "")}`);
 
 				type OptionItem = { value: string; label: string };
 				const data = (response?.data ?? []) as unknown[];
@@ -174,37 +174,38 @@ export const DynamicForm = ({
 						})
 						.filter((x): x is OptionItem => x !== null);
 				}
+
+				// NOTE: keeps your existing mutation behaviour
 				formDefinition.fields.forEach((f) => {
 					if (f.name === field.name) f.options = options;
 				});
 			} catch (err) {
 				if (debugMode)
-					console.error(`Failed to load options for ${field.name}:`, err);
+					console.error(
+						`Failed to load options for ${String(field.name)}:`,
+						err,
+					);
 			}
 		},
-		[apiClient, debugMode, formDefinition],
+		[apiClient, debugMode, formDefinition.fields],
 	);
 
 	useEffect(() => {
 		if (!formDefinition?.fields?.length) return;
-
-		const hasData = formDefinition.fields.some((f) => f.value);
-		if (!hasData) return;
 
 		formDefinition.fields.forEach((field) => {
 			if (field.optionsUrl) void loadOptionsForField(field);
 		});
 
 		const initialValues: FormValues = {};
+
 		formDefinition.fields.forEach((field) => {
 			if (!field.name) return;
 
 			const shouldBeArray =
 				field.type === "multiselect" ||
 				field.type === "searchselect" ||
-				(field.type === "checkbox" &&
-					field.options &&
-					field.options.length > 0);
+				(field.type === "checkbox" && (field.options?.length ?? 0) > 0);
 
 			initialValues[field.name] =
 				defaultValues[field.name] ?? field.value ?? (shouldBeArray ? [] : "");
@@ -235,38 +236,41 @@ export const DynamicForm = ({
 
 		if (field.required && isEmpty) {
 			if (debugMode)
-				console.warn(`VALIDATION FAILED (REQUIRED): ${field.name} is empty.`);
-			return `${field.label} is required`;
+				console.warn(
+					`VALIDATION FAILED (REQUIRED): ${String(field.name)} is empty.`,
+				);
+			return `${String(field.label ?? field.name ?? "This field")} is required`;
 		}
 
 		if (isEmpty && !field.required) return null;
 
 		if (field.validate) {
-			const error = field.validate(value, allValues);
-			if (error) return error;
+			const err = field.validate(value, allValues);
+			if (err) return err;
 		}
 
 		if (field.type === "email" && value) {
 			const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-			if (!emailRegex.test(String(value)))
+			if (!emailRegex.test(String(value))) {
 				return "Please enter a valid email address";
+			}
 		}
 
 		if (field.type === "number") {
 			const num = typeof value === "number" ? value : Number(value);
 			if (field.min !== undefined && num < field.min)
-				return `${field.label} must be at least ${field.min}`;
+				return `${String(field.label ?? field.name)} must be at least ${field.min}`;
 			if (field.max !== undefined && num > field.max)
-				return `${field.label} must be no more than ${field.max}`;
+				return `${String(field.label ?? field.name)} must be no more than ${field.max}`;
 		}
 
 		if (field.type === "date" && value) {
 			if (!dayjs(value as unknown as string | number | Date).isValid())
-				return `${field.label} must be a valid date`;
+				return `${String(field.label ?? field.name)} must be a valid date`;
 		}
 
 		if (field.maxLength && value && String(value).length > field.maxLength) {
-			return `${field.label} must not exceed ${field.maxLength} characters`;
+			return `${String(field.label ?? field.name)} must not exceed ${field.maxLength} characters`;
 		}
 
 		return null;
@@ -278,54 +282,15 @@ export const DynamicForm = ({
 
 		const newValues: FormValues = { ...formValues };
 
+		// Always set the incoming value
+		newValues[fieldName] = value;
+
+		// Normalise multi fields
 		if (field.type === "multiselect" || field.type === "searchselect") {
-			if (Array.isArray(value)) {
-				newValues[fieldName] = value;
-			} else if (
-				typeof value === "object" &&
-				value !== null &&
-				"target" in value
-			) {
-				const target = (value as { target?: unknown }).target;
-				const selectedOptions = (target as { selectedOptions?: unknown })
-					?.selectedOptions;
-
-				if (selectedOptions && typeof selectedOptions === "object") {
-					newValues[fieldName] = Array.from(
-						selectedOptions as ArrayLike<unknown>,
-					)
-						.map((o) =>
-							typeof o === "object" && o !== null && "value" in o
-								? String((o as Record<string, unknown>).value)
-								: "",
-						)
-						.filter(Boolean);
-				} else {
-					newValues[fieldName] = [];
-				}
-			} else {
-				newValues[fieldName] = [];
-			}
-		} else if (field.type === "dateRange") {
-			if (Array.isArray(value) && value.length > 0) {
-				const first = value[0] as unknown;
-				const from =
-					typeof first === "object" && first !== null && "from" in first
-						? (first as Record<string, unknown>).from
-						: undefined;
-				const to =
-					typeof first === "object" && first !== null && "to" in first
-						? (first as Record<string, unknown>).to
-						: undefined;
-
-				newValues[fieldName] = [
-					{ startDate: from, endDate: to, key: "selection" },
-				];
-			} else {
-				newValues[fieldName] = [];
-			}
+			newValues[fieldName] = Array.isArray(value) ? value : [];
 		}
 
+		// Reset hidden fields when a select changes
 		if (field.type === "select") {
 			formDefinition.fields.forEach((f) => {
 				if (f.showIf && !f.showIf(newValues)) {
@@ -334,13 +299,14 @@ export const DynamicForm = ({
 					const shouldBeArray =
 						f.type === "multiselect" ||
 						f.type === "searchselect" ||
-						(f.type === "checkbox" && f.options && f.options.length > 0);
+						(f.type === "checkbox" && (f.options?.length ?? 0) > 0);
 
 					newValues[f.name] = shouldBeArray ? [] : "";
 				}
 			});
 		}
 
+		// Reset disabled fields
 		formDefinition.fields.forEach((f) => {
 			if (typeof f.disabled === "function" && f.disabled(newValues)) {
 				if (!f.name) return;
@@ -348,7 +314,7 @@ export const DynamicForm = ({
 				const shouldBeArray =
 					f.type === "multiselect" ||
 					f.type === "searchselect" ||
-					(f.type === "checkbox" && f.options && f.options.length > 0);
+					(f.type === "checkbox" && (f.options?.length ?? 0) > 0);
 
 				newValues[f.name] = shouldBeArray ? [] : "";
 			}
@@ -375,8 +341,8 @@ export const DynamicForm = ({
 			if (!field.name) return;
 
 			if (!field.showIf || field.showIf(formValues)) {
-				const error = validateField(field, formValues[field.name], formValues);
-				if (error) newErrors[field.name] = error;
+				const err = validateField(field, formValues[field.name], formValues);
+				if (err) newErrors[field.name] = err;
 			}
 		});
 
@@ -466,6 +432,7 @@ export const DynamicForm = ({
 
 		const containerStyle = field.containerStyle;
 		const color = field.color || "blue";
+
 		const containerClasses =
 			containerStyle === "card"
 				? `rounded-lg border text-card-foreground shadow-sm p-4 ${
@@ -509,13 +476,13 @@ export const DynamicForm = ({
 								onClick={toggleOverride}
 								className={`ml-2 p-[0.25rem] rounded-sm transition-all duration-150 ${
 									isOverridden
-										? " text-gray-600 bg-gray-100"
-										: " text-gray-600 hover:bg-gray-300"
+										? "text-gray-600 bg-gray-100"
+										: "text-gray-600 hover:bg-gray-300"
 								}`}
 								title={
 									isOverridden
-										? "Field is Overridden (Enabled)"
-										: "Field is Locked (Disabled)"
+										? "Field is overridden (enabled)"
+										: "Field is locked (disabled)"
 								}
 							>
 								{isOverridden ? (
@@ -548,54 +515,123 @@ export const DynamicForm = ({
 	const renderField = (field: Field) => {
 		if (field.showIf && !field.showIf(formValues)) return null;
 
-		const FieldComponent = FIELD_RENDERERS[field.type] || RenderInputField;
+		const FieldComponent =
+			(FIELD_RENDERERS[field.type] as FieldRenderer | undefined) ??
+			(RenderInputField as unknown as FieldRenderer);
 
-		// Initialise value if missing
-		if (field.name && formValues[field.name] === undefined) {
-			const shouldBeArray =
-				field.type === "multiselect" ||
-				field.type === "searchselect" ||
-				(field.type === "checkbox" &&
-					field.options &&
-					field.options.length > 0);
-
-			// NOTE: preserves your current mutation behaviour (not ideal but consistent)
-			formValues[field.name] =
-				field.value !== undefined ? field.value : shouldBeArray ? [] : "";
-		}
-
-		const error = field.name ? (errors[field.name] ?? null) : null;
+		const name = field.name;
+		const error = name ? (errors[name] ?? null) : null;
 
 		const isFundamentallyDisabled =
 			typeof field.disabled === "function"
 				? field.disabled(formValues)
 				: !!field.disabled;
 
-		const isOverridden = field.name
-			? overrideStatus[field.name] === true
-			: false;
+		const isOverridden = name ? overrideStatus[name] === true : false;
 		const effectiveDisabled = isFundamentallyDisabled && !isOverridden;
 
-		return fieldFormat(
+		const child = (
 			<FieldComponent
 				field={field}
 				formValues={formValues}
 				handleChange={handleChange}
-				handleBlur={() => field.name && handleBlur(field.name)}
+				handleBlur={handleBlur}
 				setCharCounts={setCharCounts}
-				charCount={field.name ? charCounts[field.name] || 0 : 0}
+				charCount={name ? charCounts[name] || 0 : 0}
 				api_URL={api_URL}
-				error={error}
+				error={name && touched[name] ? error : null}
 				fileInputRefs={fileInputRefs}
 				fileUploads={fileUploads}
 				onFieldsChange={onFieldsChange}
 				disabled={effectiveDisabled}
 				apiClient={apiClient}
-			/>,
-			field,
-			error,
+			/>
+		);
+
+		return (
+			<div key={name ?? `${field.type}-${field.label ?? "field"}`}>
+				{fieldFormat(child, field, name && touched[name] ? error : null)}
+			</div>
 		);
 	};
 
-	const fieldToConfirm = formDefinition.fields;
+	const showFooter = footerMode !== "none";
+
+	return (
+		<div className="w-full">
+			{confirmModal.isOpen && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+					<div
+						className="absolute inset-0 bg-black/40"
+						onClick={handleCancel}
+					/>
+					<div className="relative z-10 w-full max-w-md rounded-lg bg-white p-4 shadow-xl">
+						<h3 className="text-base font-semibold text-gray-900">
+							Enable locked field?
+						</h3>
+						<p className="mt-1 text-sm text-gray-600">
+							This field is locked by default. Enabling override allows it to be
+							edited.
+						</p>
+
+						<div className="mt-4 flex justify-end gap-2">
+							<button
+								type="button"
+								onClick={handleCancel}
+								className="h-9 rounded-md border border-gray-300 bg-white px-4 text-sm hover:bg-gray-50"
+							>
+								Cancel
+							</button>
+							<button
+								type="button"
+								onClick={handleConfirm}
+								className="h-9 rounded-md bg-blue-600 px-4 text-sm text-white hover:bg-blue-700"
+							>
+								Enable
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
+
+			<form onSubmit={handleSubmit} className="grid grid-cols-8 gap-4">
+				{formDefinition.fields.map((field) => renderField(field))}
+
+				{children ? <div className="col-span-full">{children}</div> : null}
+
+				{showFooter && (
+					<div
+						className={`col-span-full ${
+							footerMode === "sticky"
+								? "sticky bottom-0 bg-white border-t border-gray-200 py-3"
+								: "pt-2"
+						}`}
+					>
+						<div className="flex items-center justify-end gap-2">
+							<button
+								type="submit"
+								className="h-10 rounded-md bg-blue-600 px-5 text-sm font-medium text-white hover:bg-blue-700"
+							>
+								Submit
+							</button>
+						</div>
+					</div>
+				)}
+
+				{debugMode && (
+					<div className="col-span-full mt-4 rounded-md border border-gray-200 bg-gray-50 p-3">
+						<pre className="text-xs whitespace-pre-wrap">
+							{JSON.stringify(
+								{ formValues, errors, touched, overrideStatus },
+								null,
+								2,
+							)}
+						</pre>
+					</div>
+				)}
+			</form>
+		</div>
+	);
 };
+
+export default DynamicForm;

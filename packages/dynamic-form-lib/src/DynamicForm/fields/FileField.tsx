@@ -1,34 +1,87 @@
-import React, { useState } from "react"; // Added useState for drag state
+import { useState } from "react";
 import { toast } from "react-hot-toast";
-import { UploadCloud } from "lucide-react"; // Added icon for visual appeal
+import { UploadCloud } from "lucide-react";
 
-function FileField({
+import type { FieldRuntime, FormValues, InputProps } from "@/types";
+
+type UploadStatus = "uploading" | "done" | "error";
+
+type UploadState = {
+	status: UploadStatus;
+	progress: number;
+};
+
+type FileUploads = Record<string, Record<string, UploadState>>;
+
+type UploadedFile = {
+	url?: string;
+	original_name?: string;
+	name?: string;
+	size?: number;
+	// allow extra metadata without fighting TS
+	[key: string]: unknown;
+};
+
+type FileFieldType = FieldRuntime<InputProps> & {
+	type: "file" | "multifile" | string;
+
+	accept?: string;
+	maxSize?: number; // bytes
+	maxFiles?: number;
+	uploadEndpoint?: string;
+
+	// UI
+	fieldClass?: string;
+};
+
+type Props = {
+	field: FileFieldType;
+	formValues: FormValues;
+	error?: string | null;
+
+	fileUploads?: FileUploads;
+	fileInputRefs: React.RefObject<Record<string, HTMLInputElement | null>>;
+
+	handleChange: (name: string, value: unknown) => void;
+	onFieldsChange: (values: FormValues) => void;
+
+	api_URL?: string;
+	disabled?: boolean;
+};
+
+function formatFileSize(bytes: number): string {
+	if (bytes === 0) return "0 Bytes";
+
+	const k = 1024;
+	const sizes = ["Bytes", "KB", "MB", "GB"] as const;
+	const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+	return `${parseFloat((bytes / k ** i).toFixed(2))} ${sizes[i]}`;
+}
+
+export default function FileField({
 	field,
 	formValues,
 	error,
 	fileUploads,
-	// setFileUploads removed as it is unused
-	fileInputRefs, // Now correctly initialized in the parent
+	fileInputRefs,
 	handleChange,
 	onFieldsChange,
 	api_URL,
 	disabled,
-}) {
-	// Use the 'disabled' prop passed from DynamicForm
-	const isDisabled = disabled;
-
+}: Props) {
+	const isDisabled = !!disabled;
 	const isMultiple = field.type === "multifile";
-	// Add optional chaining for safer access
-	const uploads = fileUploads?.[field.name] || {};
-	const currentValues = formValues[field.name];
-	const values = isMultiple
-		? currentValues || []
-		: [currentValues].filter(Boolean);
 
-	// State for drag-and-drop visualization
+	const uploads = fileUploads?.[field.name] ?? {};
+	const currentValues = formValues[field.name];
+
+	const values: UploadedFile[] = isMultiple
+		? ((currentValues as UploadedFile[] | undefined) ?? [])
+		: ([currentValues].filter(Boolean) as UploadedFile[]);
+
 	const [isDragging, setIsDragging] = useState(false);
 
-	// Check if api_URL is provided when file uploads are needed
 	const uploadUrl = api_URL ? `${api_URL}uploads` : null;
 
 	if (!uploadUrl && field.uploadEndpoint) {
@@ -37,22 +90,15 @@ function FileField({
 		);
 	}
 
-	const formatFileSize = (bytes) => {
-		if (bytes === 0) return "0 Bytes";
-		const k = 1024;
-		const sizes = ["Bytes", "KB", "MB", "GB"];
-		const i = Math.floor(Math.log(bytes) / Math.log(k));
-		// Using ** operator and template literals for clean code
-		return `${parseFloat((bytes / k ** i).toFixed(2))} ${sizes[i]}`;
-	};
+	const uploadFile = async (file: File): Promise<unknown> => {
+		if (!uploadUrl) {
+			toast.error("Upload URL is missing");
+			throw new Error("Upload URL is missing");
+		}
 
-	// Removed fieldName parameter as it was unused in the function body
-	const uploadFile = async (file) => {
 		const formData = new FormData();
 		formData.append("file", file);
 
-		// Mock API call for upload progress (adjust as needed if using actual API progress tracking)
-		// For now, this is a standard fetch, progress updates would typically be handled separately.
 		const response = await fetch(`${uploadUrl}`, {
 			method: "POST",
 			body: formData,
@@ -63,37 +109,33 @@ function FileField({
 			throw new Error("Upload failed");
 		}
 
-		const data = await response.json();
+		const data = (await response.json()) as unknown;
 		return data;
 	};
 
-	const handleSingleFileUpload = async (field, file) => {
+	const handleSingleFileUpload = async (file: File) => {
 		if (!file) return;
 
-		// Validate file size
 		if (field.maxSize && file.size > field.maxSize) {
 			throw new Error(
 				`File size must not exceed ${formatFileSize(field.maxSize)}`,
 			);
 		}
 
-		// Upload the file
-		const uploadedData = await uploadFile(file); // Updated call
+		const uploadedData = await uploadFile(file);
 
-		// Update form values with the uploaded URL
-		const newValues = { ...formValues, [field.name]: uploadedData };
+		const newValues: FormValues = { ...formValues, [field.name]: uploadedData };
 		handleChange(field.name, uploadedData);
 		onFieldsChange(newValues);
 	};
 
-	const handleMultiFileUpload = async (field, files) => {
-		const currentUrls = formValues[field.name] || [];
-		// Ensure field.maxFiles exists before checking limit
+	const handleMultiFileUpload = async (files: File[]) => {
+		const currentUrls = (formValues[field.name] as unknown[]) ?? [];
+
 		if (field.maxFiles && currentUrls.length + files.length > field.maxFiles) {
 			throw new Error(`Maximum ${field.maxFiles} files allowed`);
 		}
 
-		// Validate each file size
 		files.forEach((file) => {
 			if (field.maxSize && file.size > field.maxSize) {
 				throw new Error(
@@ -102,89 +144,78 @@ function FileField({
 			}
 		});
 
-		// Upload all files
 		const uploadedUrls = await Promise.all(
-			files.map((file) => uploadFile(file)), // Updated call
+			files.map((file) => uploadFile(file)),
 		);
 
-		// Update form values with the new URLs
 		const newUrls = [...currentUrls, ...uploadedUrls];
 		handleChange(field.name, newUrls);
 		onFieldsChange({ ...formValues, [field.name]: newUrls });
 	};
 
-	const handleFileChange = async (fieldName, files) => {
-		// GUARD CLAUSE: Prevent file change if disabled
+	const handleFileChange = async (files: FileList | null) => {
 		if (isDisabled) return;
+		if (!files || files.length === 0) return;
 
 		const fileList = Array.from(files);
 
 		try {
-			if (field.type === "multifile") {
-				await handleMultiFileUpload(field, fileList);
+			if (isMultiple) {
+				await handleMultiFileUpload(fileList);
 			} else {
-				await handleSingleFileUpload(field, fileList[0]);
+				await handleSingleFileUpload(fileList[0]);
 			}
 
-			// Clear file input after processing
-			if (fileInputRefs.current?.[fieldName]) {
-				fileInputRefs.current[fieldName].value = ""; // This resets the file input field
-			}
-		} catch (error) {
-			toast.error(`Upload failed: ${error.message}`);
+			const input = fileInputRefs.current?.[field.name];
+			if (input) input.value = "";
+		} catch (err) {
+			const message = err instanceof Error ? err.message : "Unknown error";
+			toast.error(`Upload failed: ${message}`);
 		}
 	};
 
-	const removeFile = async (fieldName, urlToRemove) => {
-		// GUARD CLAUSE: Prevent removal if disabled
+	const removeFile = (urlToRemove: UploadedFile) => {
 		if (isDisabled) return;
 
-		let newValue;
+		let newValue: unknown;
 
-		if (field.type === "file") {
+		if (!isMultiple) {
 			newValue = "";
 		} else {
-			const urls = formValues[fieldName] || [];
-			// Assuming urlToRemove is the data object containing the file URL/metadata
+			const urls = (formValues[field.name] as UploadedFile[]) ?? [];
 			newValue = urls.filter((file) => file !== urlToRemove);
 		}
 
-		handleChange(fieldName, newValue);
-		onFieldsChange({ ...formValues, [fieldName]: newValue });
+		handleChange(field.name, newValue);
+		onFieldsChange({ ...formValues, [field.name]: newValue });
 
-		// Reset the file input field after removing the file
-		if (fileInputRefs.current?.[fieldName]) {
-			fileInputRefs.current[fieldName].value = ""; // Reset file input after removing
-		}
+		const input = fileInputRefs.current?.[field.name];
+		if (input) input.value = "";
 	};
 
-	// --- Drag and Drop Handlers ---
-	const handleDragOver = (e) => {
+	// Drag and drop
+	const handleDragOver = (e: React.DragEvent<HTMLButtonElement>) => {
 		e.preventDefault();
-		if (!isDisabled) {
-			setIsDragging(true);
-		}
+		if (!isDisabled) setIsDragging(true);
 	};
 
-	const handleDragLeave = (e) => {
+	const handleDragLeave = (e: React.DragEvent<HTMLButtonElement>) => {
 		e.preventDefault();
-		if (!isDisabled) {
-			setIsDragging(false);
-		}
+		if (!isDisabled) setIsDragging(false);
 	};
 
-	const handleDrop = (e) => {
+	const handleDrop = (e: React.DragEvent<HTMLButtonElement>) => {
 		e.preventDefault();
 		setIsDragging(false);
 
 		if (isDisabled) return;
 
-		if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-			handleFileChange(field.name, e.dataTransfer.files);
+		const dropped = e.dataTransfer.files;
+		if (dropped && dropped.length > 0) {
+			void handleFileChange(dropped);
 		}
 	};
 
-	// Helper text for file types and size
 	const acceptText = field.accept
 		? field.accept
 				.split(",")
@@ -197,19 +228,17 @@ function FileField({
 		? `, up to ${formatFileSize(field.maxSize)}`
 		: "";
 
-	// Class for the drag-and-drop zone
 	const dragDropClasses = `
-    w-full flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg transition-all duration-200 
-    // Ensure focus styling is handled correctly for the button element
-    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50
-    ${
+		w-full flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg transition-all duration-200 
+		focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50
+		${
 			isDisabled
 				? "bg-gray-50 border-gray-300 text-gray-400 cursor-not-allowed opacity-70"
 				: isDragging
 					? "bg-blue-50 border-blue-500 text-blue-600"
 					: "bg-white border-gray-300 hover:border-blue-400 hover:bg-gray-50 cursor-pointer"
 		}
-  `;
+	`;
 
 	return (
 		<div
@@ -217,24 +246,25 @@ function FileField({
 			className={`mb-4 ${field.fieldClass || "col-span-full"}`}
 		>
 			<div className="space-y-3">
-				{/* --- Drag and Drop Zone (Now a semantic <button>) --- */}
+				{/* Drag and drop zone */}
 				<button
-					type="button" // Important to prevent accidental form submission
+					type="button"
 					className={dragDropClasses}
 					onClick={() => {
 						if (!isDisabled) {
-							fileInputRefs?.current?.[field.name]?.click();
+							fileInputRefs.current?.[field.name]?.click();
 						}
 					}}
 					onDragOver={handleDragOver}
 					onDragEnter={handleDragOver}
 					onDragLeave={handleDragLeave}
 					onDrop={handleDrop}
-					disabled={isDisabled} // Use native disabled attribute
+					disabled={isDisabled}
 				>
-					<div className="border-gray-400 border p-1 mb-3 rounded-md bg-gray-100 shadow-md ">
+					<div className="border-gray-400 border p-1 mb-3 rounded-md bg-gray-100 shadow-md">
 						<UploadCloud size={24} className="m-1" />
 					</div>
+
 					<p className="text-sm font-normal">
 						<span
 							className={
@@ -247,6 +277,7 @@ function FileField({
 						</span>
 						<span className="font-light"> or drag and drop</span>
 					</p>
+
 					<p className="text-xs mt-1 text-gray-500">
 						{acceptText}
 						{maxSizeText}
@@ -254,51 +285,47 @@ function FileField({
 					</p>
 				</button>
 
-				{/* --- Hidden File Input --- */}
+				{/* Hidden input */}
 				<input
-					// Store the ref safely
 					ref={(el) => {
-						if (el && fileInputRefs && fileInputRefs.current) {
-							fileInputRefs.current[field.name] = el;
-						}
+						fileInputRefs.current[field.name] = el;
 					}}
 					id={field.name}
 					type="file"
 					accept={field.accept}
 					multiple={isMultiple}
-					// Use sr-only for visual hiding while retaining functionality
 					className="sr-only"
-					onChange={(e) => handleFileChange(field.name, e.target.files)}
-					disabled={isDisabled} // Apply disabled state to the input
+					onChange={(e) => void handleFileChange(e.target.files)}
+					disabled={isDisabled}
 				/>
 
-				{/* --- Uploaded Files List --- */}
+				{/* Uploaded list */}
 				{values.length > 0 && (
 					<div className="space-y-2 pt-2 border-t border-gray-200">
 						{values.map((file, index) => {
-							// Assuming file contains the uploaded data object
 							const fileName = file.original_name || file.name || "File";
-							const fileSize = file.size || null;
+							const fileSize = file.size ?? null;
 
 							return (
 								<div
-									key={file.url || file.original_name || index}
+									key={(file.url as string) || file.original_name || index}
 									className="flex items-center justify-between p-2 bg-gray-50 rounded"
 								>
 									<div className="flex items-center space-x-2 min-w-0">
-										{/* Ellipsis for long file names */}
 										<span className="text-sm truncate">{fileName}</span>
-										{fileSize && (
+										{fileSize ? (
 											<span className="text-xs text-gray-500 flex-shrink-0">
 												({formatFileSize(fileSize)})
 											</span>
-										)}
+										) : null}
 									</div>
+
 									<button
 										type="button"
-										onClick={() => removeFile(field.name, file)}
-										// Apply disabled state and classes to remove button
-										className={`text-red-500 hover:text-red-700 ml-3 flex-shrink-0 ${isDisabled ? "cursor-not-allowed opacity-50" : ""}`}
+										onClick={() => removeFile(file)}
+										className={`text-red-500 hover:text-red-700 ml-3 flex-shrink-0 ${
+											isDisabled ? "cursor-not-allowed opacity-50" : ""
+										}`}
 										disabled={isDisabled}
 									>
 										Remove
@@ -309,7 +336,7 @@ function FileField({
 					</div>
 				)}
 
-				{/* Upload Progress */}
+				{/* Upload progress */}
 				{Object.entries(uploads).map(([fileName, upload]) => {
 					if (upload.status === "uploading") {
 						return (
@@ -333,9 +360,9 @@ function FileField({
 					}
 					return null;
 				})}
+
+				{error ? <p className="mt-1 text-sm text-red-500">{error}</p> : null}
 			</div>
 		</div>
 	);
 }
-
-export default FileField;

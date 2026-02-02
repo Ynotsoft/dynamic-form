@@ -1,24 +1,51 @@
+import { useState, type KeyboardEvent } from "react";
+import { DayPicker, type DateRange } from "react-day-picker";
+import "react-day-picker/dist/style.css";
+
 import {
 	Popover,
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
-import { useState } from "react";
-import { DayPicker } from "react-day-picker";
-import "react-day-picker/dist/style.css";
 
-function DateRangeField({
+import type { FieldComponentProps, FieldRuntime, InputProps } from "@/types";
+
+const EMPTY_RANGE: DateRange = { from: undefined, to: undefined };
+
+type DateRangePickerFieldType = FieldRuntime<InputProps>;
+
+type Props = Omit<FieldComponentProps<DateRange, InputProps>, "field"> & {
+	field: DateRangePickerFieldType;
+	error?: string | null;
+};
+
+function DateRangePickerField({
 	field,
 	formValues,
 	handleChange,
 	handleBlur,
 	error,
-}) {
+	disabled,
+}: Props) {
 	const [open, setOpen] = useState(false);
-	const selected = formValues[field.name] ?? { from: null, to: null };
 
-	const handleSelect = (range) => handleChange(field.name, range);
-	const handleClear = () => handleChange(field.name, { from: null, to: null });
+	const name = field.name;
+
+	const isDisabled =
+		typeof field.disabled === "function"
+			? field.disabled(formValues)
+			: (disabled ?? !!field.disabled);
+
+	const selected = (formValues[name] as DateRange | undefined) ?? EMPTY_RANGE;
+
+	const handleSelect = (range: DateRange | undefined) =>
+		handleChange(name, range ?? EMPTY_RANGE);
+
+	const handleClear = () => handleChange(name, EMPTY_RANGE);
+
+	const handleKeyDown = (e: KeyboardEvent<HTMLButtonElement>) => {
+		if (e.key === "Enter") setOpen(true);
+	};
 
 	return (
 		<div>
@@ -26,24 +53,26 @@ function DateRangeField({
 				<PopoverTrigger asChild>
 					<button
 						type="button"
-						id={field.name}
+						id={name}
 						aria-haspopup="dialog"
 						aria-expanded={open}
 						onClick={() => setOpen(true)}
-						onKeyDown={(e) => e.key === "Enter" && setOpen(true)}
+						onKeyDown={handleKeyDown}
+						onBlur={() => handleBlur(name)}
+						disabled={isDisabled}
 						className={`
-              inline-flex items-center justify-between gap-2
-              w-full h-9 rounded-md border bg-white
-              px-3 py-2 text-sm font-normal shadow-sm
-              hover:bg-gray-50 hover:text-gray-900
-              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
-              disabled:cursor-not-allowed disabled:opacity-50
-              ${
+							inline-flex items-center justify-between gap-2
+							w-full h-9 rounded-md border bg-white
+							px-3 py-2 text-sm font-normal shadow-sm
+							hover:bg-gray-50 hover:text-gray-900
+							focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
+							disabled:cursor-not-allowed disabled:opacity-50
+							${
 								error
 									? "border-red-500 focus-visible:ring-red-500"
 									: "border-gray-300 focus-visible:ring-blue-500"
 							}
-            `}
+						`}
 					>
 						{selected.from ? (
 							selected.to ? (
@@ -61,6 +90,8 @@ function DateRangeField({
 						)}
 
 						<svg
+							aria-hidden="true"
+							focusable="false"
 							xmlns="http://www.w3.org/2000/svg"
 							width="16"
 							height="16"
@@ -90,15 +121,16 @@ function DateRangeField({
 						className="rounded-md bg-white p-3 text-xs"
 					/>
 
-					{/* Action buttons */}
 					<div className="flex items-center justify-between gap-2 border-t border-gray-200 p-3">
 						<button
 							type="button"
 							onClick={handleClear}
+							disabled={isDisabled}
 							className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-gray-300 bg-white hover:bg-gray-100 hover:text-gray-900 h-9 px-4 py-2"
 						>
 							Clear
 						</button>
+
 						<button
 							type="button"
 							onClick={() => setOpen(false)}
@@ -113,4 +145,4 @@ function DateRangeField({
 	);
 }
 
-export default DateRangeField;
+export default DateRangePickerField;
