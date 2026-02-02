@@ -83,6 +83,7 @@ export const DynamicForm = ({
 	});
 
 	const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+	const didInit = useRef(false);
 
 	const excludeFromFieldFormat = useMemo(
 		() => ["hidden", "html", "linebreak", "header", "alert"],
@@ -196,6 +197,13 @@ export const DynamicForm = ({
 		formDefinition.fields.forEach((field) => {
 			if (field.optionsUrl) void loadOptionsForField(field);
 		});
+	}, [formDefinition, loadOptionsForField]);
+
+	useEffect(() => {
+		if (didInit.current) return;
+		if (!formDefinition?.fields?.length) return;
+
+		didInit.current = true;
 
 		const initialValues: FormValues = {};
 
@@ -212,7 +220,7 @@ export const DynamicForm = ({
 		});
 
 		setFormValues(initialValues);
-	}, [formDefinition, defaultValues, loadOptionsForField]);
+	}, [formDefinition]); // intentionally NOT listening to defaultValues
 
 	const validateField = (
 		field: Field,
@@ -549,7 +557,10 @@ export const DynamicForm = ({
 		);
 
 		return (
-			<div key={name ?? `${field.type}-${field.label ?? "field"}`}>
+			<div
+				className="col-span-full"
+				key={name ?? `${field.type}-${field.label ?? "field"}`}
+			>
 				{fieldFormat(child, field, name && touched[name] ? error : null)}
 			</div>
 		);
@@ -594,7 +605,10 @@ export const DynamicForm = ({
 				</div>
 			)}
 
-			<form onSubmit={handleSubmit} className="grid grid-cols-8 gap-4">
+			<form
+				onSubmit={handleSubmit}
+				className="grid grid-cols-12 gap-x-4 mx-auto w-full"
+			>
 				{formDefinition.fields.map((field) => renderField(field))}
 
 				{children ? <div className="col-span-full">{children}</div> : null}

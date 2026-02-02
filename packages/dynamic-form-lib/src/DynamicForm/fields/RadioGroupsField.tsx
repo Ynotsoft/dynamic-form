@@ -67,20 +67,26 @@ function RadioGroupField({
 					const isChecked = value === optionValue;
 
 					if (isSegmented) {
+						// --- Segmented Button Look ---
 						return (
 							<label
 								key={optionValue}
 								htmlFor={itemId}
+								// Styling for the button segment itself
 								className={`
-									relative flex-1 min-w-max text-center px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ease-in-out cursor-pointer select-none
-									${isChecked ? "bg-white text-gray-900 shadow-md ring-2 ring-gray-100" : "text-gray-500 hover:bg-gray-100"}
-									${isDisabled ? "opacity-50 cursor-not-allowed" : ""}
-								`}
+                  relative flex-1 min-w-max text-center px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ease-in-out cursor-pointer select-none
+                  ${
+									isChecked
+										? "bg-white text-gray-900 shadow-md ring-2 ring-gray-100"
+										: "text-gray-500 hover:bg-gray-100" // Unselected state
+								}
+                ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
 							>
 								<RadioGroupItem
 									value={optionValue}
 									id={itemId}
 									disabled={isDisabled}
+									// Visually hide the native radio circle but keep it for function/accessibility
 									className="absolute truncate h-0 w-0 opacity-0 pointer-events-none"
 								/>
 								{optionLabel}
