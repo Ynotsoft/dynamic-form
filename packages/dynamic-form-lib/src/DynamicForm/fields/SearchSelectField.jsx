@@ -279,7 +279,7 @@ function SearchSelectField({
 								? "Type to search..."
 								: "Search options..."
 						}
-						className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+						className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
 					/>
 				</div>
 			</div>
@@ -307,7 +307,7 @@ function SearchSelectField({
                 className={`
 									px-3 py-2 text-sm rounded cursor-pointer transition-colors
 									flex items-center justify-between
-									${isSelected ? "bg-blue-500 text-white" : "hover:bg-gray-100 text-gray-800"}
+									${isSelected ? "bg-primary text-gray-800" : "hover:bg-gray-100 text-gray-800"}
 								`}
 							>
 								<span>{option.label}</span>
@@ -468,7 +468,7 @@ function SearchSelectField({
 											setIsOpen(false);
 											handleBlur(field.name);
 										}}
-										className="px-4 py-2 bg-blue-500 text-white text-sm font-medium rounded-lg hover:bg-blue-600 transition"
+										className="px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-dark transition"
 									>
 										Done
 									</button>
@@ -478,7 +478,7 @@ function SearchSelectField({
 											setIsOpen(false);
 											handleBlur(field.name);
 										}}
-										className="px-4 py-2 bg-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-400 transition"
+										className="px-4 py-2 bg-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-secondary-400 transition"
 									>
 										Cancel
 									</button>
