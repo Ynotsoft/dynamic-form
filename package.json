@@ -5,6 +5,7 @@
   "scripts": {
     "build-form": "bun run --filter ynotsoft-dynamic-form build",
     "build-grid": "bun run --filter ynotsoft-dynamic-grid build",
+    "build-dialog": "bun run --filter ynotsoft-dynamic-dialog build",
     "example": "bun --filter example dev"
   },
   "workspaces": [

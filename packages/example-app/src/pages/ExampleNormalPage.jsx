@@ -1,5 +1,6 @@
 import { DynamicForm } from "ynotsoft-dynamic-form";
 import { mockApiClient } from "../services/mockApi";
+import { DynamicDialog}  from "ynotsoft-dynamic-dialog";
 
 export default function ExampleNormalPage() {
   const formDefinition = {

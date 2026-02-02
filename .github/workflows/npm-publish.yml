@@ -7,6 +7,7 @@ on:
     paths:
       - "packages/dynamic-form-lib/**"
       - "packages/dynamic-grid-lib/**"
+      - "packages/dynamic-dialog-lib/**"
   workflow_dispatch:
     inputs:
       target_package:
@@ -17,6 +18,7 @@ on:
         options:
           - form
           - grid
+          - dialog
 
 permissions:
   contents: read
@@ -28,6 +30,7 @@ jobs:
     outputs:
       form: ${{ steps.filter.outputs.form }}
       grid: ${{ steps.filter.outputs.grid }}
+      dialog: ${{ steps.filter.outputs.dialog }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
@@ -38,6 +41,8 @@ jobs:
               - 'packages/dynamic-form-lib/**'
             grid:
               - 'packages/dynamic-grid-lib/**'
+            dialog:
+              - 'packages/dynamic-dialog-lib/**'
 
   publish-form:
     needs: changes
@@ -94,6 +99,52 @@ jobs:
     env:
       PKG_DIR: "packages/dynamic-grid-lib"
       PKG_NAME: "ynotsoft-dynamic-grid"
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v1
+
+      - name: Set up .npmrc
+        run: echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > .npmrc
+
+      - name: Install dependencies
+        run: bun install --no-save
+
+      - name: Build Library
+        run: bun run --filter ${{ env.PKG_NAME }} build
+
+      - name: Determine Version and Tag
+        id: info
+        run: |
+          VER=$(node -p "require('./${{ env.PKG_DIR }}/package.json').version")
+          NAME=$(node -p "require('./${{ env.PKG_DIR }}/package.json').name")
+          if [[ "$VER" == *-* ]]; then TAG="next"; else TAG="latest"; fi
+          echo "version=$VER" >> "$GITHUB_OUTPUT"
+          echo "name=$NAME" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Validate Version Bump
+        run: |
+          PKG="${{ steps.info.outputs.name }}"
+          VER="${{ steps.info.outputs.version }}"
+          if npm view "$PKG@$VER" version >/dev/null 2>&1; then
+            echo "::error::Version $VER of $PKG already exists on NPM. Please bump the version in ${{ env.PKG_DIR }}/package.json"
+            exit 1
+          fi
+
+      - name: Publish to npm
+        run: |
+          bun publish --cwd ${{ env.PKG_DIR }} --access public --provenance --tag "${{ steps.info.outputs.tag }}"
+
+  publish-dialog:
+    needs: changes
+    if: |
+      needs.changes.outputs.dialog == 'true' || 
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.target_package == 'dialog')
+    runs-on: ubuntu-latest
+    env:
+      PKG_DIR: "packages/dynamic-dialog-lib"
+      PKG_NAME: "ynotsoft-dynamic-dialog"
       NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: actions/checkout@v4
