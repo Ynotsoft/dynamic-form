@@ -385,8 +385,9 @@ const GridImpl = <TRecord extends Record<string, any>>({
 								className={`flex gap-2 ${customFiltersRenderer ? "justify-end" : ""}`}
 							>
 								<button
+									type="button"
 									onClick={() => void exportList()}
-									className="btn primary"
+									className="btn bg-primary"
 								>
 									{isLoading ? (
 										<svg
@@ -414,7 +415,11 @@ const GridImpl = <TRecord extends Record<string, any>>({
 									)}
 								</button>
 
-								<button className="btn primary" onClick={() => void getList()}>
+								<button
+									type="button"
+									className="btn bg-primary"
+									onClick={() => void getList()}
+								>
 									<RefreshCw size={16} />
 								</button>
 							</div>
@@ -464,6 +469,7 @@ const GridImpl = <TRecord extends Record<string, any>>({
 								className="flex items-center space-x-2 order-10 bg-gray-100 px-2 py-2 border border-gray-200 rounded-md text-sm font-medium text-gray-700"
 							>
 								<button
+									type="button"
 									onClick={() => handleRemoveFilter(key)}
 									className="pl-1 w-5 h-5 text-gray-400 hover:text-red-600 focus:outline-hidden"
 								>
