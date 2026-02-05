@@ -1,6 +1,16 @@
-import React from "react";
+type PaginationProps = {
+	pageIndex: number;
+	setPageIndex: (page: number) => void;
+	pageSize: number;
+	totalResults: number;
+};
 
-function Pagination({ pageIndex, setPageIndex, pageSize, totalResults }) {
+function Pagination({
+	pageIndex,
+	setPageIndex,
+	pageSize,
+	totalResults,
+}: PaginationProps) {
 	const totalPages = Math.ceil(totalResults / pageSize);
 	const startPage = Math.max(0, pageIndex - 2);
 	const endPage = Math.min(totalPages, pageIndex + 3);
@@ -17,11 +27,13 @@ function Pagination({ pageIndex, setPageIndex, pageSize, totalResults }) {
 					</span>{" "}
 					of <span className="font-medium">{totalResults}</span> results
 				</p>
+
 				<nav
 					className="isolate inline-flex -space-x-px rounded-md shadow-xs"
 					aria-label="Pagination"
 				>
 					<button
+						type="button"
 						onClick={() => setPageIndex(1)}
 						disabled={pageIndex === 1}
 						className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20"
@@ -40,16 +52,24 @@ function Pagination({ pageIndex, setPageIndex, pageSize, totalResults }) {
 							/>
 						</svg>
 					</button>
+
 					{Array.from({ length: endPage - startPage }).map((_, idx) => (
 						<button
+							type="button"
 							key={idx}
 							onClick={() => setPageIndex(startPage + idx + 1)}
-							className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${pageIndex === startPage + idx + 1 ? "z-10 bg-primary text-white" : "text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50"}`}
+							className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
+								pageIndex === startPage + idx + 1
+									? "z-10 bg-primary text-white"
+									: "text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+							}`}
 						>
 							{startPage + idx + 1}
 						</button>
 					))}
+
 					<button
+						type="button"
 						onClick={() => setPageIndex(totalPages)}
 						disabled={pageIndex === totalPages}
 						className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20"

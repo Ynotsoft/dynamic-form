@@ -1,38 +1,57 @@
-import React, { Children, useState } from "react";
+import React, { Children, useState, isValidElement } from "react";
+
+type FieldConfig = {
+	name: string;
+	type?: string;
+	size?: string;
+	fieldClass?: string;
+	label?: string;
+	operator?: string;
+	placeholder?: string;
+	includeTime?: boolean;
+	dateRange?: boolean;
+};
 
 // Filter.Field component - only used for configuration
-const Field = ({
-	name,
-	type,
-	size,
-	fieldClass,
-	label,
-	operator,
-	placeholder,
-	includeTime,
-	dateRange,
-}) => null;
+const Field: React.FC<FieldConfig> = () => null;
 
-const Filter = ({ children, searchForm, containerStyle, setFilter }) => {
-	const [localFilterValues, setLocalFilterValues] = useState({});
-	const [openDropdowns, setOpenDropdowns] = useState({});
+type FilterBuilderProps = {
+	children?: React.ReactNode;
+	searchForm: Record<string, any>;
+	containerStyle?: string;
+	setFilter: React.Dispatch<React.SetStateAction<any>>;
+};
+
+const FilterBuilder: React.FC<FilterBuilderProps> & { Field: typeof Field } = ({
+	children,
+	searchForm,
+	containerStyle,
+	setFilter,
+}) => {
+	const [localFilterValues, setLocalFilterValues] = useState<
+		Record<string, any>
+	>({});
+	const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>(
+		{},
+	);
 
 	// Extract <Filter.Field /> config
-	const fieldConfigs = [];
+	const fieldConfigs: FieldConfig[] = [];
 	Children.forEach(children, (child) => {
-		if (child?.type === Field) {
-			fieldConfigs.push(child.props);
+		if (!isValidElement(child)) return;
+		if (child.type === Field) {
+			fieldConfigs.push(child.props as FieldConfig);
 		}
 	});
 
 	const handlePanelApplyFilters = () => {
 		const newFilters = { ...searchForm };
+
 		Object.entries(localFilterValues).forEach(([header, item]) => {
 			const type = searchForm[header]?.type;
 			const { value, startDate, endDate, operator, startTime, endTime } =
 				item || {};
 
-			// Build the filter entry depending on type
 			newFilters[header] = {
 				type,
 				title: searchForm[header].title,
@@ -57,14 +76,15 @@ const Filter = ({ children, searchForm, containerStyle, setFilter }) => {
 						: type === "Checkbox"
 							? item
 							: value,
-
 				displayValue:
 					type === "Date" && startDate && endDate
 						? `${startDate} ${startTime || ""} to ${endDate} ${endTime || ""}`
 						: type === "Date" && (startDate || endDate)
 							? `${startDate} ${startTime || ""} ${endDate} ${endTime || ""}`
 							: type === "Checkbox"
-								? item.map((val) => searchForm[header].source?.[val]).join(", ")
+								? (item as string[])
+										.map((val) => searchForm[header].source?.[val])
+										.join(", ")
 								: value,
 			};
 		});
@@ -72,8 +92,7 @@ const Filter = ({ children, searchForm, containerStyle, setFilter }) => {
 		setFilter(newFilters);
 	};
 
-	// If no <Filter.Field /> defined, use searchForm fully
-	const fieldsToRender =
+	const fieldsToRender: FieldConfig[] =
 		fieldConfigs.length > 0
 			? fieldConfigs
 			: Object.keys(searchForm || {}).map((key) => ({
@@ -81,14 +100,12 @@ const Filter = ({ children, searchForm, containerStyle, setFilter }) => {
 					type: searchForm[key]?.type,
 				}));
 
-	const renderField = (fieldConfig) => {
+	const renderField = (fieldConfig: FieldConfig) => {
 		const {
 			name,
 			type: configType,
-			size,
 			fieldClass,
 			label,
-			operator: defaultOperator,
 			placeholder,
 			includeTime,
 			dateRange,
@@ -113,7 +130,7 @@ const Filter = ({ children, searchForm, containerStyle, setFilter }) => {
 						{fieldLabel}
 					</label>
 
-					<div className={`grid grid-cols-2 gap-2`}>
+					<div className="grid grid-cols-2 gap-2">
 						<input
 							type="date"
 							value={currentValue.startDate || ""}
@@ -124,12 +141,12 @@ const Filter = ({ children, searchForm, containerStyle, setFilter }) => {
 									endDate: currentValue.endDate || "",
 									operator: fieldOperator || "between",
 								};
-
 								setLocalFilterValues((prev) => ({ ...prev, [name]: updated }));
 							}}
 							placeholder={placeholder || "From"}
 							className="block w-full border border-gray-300 rounded-md p-2 text-sm"
 						/>
+
 						{includeTime && (
 							<input
 								type="time"
@@ -143,7 +160,6 @@ const Filter = ({ children, searchForm, containerStyle, setFilter }) => {
 										endTime: currentValue.endTime || "",
 										operator: currentValue.operator || "between",
 									};
-
 									setLocalFilterValues((prev) => ({
 										...prev,
 										[name]: updated,
@@ -153,6 +169,7 @@ const Filter = ({ children, searchForm, containerStyle, setFilter }) => {
 								className="block w-full border border-gray-300 rounded-md p-2 text-sm"
 							/>
 						)}
+
 						{dateRange !== false && (
 							<>
 								<input
@@ -165,7 +182,6 @@ const Filter = ({ children, searchForm, containerStyle, setFilter }) => {
 											endDate: e.target.value,
 											operator: currentValue.operator || "between",
 										};
-
 										setLocalFilterValues((prev) => ({
 											...prev,
 											[name]: updated,
@@ -205,34 +221,26 @@ const Filter = ({ children, searchForm, containerStyle, setFilter }) => {
 		}
 
 		if (fieldType === "Checkbox") {
-			const selectedValues = Array.isArray(localFilterValues[name])
+			const selectedValues: string[] = Array.isArray(localFilterValues[name])
 				? localFilterValues[name]
 				: [];
-
 			const isOpen = openDropdowns[name] || false;
-			const toggleValue = (value) => {
-				const current = Array.isArray(localFilterValues[name])
+
+			const toggleValue = (value: string) => {
+				const current: string[] = Array.isArray(localFilterValues[name])
 					? localFilterValues[name]
 					: [];
-
 				const updated = current.includes(value)
 					? current.filter((v) => v !== value)
 					: [...current, value];
 
-				setLocalFilterValues((prev) => ({
-					...prev,
-					[name]: updated,
-				}));
+				setLocalFilterValues((prev) => ({ ...prev, [name]: updated }));
 			};
 
-			const removeValue = (value, e) => {
+			const removeValue = (value: string, e: React.MouseEvent) => {
 				e.stopPropagation();
 				const updated = selectedValues.filter((v) => v !== value);
-
-				setLocalFilterValues((prev) => ({
-					...prev,
-					[name]: updated,
-				}));
+				setLocalFilterValues((prev) => ({ ...prev, [name]: updated }));
 			};
 
 			return (
@@ -260,7 +268,6 @@ const Filter = ({ children, searchForm, containerStyle, setFilter }) => {
 											className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium"
 										>
 											{filterField.source?.[value]}
-
 											<button
 												onClick={(e) => removeValue(value, e)}
 												className="hover:text-blue-900"
@@ -303,36 +310,34 @@ const Filter = ({ children, searchForm, containerStyle, setFilter }) => {
 								<div className="absolute z-20 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
 									<div className="p-2">
 										{filterField.source &&
-											Object.entries(filterField.source).map(
-												([value, label]) => {
-													const isSelected = selectedValues.includes(value);
+											Object.entries(filterField.source).map(([value, lbl]) => {
+												const isSelected = selectedValues.includes(value);
 
-													return (
-														<label
-															key={value}
-															className={`flex items-center px-3 py-2 cursor-pointer rounded hover:bg-gray-100 ${
-																isSelected ? "bg-blue-50" : ""
+												return (
+													<label
+														key={value}
+														className={`flex items-center px-3 py-2 cursor-pointer rounded hover:bg-gray-100 ${
+															isSelected ? "bg-blue-50" : ""
+														}`}
+													>
+														<input
+															type="checkbox"
+															checked={isSelected}
+															onChange={() => toggleValue(value)}
+															className="w-4 h-4"
+														/>
+														<span
+															className={`ml-2 text-sm ${
+																isSelected
+																	? "text-blue-700 font-medium"
+																	: "text-gray-700"
 															}`}
 														>
-															<input
-																type="checkbox"
-																checked={isSelected}
-																onChange={() => toggleValue(value)}
-																className="w-4 h-4"
-															/>
-															<span
-																className={`ml-2 text-sm ${
-																	isSelected
-																		? "text-blue-700 font-medium"
-																		: "text-gray-700"
-																}`}
-															>
-																{label}
-															</span>
-														</label>
-													);
-												},
-											)}
+															{String(lbl)}
+														</span>
+													</label>
+												);
+											})}
 									</div>
 								</div>
 							</>
@@ -353,17 +358,8 @@ const Filter = ({ children, searchForm, containerStyle, setFilter }) => {
 					value={localFilterValues[name]?.value || ""}
 					onChange={(e) => {
 						const value = e.target.value;
-
-						const updated = {
-							type: fieldType,
-							value,
-							operator: "contains",
-						};
-
-						setLocalFilterValues((prev) => ({
-							...prev,
-							[name]: updated,
-						}));
+						const updated = { type: fieldType, value, operator: "contains" };
+						setLocalFilterValues((prev) => ({ ...prev, [name]: updated }));
 					}}
 					placeholder={placeholder || `Enter ${fieldLabel.toLowerCase()}…`}
 					className="block w-full border border-gray-300 rounded-md p-2 text-sm"
@@ -375,7 +371,7 @@ const Filter = ({ children, searchForm, containerStyle, setFilter }) => {
 	return (
 		<div className={`w-full ${containerStyle || ""}`}>
 			<div className="grid w-full gap-4 md:grid-cols-2 lg:grid-cols-12">
-				{fieldsToRender.map((fieldConfig) => renderField(fieldConfig))}
+				{fieldsToRender.map(renderField)}
 			</div>
 
 			<div className="flex gap-2 pt-3">
@@ -396,6 +392,6 @@ const Filter = ({ children, searchForm, containerStyle, setFilter }) => {
 	);
 };
 
-Filter.Field = Field;
+FilterBuilder.Field = Field;
 
-export default Filter;
+export default FilterBuilder;

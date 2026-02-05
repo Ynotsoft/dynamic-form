@@ -5,7 +5,7 @@
 /* ------------------------------------------------------------------
    1) Tell Tailwind which files to scan inside the library
 ------------------------------------------------------------------ */
-@source "./**/*.jsx";
+@source "./**/*.{js,jsx,ts,tsx}";
 
 /* ------------------------------------------------------------------
    2) DECLARE THE TOKENS — REQUIRED FOR TAILWIND v4
@@ -94,5 +94,5 @@
 @source inline('hover:text-gray-600');
 @source inline('hover:bg-gray-100');
 @source inline('rounded-full');
-source inline('{sm:,md:,lg:,xl:,}grid-cols-{{1..12}}');
+@source inline('{sm:,md:,lg:,xl:,}grid-cols-{{1..12}}');
 @source inline('{sm:,md:,lg:,xl:,}col-span-{{1..12}}');
