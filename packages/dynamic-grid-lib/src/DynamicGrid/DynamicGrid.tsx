@@ -387,7 +387,7 @@ const GridImpl = <TRecord extends Record<string, any>>({
 								<button
 									type="button"
 									onClick={() => void exportList()}
-									className="btn bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 "
+									className="btn bg-primary text-primary-foreground  hover:bg-primary/90 "
 								>
 									{isLoading ? (
 										<svg
@@ -418,7 +418,7 @@ const GridImpl = <TRecord extends Record<string, any>>({
 
 								<button
 									type="button"
-									className="btn bg-primary"
+									className="btn bg-primary text-primary-foreground hover:bg-primary/90 "
 									onClick={() => void getList()}
 								>
 									<RefreshCw size={16} />

@@ -56,7 +56,7 @@ function Pagination({
 					{Array.from({ length: endPage - startPage }).map((_, idx) => (
 						<button
 							type="button"
-							key={idx}
+							key={idx.toString()}
 							onClick={() => setPageIndex(startPage + idx + 1)}
 							className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
 								pageIndex === startPage + idx + 1

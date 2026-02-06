@@ -126,7 +126,10 @@ const FilterBuilder: React.FC<FilterBuilderProps> & { Field: typeof Field } = ({
 					key={name}
 					className={`space-y-2 ${fieldClass || "md:col-span-3"}`}
 				>
-					<label className="block text-sm font-medium text-gray-700">
+					<label
+						htmlFor={`${fieldLabel}`}
+						className="block text-sm font-medium text-gray-700"
+					>
 						{fieldLabel}
 					</label>
 
@@ -248,7 +251,10 @@ const FilterBuilder: React.FC<FilterBuilderProps> & { Field: typeof Field } = ({
 					key={name}
 					className={`space-y-2 ${fieldClass || "md:col-span-3"}`}
 				>
-					<label className="block text-sm font-medium text-gray-700">
+					<label
+						htmlFor={`${fieldLabel}`}
+						className="block text-sm font-medium text-gray-700"
+					>
 						{fieldLabel}
 					</label>
 
@@ -269,6 +275,7 @@ const FilterBuilder: React.FC<FilterBuilderProps> & { Field: typeof Field } = ({
 										>
 											{filterField.source?.[value]}
 											<button
+												type="button"
 												onClick={(e) => removeValue(value, e)}
 												className="hover:text-blue-900"
 											>
@@ -288,6 +295,7 @@ const FilterBuilder: React.FC<FilterBuilderProps> & { Field: typeof Field } = ({
 									stroke="currentColor"
 									viewBox="0 0 24 24"
 								>
+									<title id="svg-title">Select Field...</title>
 									<path
 										strokeLinecap="round"
 										strokeLinejoin="round"
@@ -300,7 +308,8 @@ const FilterBuilder: React.FC<FilterBuilderProps> & { Field: typeof Field } = ({
 
 						{isOpen && (
 							<>
-								<div
+								<button
+									type="button"
 									className="fixed inset-0 z-10"
 									onClick={() =>
 										setOpenDropdowns((prev) => ({ ...prev, [name]: false }))
@@ -349,7 +358,10 @@ const FilterBuilder: React.FC<FilterBuilderProps> & { Field: typeof Field } = ({
 
 		return (
 			<div key={name} className={`space-y-2 ${fieldClass || "md:col-span-3"}`}>
-				<label className="block text-sm font-medium text-gray-700">
+				<label
+					htmlFor={`${fieldLabel}`}
+					className="block text-sm font-medium text-gray-700"
+				>
 					{fieldLabel}
 				</label>
 
@@ -375,15 +387,20 @@ const FilterBuilder: React.FC<FilterBuilderProps> & { Field: typeof Field } = ({
 			</div>
 
 			<div className="flex gap-2 pt-3">
-				<button onClick={handlePanelApplyFilters} className="btn primary">
+				<button
+					type="button"
+					onClick={handlePanelApplyFilters}
+					className="btn bg-primary text-primary-foreground  hover:bg-primary/90 "
+				>
 					Apply Filters
 				</button>
 				<button
+					type="button"
 					onClick={() => {
 						setLocalFilterValues({});
 						setFilter({});
 					}}
-					className="btn outline"
+					className="btn  text-primary  hover:bg-secondary"
 				>
 					Clear Filters
 				</button>

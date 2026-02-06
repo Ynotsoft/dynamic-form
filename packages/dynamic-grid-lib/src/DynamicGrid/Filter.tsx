@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import FilterBuilder from "./FilterBuilder";
 
 type GridMenuProps = {
@@ -126,6 +126,7 @@ function GridMenu({ list, setFilter, customFiltersRenderer }: GridMenuProps) {
 	const buttonFilterDisplay = (
 		<div className="relative float-left flex pr-2">
 			<button
+				type="button"
 				onClick={() => {
 					setIsMainMenuOpen(!isMainMenuOpen);
 					setIsSubMenuOpen(false);
@@ -141,6 +142,7 @@ function GridMenu({ list, setFilter, customFiltersRenderer }: GridMenuProps) {
 				<div className="absolute z-10 mt-2 w-56 bg-white rounded-md shadow-lg ring-0 ring-black ring-opacity-10 top-full left-0">
 					{Object.keys(searchForm).map((key) => (
 						<button
+							type="button"
 							key={key}
 							onClick={() => {
 								handleMainMenuClick(key);
@@ -165,7 +167,10 @@ function GridMenu({ list, setFilter, customFiltersRenderer }: GridMenuProps) {
 					<div className="mb-0">
 						{selectedFilter?.type === "Date" ? (
 							<>
-								<label className="block text-sm font-medium text-gray-700">
+								<label
+									htmlFor="start-date"
+									className="block text-sm font-medium text-gray-700"
+								>
 									Start Date <span className="text-red-500">*</span>
 								</label>
 								<input
@@ -180,7 +185,10 @@ function GridMenu({ list, setFilter, customFiltersRenderer }: GridMenuProps) {
 									className="mt-1 block w-full border border-gray-300 rounded-md p-2"
 								/>
 
-								<label className="block text-sm font-medium text-gray-700 mt-4">
+								<label
+									htmlFor="end-date"
+									className="block text-sm font-medium text-gray-700 mt-4"
+								>
 									End Date <span className="text-red-500">*</span>
 								</label>
 								<input
@@ -197,7 +205,10 @@ function GridMenu({ list, setFilter, customFiltersRenderer }: GridMenuProps) {
 							</>
 						) : selectedFilter?.type === "Checkbox" ? (
 							<>
-								<label className="block text-sm font-medium text-gray-700">
+								<label
+									htmlFor="options"
+									className="block text-sm font-medium text-gray-700"
+								>
 									Options
 								</label>
 								<div className="mt-1 block border border-gray-300 rounded-md p-2">
@@ -205,7 +216,10 @@ function GridMenu({ list, setFilter, customFiltersRenderer }: GridMenuProps) {
 										Object.entries(
 											searchForm[selectedFilter?.header || ""].source,
 										).map(([key, option], index) => (
-											<div key={index} className="flex items-center mb-2">
+											<div
+												key={index.toString()}
+												className="flex items-center mb-2"
+											>
 												<input
 													id={`checkbox-${index}`}
 													name={`checkbox-${index}`}
@@ -231,7 +245,10 @@ function GridMenu({ list, setFilter, customFiltersRenderer }: GridMenuProps) {
 							</>
 						) : (
 							<>
-								<label className="block text-sm font-medium text-gray-700">
+								<label
+									htmlFor="condition"
+									className="block text-sm font-medium text-gray-700"
+								>
 									Condition
 								</label>
 								<select
@@ -240,13 +257,16 @@ function GridMenu({ list, setFilter, customFiltersRenderer }: GridMenuProps) {
 									className="mt-1 block w-full border border-gray-300 rounded-md p-2"
 								>
 									{textFieldOperators.map((operator, index) => (
-										<option key={index} value={operator.title}>
+										<option key={index.toString()} value={operator.title}>
 											{operator.title}
 										</option>
 									))}
 								</select>
 
-								<label className="block text-sm font-medium text-gray-700 mt-4">
+								<label
+									htmlFor="value"
+									className="block text-sm font-medium text-gray-700 mt-4"
+								>
 									Value
 								</label>
 								<input
@@ -264,6 +284,7 @@ function GridMenu({ list, setFilter, customFiltersRenderer }: GridMenuProps) {
 
 					<div className="flex justify-end space-x-2 mt-4">
 						<button
+							type="button"
 							onClick={() => {
 								setIsSubMenuOpen(false);
 								setSelectedFilter(null);
@@ -273,7 +294,7 @@ function GridMenu({ list, setFilter, customFiltersRenderer }: GridMenuProps) {
 						>
 							Cancel
 						</button>
-						<button onClick={handleClick} className="btn primary">
+						<button type="button" onClick={handleClick} className="btn primary">
 							Apply
 						</button>
 					</div>
