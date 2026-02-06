@@ -1,98 +1,133 @@
 @import "tailwindcss";
-@import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
-/* ------------------------------------------------------------------
-   1) Tell Tailwind which files to scan inside the library
------------------------------------------------------------------- */
-@source "./**/*.jsx";
+/* make sure to scan tsx & ts files */
+@source "./**/*.{js,jsx,ts,tsx}";
 
-/* ------------------------------------------------------------------
-   2) DECLARE THE TOKENS — REQUIRED FOR TAILWIND v4
-      These tokens create utilities like bg-primary, text-primary, etc.
-      Users can override them via their own @theme block.
------------------------------------------------------------------- */
+@custom-variant dark (&:where(.dark, .dark *));
 
-@theme {
-  /* Primary */
-  --color-primary: initial;
-  --color-primary-hover: initial;
-  --color-primary-foreground: initial;
-
-  /* Secondary */
-  --color-secondary: initial;
-  --color-secondary-hover: initial;
-  --color-secondary-foreground: initial;
-
-  /* Destructive */
-  --color-destructive: initial;
-  --color-destructive-hover: initial;
-  --color-destructive-foreground: initial;
-
-  /* Accent */
-  --color-accent: initial;
-  --color-accent-hover: initial;
-  --color-accent-foreground: initial;
-
-  /* Muted */
-  --color-muted: initial;
-  --color-muted-hover: initial;
-  --color-muted-foreground: initial;
-
-  --color-border: initial;
+@theme inline {
+	--breakpoint-3xl: 1600px;
+	--breakpoint-4xl: 2000px;
+	--radius-sm: calc(var(--radius) - 4px);
+	--radius-md: calc(var(--radius) - 2px);
+	--radius-lg: var(--radius);
+	--radius-xl: calc(var(--radius) + 4px);
+	--color-background: var(--background);
+	--color-foreground: var(--foreground);
+	--color-card: var(--card);
+	--color-card-foreground: var(--card-foreground);
+	--color-popover: var(--popover);
+	--color-popover-foreground: var(--popover-foreground);
+	--color-primary: var(--primary);
+	--color-primary-foreground: var(--primary-foreground);
+	--color-secondary: var(--secondary);
+	--color-secondary-foreground: var(--secondary-foreground);
+	--color-muted: var(--muted);
+	--color-muted-foreground: var(--muted-foreground);
+	--color-accent: var(--accent);
+	--color-accent-foreground: var(--accent-foreground);
+	--color-destructive: var(--destructive);
+	--color-border: var(--border);
+	--color-input: var(--input);
+	--color-ring: var(--ring);
 }
 
-/* --- */
+:root {
+	--radius: 0.65rem;
+	--background: oklch(1 0 0);
+	--foreground: oklch(0.145 0 0);
+	--card: oklch(1 0 0);
+	--card-foreground: oklch(0.145 0 0);
+	--popover: oklch(1 0 0);
+	--popover-foreground: oklch(0.145 0 0);
+	--primary: oklch(0.205 0 0);
+	--primary-foreground: oklch(0.985 0 0);
+	--secondary: oklch(0.97 0 0);
+	--secondary-foreground: oklch(0.205 0 0);
+	--muted: oklch(0.97 0 0);
+	--muted-foreground: oklch(0.556 0 0);
+	--accent: oklch(0.97 0 0);
+	--accent-foreground: oklch(0.205 0 0);
+	--destructive: oklch(0.577 0.245 27.325);
+	--border: oklch(0.922 0 0);
+	--input: oklch(0.922 0 0);
+	--ring: oklch(0.708 0 0);
+}
 
-@source inline('{sm:,md:,lg:,xl:,}grid-cols-{{1..12}}');
-@source inline('{sm:,md:,lg:,xl:,}col-span-{{1..12}}');
-@source inline('{sm:,md:,lg:,xl:,}col-start-{{1..13}}');
-@source inline('{sm:,md:,lg:,xl:,}col-span-full');
-@source inline('{sm:,md:,lg:,xl:,}gap-{{0..12}}');
-@source inline('{sm:,md:,lg:,xl:,}gap-x-{{0..12}}');
-@source inline('{sm:,md:,lg:,xl:,}gap-y-{{0..12}}');
-@source inline('fixed');
-@source inline('inset-0');
-@source inline('z-[100]');
-@source inline('bg-black');
-@source inline('bg-opacity-60');
-@source inline('flex');
-@source inline('items-center');
-@source inline('justify-center');
-@source inline('p-4');
-@source inline('w-full');
-@source inline('max-w-sm');
-@source inline('bg-white');
-@source inline('rounded-xl');
-@source inline('shadow-2xl');
-@source inline('transform');
-@source inline('transition-all');
-@source inline('border-b');
-@source inline('p-6');
-@source inline('text-xl');
-@source inline('font-bold');
-@source inline('text-gray-900');
-@source inline('text-gray-700');
-@source inline('text-sm');
-@source inline('leading-relaxed');
-@source inline('mb-2');
-@source inline('font-extrabold');
-@source inline('text-red-600');
-@source inline('text-gray-500');
-@source inline('italic');
-@source inline('my-3');
-@source inline('gap-3');
-@source inline('px-4');
-@source inline('py-2');
-@source inline('bg-gray-200');
-@source inline('hover:bg-gray-300');
-@source inline('text-white');
-@source inline('bg-red-600');
-@source inline('hover:bg-red-700');
-@source inline('shadow-md');
-@source inline('text-gray-400');
-@source inline('hover:text-gray-600');
-@source inline('hover:bg-gray-100');
-@source inline('rounded-full');
-source inline('{sm:,md:,lg:,xl:,}grid-cols-{{1..12}}');
-@source inline('{sm:,md:,lg:,xl:,}col-span-{{1..12}}');
+.dark {
+	--background: oklch(0.145 0 0);
+	--foreground: oklch(0.985 0 0);
+	--card: oklch(0.205 0 0);
+	--card-foreground: oklch(0.985 0 0);
+	--popover: oklch(0.205 0 0);
+	--popover-foreground: oklch(0.985 0 0);
+	--primary: oklch(0.922 0 0);
+	--primary-foreground: oklch(0.205 0 0);
+	--secondary: oklch(0.269 0 0);
+	--secondary-foreground: oklch(0.985 0 0);
+	--muted: oklch(0.269 0 0);
+	--muted-foreground: oklch(0.708 0 0);
+	--accent: oklch(0.269 0 0);
+	--accent-foreground: oklch(0.985 0 0);
+	--destructive: oklch(0.704 0.191 22.216);
+	--border: oklch(1 0 0 / 10%);
+	--input: oklch(1 0 0 / 15%);
+	--ring: oklch(0.556 0 0);
+}
+
+@layer base {
+	* {
+		@apply border-border;
+		scrollbar-width: thin;
+		scrollbar-color: var(--color-muted-foreground) transparent;
+	}
+
+	*::-webkit-scrollbar {
+		width: 8px;
+		height: 8px;
+	}
+
+	*::-webkit-scrollbar-thumb {
+		background: var(--color-muted-foreground);
+		border-radius: 4px;
+	}
+
+	*::-webkit-scrollbar-thumb:hover {
+		background: var(--color-foreground);
+	}
+
+	body {
+		@apply bg-background text-foreground;
+	}
+}
+
+@layer components {
+	.btn {
+		@apply inline-flex items-center justify-center gap-2 whitespace-nowrap;
+		@apply rounded text-sm font-medium transition-all;
+		@apply outline-none cursor-pointer shrink-0 px-2.5 py-1.5;
+
+		/* Nested States */
+		&:disabled {
+			@apply pointer-events-none opacity-50;
+		}
+
+		&:focus-visible {
+			@apply border-ring ring-ring/50 ring-[3px];
+		}
+
+		/* Nested Attribute Selectors */
+		&[aria-invalid="true"] {
+			@apply ring-destructive/20 border-destructive;
+		}
+
+		/* Nested Child Selectors */
+		& svg {
+			@apply pointer-events-none shrink-0;
+
+			&:not([class*="size-"]) {
+				@apply size-4;
+			}
+		}
+	}
+}
