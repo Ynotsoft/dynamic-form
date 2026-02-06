@@ -79,10 +79,6 @@ function SearchSelectField({
 	const [searchTerm, setSearchTerm] = useState("");
 	const [searchError, setSearchError] = useState(null);
 	const [selectedOptionsCache, setSelectedOptionsCache] = useState({}); // Cache for selected option labels
-	const debounceTimerRef = useRef(null);
-	const dropdownRef = useRef(null);
-	const searchInputRef = useRef(null);
-
 	// --- VALUE NORMALIZATION LOGIC ---
 
 	const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -169,7 +165,7 @@ function SearchSelectField({
 			} catch (error) {
 				console.error(`Cannot find search results for ${field.name}`, error);
 				setSearchError(
-					error.message || "Failed to load search results. Please try again."
+					error.message || "Failed to load search results. Please try again.",
 				);
 				setOptions([]);
 			} finally {
@@ -286,27 +282,28 @@ function SearchSelectField({
 				</div>
 			</div>
 
-      {/* Options list */}
-      <div
-        className={`overflow-y-auto p-2 max-h-96 flex flex-col gap-0.5 bg-white ${
-          isDialogMode ? "max-h-96" : "max-h-60"
-        }`}
-      >
-        {isLoading ? (
-          <div className="py-8 text-center text-gray-500 text-sm">
-            <Loader2 className="w-5 h-5 mx-auto mb-2 animate-spin" />
-            Searching...
-          </div>
-        ) : filteredOptions.length > 0 ? (
-          filteredOptions.map((option) => {
-            const isSelected = selectedValues.some(
-              (v) => v.value === option.value
-            );
-            return (
-              <div
-                key={option.value}
-                onClick={() => handleSelectOption(option)}
-                className={`
+			{/* Options list */}
+			<div
+				className={`overflow-y-auto p-2 max-h-96 flex flex-col gap-0.5 bg-white ${
+					isDialogMode ? "max-h-96" : "max-h-60"
+				}`}
+			>
+				{isLoading ? (
+					<div className="py-8 text-center text-gray-500 text-sm">
+						<Loader2 className="w-5 h-5 mx-auto mb-2 animate-spin" />
+						Searching...
+					</div>
+				) : filteredOptions.length > 0 ? (
+					filteredOptions.map((option) => {
+						const isSelected = selectedValues.some(
+							(v) => v.value === option.value,
+						);
+						return (
+							<button
+								type="button"
+								key={option.value}
+								onClick={() => handleSelectOption(option)}
+								className={`
 									px-3 py-2 text-sm rounded cursor-pointer transition-colors
 									flex items-center justify-between
 									${isSelected ? "bg-primary text-gray-800" : "hover:bg-gray-100 text-gray-800"}
@@ -323,7 +320,9 @@ function SearchSelectField({
 					})
 				) : searchError ? (
 					<div className="py-8 px-4 text-center">
-						<div className="text-red-500 text-sm font-medium mb-2">⚠️ Search Error</div>
+						<div className="text-red-500 text-sm font-medium mb-2">
+							! Search Error
+						</div>
 						<div className="text-gray-600 text-xs">{searchError}</div>
 					</div>
 				) : (
