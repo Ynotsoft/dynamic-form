@@ -96,7 +96,65 @@
 		background: var(--color-foreground);
 	}
 
-	body {
-		@apply bg-background text-foreground;
-	}
-}
+@source inline('{sm:,md:,lg:,xl:,}grid-cols-{{1..12}}');
+@source inline('{sm:,md:,lg:,xl:,}col-span-{{1..12}}');
+@source inline('{sm:,md:,lg:,xl:,}col-start-{{1..13}}');
+@source inline('{sm:,md:,lg:,xl:,}col-span-full');
+@source inline('{sm:,md:,lg:,xl:,}gap-{{0..12}}');
+@source inline('{sm:,md:,lg:,xl:,}gap-x-{{0..12}}');
+@source inline('{sm:,md:,lg:,xl:,}gap-y-{{0..12}}');
+@source inline('fixed');
+@source inline('inset-0');
+@source inline('z-[100]');
+@source inline('bg-black');
+@source inline('bg-opacity-60');
+@source inline('flex');
+@source inline('items-center');
+@source inline('justify-center');
+@source inline('p-4');
+@source inline('w-full');
+@source inline('max-w-sm');
+@source inline('bg-white');
+@source inline('rounded-xl');
+@source inline('shadow-2xl');
+@source inline('transform');
+@source inline('transition-all');
+@source inline('border-b');
+@source inline('p-6');
+@source inline('text-xl');
+@source inline('font-bold');
+@source inline('text-gray-900');
+@source inline('text-gray-700');
+@source inline('text-sm');
+@source inline('leading-relaxed');
+@source inline('mb-2');
+@source inline('font-extrabold');
+@source inline('text-red-600');
+@source inline('text-gray-500');
+@source inline('italic');
+@source inline('my-3');
+@source inline('gap-3');
+@source inline('px-4');
+@source inline('py-2');
+@source inline('bg-gray-200');
+@source inline('hover:bg-gray-300');
+@source inline('text-white');
+@source inline('bg-red-600');
+@source inline('hover:bg-red-700');
+@source inline('shadow-md');
+@source inline('text-gray-400');
+@source inline('hover:text-gray-600');
+@source inline('hover:bg-gray-100');
+@source inline('rounded-full');
+@source inline('{sm:,md:,lg:,xl:,}grid-cols-{{1..12}}');
+@source inline('{sm:,md:,lg:,xl:,}col-span-{{1..12}}');
+
+
+/* Base Colors */
+@source inline('bg-white');
+@source inline('bg-black');
+@source inline('text-white');
+@source inline('text-black');
+@source inline('border-white');
+@source inline('border-black');
+@source inline("{bg,text}-{red,blue,green}-{50,{100..900..100},950}");         
