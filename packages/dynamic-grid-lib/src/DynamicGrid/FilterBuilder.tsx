@@ -400,7 +400,7 @@ const FilterBuilder: React.FC<FilterBuilderProps> & { Field: typeof Field } = ({
 						setLocalFilterValues({});
 						setFilter({});
 					}}
-					className="btn  text-primary  hover:bg-secondary"
+					className="btn text-primary hover:bg-secondary"
 				>
 					Clear Filters
 				</button>

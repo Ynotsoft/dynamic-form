@@ -133,7 +133,7 @@ function GridMenu({ list, setFilter, customFiltersRenderer }: GridMenuProps) {
 					setSelectedFilter(null);
 					setError("");
 				}}
-				className="btn order-1 primary"
+				className="btn bg-primary text-primary-foreground  hover:bg-primary/90 "
 			>
 				<span className="text-white">+ Add Filters</span>
 			</button>
@@ -290,11 +290,15 @@ function GridMenu({ list, setFilter, customFiltersRenderer }: GridMenuProps) {
 								setSelectedFilter(null);
 								setError("");
 							}}
-							className="btn outline"
+							className="btn text-primary hover:bg-secondary"
 						>
 							Cancel
 						</button>
-						<button type="button" onClick={handleClick} className="btn primary">
+						<button
+							type="button"
+							onClick={handleClick}
+							className="btn bg-primary text-primary-foreground  hover:bg-primary/90 "
+						>
 							Apply
 						</button>
 					</div>
