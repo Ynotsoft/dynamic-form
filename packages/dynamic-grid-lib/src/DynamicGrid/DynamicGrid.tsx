@@ -387,7 +387,7 @@ const GridImpl = <TRecord extends Record<string, any>>({
 								<button
 									type="button"
 									onClick={() => void exportList()}
-									className="btn bg-primary text-primary-foreground"
+									className="btn bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 "
 								>
 									{isLoading ? (
 										<svg
@@ -602,7 +602,7 @@ const GridImpl = <TRecord extends Record<string, any>>({
 					<div className="grid grid-cols-1">
 						<select
 							id="pageLength"
-							className="form-select border-gray-300 rounded-md shadow-xs focus:border-primary focus:ring-3 focus:ring-primary focus:ring-opacity-50"
+							className="col-start-1 row-start-1 w-full min-w-20 appearance-none rounded-md bg-white py-[2px] pr-8 pl-3 text-base text-gray-900 outline-1 -outline-offset-1 rounded-sm outline-gray-300 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary sm:text-sm/6 dark:bg-white/5 dark:text-white dark:outline-white/10 dark:*:bg-gray-800 dark:focus-visible:outline-primary"
 							value={numberOfRecords}
 							onChange={(e) => {
 								setPageIndex(1);
@@ -616,7 +616,6 @@ const GridImpl = <TRecord extends Record<string, any>>({
 								</option>
 							))}
 						</select>
-
 						<svg
 							viewBox="0 0 16 16"
 							fill="currentColor"

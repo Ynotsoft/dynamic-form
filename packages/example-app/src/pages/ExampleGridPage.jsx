@@ -97,7 +97,7 @@ export default function ExampleGridPage() {
   });
 
   return (
-    <div className="p-6 bg-white text-black rounded shadow border">
+    <div className="p-6  rounded shadow border">
       <h2 className="text-xl font-semibold mb-4">Grid Page Form</h2>
       <Grid
         apiUrl={`data.json`} // Also works with "/data.json"

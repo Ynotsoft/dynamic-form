@@ -1,6 +1,7 @@
 import "./App.css";
 import { useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import { ThemeToggle } from "./components/themeToggle.jsx";
 import ExampleNormalPage from "./pages/ExampleNormalPage.jsx";
 import ExampleDrawer from "./pages/ExampleDrawer.jsx";
 import ExampleDialog from "./pages/ExampleDialog.jsx";
@@ -14,7 +15,10 @@ export default function App() {
     <Router>
       <div className=" w-full mx-auto mt-10">
         <div className="w-full  mx-auto p-8 space-y-8">
-          <h1 className="text-3xl font-bold">DynamicForm Example</h1>
+          <h1 className="text-3xl font-bold">
+            DynamicForm Example
+            <ThemeToggle />
+          </h1>
 
           <nav className="flex gap-4 mb-6">
             <Link
