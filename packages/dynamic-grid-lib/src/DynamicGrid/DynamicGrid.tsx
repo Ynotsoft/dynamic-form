@@ -43,16 +43,21 @@ declare global {
 }
 
 // Column component for custom rendering
-const Column: React.FC<ColumnProps> = () => null;
+const Column = <TRecord extends Record<string, any>>(
+	_props: ColumnProps<TRecord>,
+) => null;
 
 // Action component for custom action rendering
-const Action: React.FC<ActionProps> = () => null;
+const Action = <TRecord extends Record<string, any>>(
+	_props: ActionProps<TRecord>,
+) => null;
 
 // SelectedActions component for custom selected rows actions
-const SelectedActions: React.FC<SelectedActionsProps> = () => null;
-
+const SelectedActions = <TRecord extends Record<string, any>>(
+	_props: SelectedActionsProps<TRecord>,
+) => null;
 // Filters component for custom filters renderer
-const Filters: React.FC<FiltersProps> = () => null;
+const Filters = (_props: FiltersProps) => null;
 
 type CustomColumns<TRecord extends Record<string, any>> = Record<
 	string,
@@ -76,18 +81,32 @@ type CustomFiltersRendererProps = {
 
 function isElementOfType<P>(
 	child: unknown,
-	component: React.FC<P>,
+	component: React.FC<P> | ((props: P) => any),
 ): child is React.ReactElement<P> {
 	return React.isValidElement(child) && child.type === component;
 }
 
+type ColumnComponent = <TRecord extends Record<string, any>>(
+	props: ColumnProps<TRecord>,
+) => ReactNode;
+
+type ActionComponent = <TRecord extends Record<string, any>>(
+	props: ActionProps<TRecord>,
+) => ReactNode;
+
+type SelectedActionsComponent = <TRecord extends Record<string, any>>(
+	props: SelectedActionsProps<TRecord>,
+) => ReactNode;
+
+type FiltersComponent = (props: FiltersProps) => ReactNode;
+
 type GridComponent = (<TRecord extends Record<string, any>>(
 	props: GridProps<TRecord>,
 ) => ReactElement | null) & {
-	Column: typeof Column;
-	Action: typeof Action;
-	SelectedActions: typeof SelectedActions;
-	Filters: typeof Filters;
+	Column: ColumnComponent;
+	Action: ActionComponent;
+	SelectedActions: SelectedActionsComponent;
+	Filters: FiltersComponent;
 };
 
 const GridImpl = <TRecord extends Record<string, any>>({
@@ -142,18 +161,24 @@ const GridImpl = <TRecord extends Record<string, any>>({
 		let filtersRenderer: any = null;
 
 		if (children) {
-			Children.forEach(children, (child) => {
-				if (isElementOfType<ColumnProps>(child, Column)) {
+			React.Children.forEach(children, (child) => {
+				// Column: store either node or function
+				if (isElementOfType<ColumnProps<TRecord>>(child, Column as any)) {
 					columns[child.props.name] = child.props.children;
 					return;
 				}
 
-				if (isElementOfType<ActionProps>(child, Action)) {
+				if (isElementOfType<ActionProps<TRecord>>(child, Action as any)) {
 					actionRenderer = child.props.children;
 					return;
 				}
 
-				if (isElementOfType<SelectedActionsProps>(child, SelectedActions)) {
+				if (
+					isElementOfType<SelectedActionsProps<TRecord>>(
+						child,
+						SelectedActions as any,
+					)
+				) {
 					selectedActionsRenderer = child.props.children;
 					return;
 				}
@@ -341,7 +366,7 @@ const GridImpl = <TRecord extends Record<string, any>>({
 
 			const rendered =
 				typeof renderer === "function"
-					? (renderer as (v: any, r: TRecord) => ReactNode)(value, record)
+					? renderer(value, record)
 					: isValidElement(renderer)
 						? cloneElement(renderer as ReactElement, { value, record } as any)
 						: renderer;
@@ -645,9 +670,9 @@ const GridImpl = <TRecord extends Record<string, any>>({
 
 const Grid = GridImpl as GridComponent;
 
-Grid.Column = Column;
-Grid.Action = Action;
-Grid.SelectedActions = SelectedActions;
+Grid.Column = Column as unknown as ColumnComponent;
+Grid.Action = Action as unknown as ActionComponent;
+Grid.SelectedActions = SelectedActions as unknown as SelectedActionsComponent;
 Grid.Filters = Filters;
 
 export default Grid;

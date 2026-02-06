@@ -61,20 +61,42 @@ export type GridProps<TRecord extends Record<string, any>> = {
 /*                         STATIC SUB COMPONENT TYPES                         */
 /* -------------------------------------------------------------------------- */
 
-export type ColumnProps = {
-	name: string;
-	children?: ReactNode;
+export type ActionRenderFn<TRecord extends Record<string, any>> = (
+	record: TRecord,
+) => ReactNode;
+
+export type ActionProps<
+	TRecord extends Record<string, any> = Record<string, any>,
+> = {
+	children?: ReactNode | ActionRenderFn<TRecord>;
 };
 
-export type ActionProps = {
-	children?: ReactNode;
-};
+export type SelectedActionsRenderFn<TRecord extends Record<string, any>> = (
+	selected: TRecord[],
+	selectedByKey?: any[],
+) => ReactNode;
 
-export type SelectedActionsProps = {
-	children?: ReactNode;
+export type SelectedActionsProps<
+	TRecord extends Record<string, any> = Record<string, any>,
+> = {
+	children?: ReactNode | SelectedActionsRenderFn<TRecord>;
 };
 
 export type FiltersProps = {
 	children?: ReactNode;
 	fieldClass?: string;
+};
+
+/* -------------------------------------------------------------------------- */
+/*                         Column render-prop support                          */
+/* -------------------------------------------------------------------------- */
+
+export type ColumnRenderFn<TRecord extends Record<string, any>> = (
+	value: any,
+	record: TRecord,
+) => ReactNode;
+
+export type ColumnProps<TRecord extends Record<string, any>> = {
+	name: string;
+	children: ReactNode | ColumnRenderFn<TRecord>;
 };
