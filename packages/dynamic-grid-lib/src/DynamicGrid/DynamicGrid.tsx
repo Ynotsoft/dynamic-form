@@ -284,7 +284,7 @@ const GridImpl = <TRecord extends Record<string, any>>({
 			const csvString =
 				typeof response === "string" ? response : response.data || "";
 
-			const fileName = `export_${new Date().getTime()}.csv`;
+			const fileName = `export_${Date.now()}.csv`;
 
 			// Method A: File System Access API (Chromium)
 			if (typeof window !== "undefined" && window.showSaveFilePicker) {
@@ -387,7 +387,7 @@ const GridImpl = <TRecord extends Record<string, any>>({
 								<button
 									type="button"
 									onClick={() => void exportList()}
-									className="btn bg-primary"
+									className="btn bg-primary text-primary-foreground"
 								>
 									{isLoading ? (
 										<svg
@@ -396,6 +396,7 @@ const GridImpl = <TRecord extends Record<string, any>>({
 											fill="none"
 											viewBox="0 0 24 24"
 										>
+											<title id="svg-title">Loading export...</title>
 											<circle
 												className="opacity-25"
 												cx="12"
@@ -450,7 +451,7 @@ const GridImpl = <TRecord extends Record<string, any>>({
 								} as any,
 							)
 						) : (
-							<>{customSelectedActionsRenderer}</>
+							<div>{customSelectedActionsRenderer}</div>
 						)
 					) : (
 						getOtherComponents()
@@ -479,6 +480,7 @@ const GridImpl = <TRecord extends Record<string, any>>({
 										fill="currentColor"
 										className="size-4"
 									>
+										<title id="svg-title">Removing filter...</title>
 										<path
 											fillRule="evenodd"
 											d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z"
@@ -522,7 +524,7 @@ const GridImpl = <TRecord extends Record<string, any>>({
 							{list.headers?.map((header: any, index: number) =>
 								header.display === false ? null : (
 									<th
-										key={index}
+										key={`${header}-${index.toString()}`}
 										onClick={() => header.sortKey && handleSort(header.sortKey)}
 										className="px-2 py-2 text-left text-sm font-semibold text-gray-700 grow uppercase cursor-pointer hover:bg-gray-200 select-none"
 									>
@@ -545,13 +547,16 @@ const GridImpl = <TRecord extends Record<string, any>>({
 					<tbody className="bg-white divide-y text-left divide-gray-200">
 						{list.records?.length ? (
 							list.records.map((record: TRecord, index: number) => (
-								<tr key={index} className="hover:bg-gray-100">
+								<tr
+									key={`${record}-${index.toString()}`}
+									className="hover:bg-gray-100"
+								>
 									{renderCheckbox(record)}
 
 									{list.headers.map((col: any, colIndex: number) =>
 										col.display === false ? null : (
 											<td
-												key={colIndex}
+												key={`${col}-${colIndex.toString()}`}
 												className="px-2 py-2 text-sm text-gray-600"
 											>
 												{renderCell(record, col.field)}
@@ -560,7 +565,7 @@ const GridImpl = <TRecord extends Record<string, any>>({
 									)}
 
 									{customActionRenderer && (
-										<td className="flex lg:flex-row flex-col px-2 space-y-2 space-x-2 py-2 text-sm text-gray-600 items-baseline justify-center h-full min-h-16 items-center">
+										<td className="flex lg:flex-row flex-col px-2 space-y-2 space-x-2 py-2 text-sm text-gray-600  justify-center h-full min-h-16 items-center">
 											{typeof customActionRenderer === "function" ? (
 												(customActionRenderer as (r: TRecord) => ReactNode)(
 													record,
@@ -571,7 +576,7 @@ const GridImpl = <TRecord extends Record<string, any>>({
 													{ record } as any,
 												)
 											) : (
-												<>{customActionRenderer}</>
+												<div>{customActionRenderer}</div>
 											)}
 										</td>
 									)}
@@ -588,7 +593,7 @@ const GridImpl = <TRecord extends Record<string, any>>({
 				</table>
 			</div>
 
-			<>
+			<div>
 				<div className="flex items-center justify-end mb-4">
 					<label htmlFor="pageLength" className="mr-2 text-sm text-gray-600">
 						Records per page:
@@ -634,7 +639,7 @@ const GridImpl = <TRecord extends Record<string, any>>({
 					totalResults={totalCount}
 					setPageIndex={setPageIndex}
 				/>
-			</>
+			</div>
 		</div>
 	);
 };

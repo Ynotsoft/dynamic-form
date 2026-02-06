@@ -1,6 +1,6 @@
 {
   "name": "ynotsoft-dynamic-grid",
-  "version": "1.0.34",
+  "version": "1.0.35",
   "description": "DynamicGrid React component library",
   "type": "module",
   "main": "./dist/dynamic-grid.umd.cjs",
@@ -12,7 +12,7 @@
       "import": "./dist/dynamic-grid.js",
       "require": "./dist/dynamic-grid.umd.cjs"
     },
-    "./index.css": "./dist/index.css"
+    "./index.css": "./dist/ynotsoft-dynamic-grid.css"
   },
   "repository": {
     "type": "git",
