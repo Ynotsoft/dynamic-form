@@ -49,7 +49,7 @@ function HeaderField({ field }: Props) {
 		${sizeClasses[size] ?? sizeClasses["2xl"]}
 		${alignClasses[align] ?? alignClasses.left}
 		${customClass}
-		text-gray-900 tracking-tight w-full
+		text-primary tracking-tight w-full
 	`.trim();
 
 	const descriptionClass = `

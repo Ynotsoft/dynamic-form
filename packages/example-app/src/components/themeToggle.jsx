@@ -26,7 +26,7 @@ export function ThemeToggle() {
   return (
     <button
       onClick={() => setIsDark(!isDark)}
-      className="btn bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80 flex items-center gap-2"
+      className="z-50 fixed right-8 btn bg-primary  text-primary-foreground shadow-sm hover:bg-primary-foreground/80 hover:text-primary hover:border-2 hover:border-dashed border-primary flex items-center gap-2"
     >
       {isDark ? (
         <>

@@ -118,7 +118,7 @@ export const DynamicForm = ({
 			searchselect: SearchSelectField as unknown as FieldRenderer,
 			select: RenderSelectField as unknown as FieldRenderer,
 			email: RenderEmailField as unknown as FieldRenderer,
-			litertext: RenderHtmlField as unknown as FieldRenderer,
+			richtext: RenderHtmlField as unknown as FieldRenderer,
 			checkbox: RenderCheckboxField as unknown as FieldRenderer,
 			radiogroup: RenderRadioGroupField as unknown as FieldRenderer,
 			input: RenderInputField as unknown as FieldRenderer,
@@ -572,11 +572,12 @@ export const DynamicForm = ({
 		<div className="w-full">
 			{confirmModal.isOpen && (
 				<div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-					<div
+					<button
+						type="submit"
 						className="absolute inset-0 bg-black/40"
 						onClick={handleCancel}
 					/>
-					<div className="relative z-10 w-full max-w-md rounded-lg bg-white p-4 shadow-xl">
+					<div className="relative z-10 w-full max-w-md rounded-lg bg-background p-4 shadow-xl">
 						<h3 className="text-base font-semibold text-gray-900">
 							Enable locked field?
 						</h3>
@@ -589,7 +590,7 @@ export const DynamicForm = ({
 							<button
 								type="button"
 								onClick={handleCancel}
-								className="h-9 rounded-md border border-gray-300 bg-white px-4 text-sm hover:bg-gray-50"
+								className="h-9 rounded-md border border-gray-300 bg-background px-4 text-sm hover:bg-gray-50"
 							>
 								Cancel
 							</button>
@@ -624,7 +625,7 @@ export const DynamicForm = ({
 						<div className="flex items-center justify-end gap-2">
 							<button
 								type="submit"
-								className="h-10 rounded-md bg-blue-600 px-5 text-sm font-medium text-white hover:bg-blue-700"
+								className="h-10 rounded-md bg-primary p-2 text-sm font-medium text-primary-foreground hover:bg-primary-foreground hover:text-primary shadow-md"
 							>
 								Submit
 							</button>
@@ -633,7 +634,7 @@ export const DynamicForm = ({
 				)}
 
 				{debugMode && (
-					<div className="col-span-full mt-4 rounded-md border border-gray-200 bg-gray-50 p-3">
+					<div className="col-span-full mt-4 bg-background text-foreground rounded-md border border-gray-200  p-3">
 						<pre className="text-xs whitespace-pre-wrap">
 							{JSON.stringify(
 								{ formValues, errors, touched, overrideStatus },
@@ -647,5 +648,3 @@ export const DynamicForm = ({
 		</div>
 	);
 };
-
-export default DynamicForm;

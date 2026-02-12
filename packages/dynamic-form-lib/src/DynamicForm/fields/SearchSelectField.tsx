@@ -77,9 +77,14 @@ function SearchSelectField({
 	const [isLoading, setIsLoading] = useState(false);
 	const [isOpen, setIsOpen] = useState(false);
 	const [searchTerm, setSearchTerm] = useState("");
-	const [searchError, setSearchError] = useState(null);
-	const [selectedOptionsCache, setSelectedOptionsCache] = useState({}); // Cache for selected option labels
-	// --- VALUE NORMALIZATION LOGIC ---
+	const [searchError, setSearchError] = useState<string | null>(null);
+
+	type SelectedOptionsCache = Record<string, SearchSelectOption | undefined>;
+	const [selectedOptionsCache, setSelectedOptionsCache] =
+		useState<SelectedOptionsCache>({});
+
+	type SelectedMap = Record<string, boolean>;
+	const [selectedMap, setSelectedMap] = useState<SelectedMap>({});
 
 	const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const dropdownRef = useRef<HTMLDivElement | null>(null);
@@ -127,6 +132,7 @@ function SearchSelectField({
 
 	const loadOptions = useCallback(
 		async (inputValue: string): Promise<SearchSelectOption[]> => {
+			// Nothing to do – keep current options
 			if (!field.optionsUrl && !field.onSearch) {
 				return options;
 			}
@@ -137,7 +143,7 @@ function SearchSelectField({
 			}
 
 			setIsLoading(true);
-			setSearchError(null); // Clear previous errors
+			setSearchError(null);
 
 			try {
 				let results: SearchSelectOption[] = [];
@@ -146,15 +152,26 @@ function SearchSelectField({
 					results = await field.onSearch(inputValue, formValues);
 				} else if (field.optionsUrl && apiClient) {
 					const searchParam = field.searchParam || "search";
-					const url = field.optionsUrl.includes("?")
+
+					const baseUrl = field.optionsUrl.includes("?")
 						? `${field.optionsUrl}&${searchParam}=${encodeURIComponent(inputValue)}`
 						: `${field.optionsUrl}?${searchParam}=${encodeURIComponent(inputValue)}`;
 
-					const response = await apiClient(url, field.valueId);
+					const url = baseUrl; // no valueId
+					const response = await apiClient(url);
+
+					// Normalise response into a single "raw" value
+					const raw =
+						typeof response === "object" &&
+						response !== null &&
+						"data" in response
+							? (response as { data: unknown }).data
+							: response;
 
 					if (field.transformResponse) {
 						results = field.transformResponse(raw);
 					} else {
+						// If you don't have transformResponse, we assume raw already matches
 						results = raw as SearchSelectOption[];
 					}
 				}
@@ -162,19 +179,25 @@ function SearchSelectField({
 				setOptions(results);
 				setSearchError(null);
 				return results;
-			} catch (error) {
-				console.error(`Cannot find search results for ${field.name}`, error);
-				setSearchError(
-					error.message || "Failed to load search results. Please try again.",
+			} catch (err: unknown) {
+				console.error(
+					`Cannot find search results for ${String(field.name)}`,
+					err,
 				);
-				setOptions([]);
+
+				const message =
+					err instanceof Error
+						? err.message
+						: "Failed to load search results. Please try again.";
+
+				setSearchError(message);
+				return [];
 			} finally {
 				setIsLoading(false);
 			}
 		},
-		[field, apiClient, formValues],
+		[field, apiClient, formValues, options],
 	);
-
 	useEffect(() => {
 		if (isOpen && searchInputRef.current) {
 			searchInputRef.current.focus();
@@ -264,7 +287,7 @@ function SearchSelectField({
 
 	const renderSearchContent = () => (
 		<>
-			<div className="p-3 border-b border-gray-200">
+			<div className="p-3 border-b border-input">
 				<div className="relative">
 					<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
 					<input
@@ -277,14 +300,14 @@ function SearchSelectField({
 								? "Type to search..."
 								: "Search options..."
 						}
-						className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+						className="w-full pl-9 pr-3 py-2 text-sm border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
 					/>
 				</div>
 			</div>
 
 			{/* Options list */}
 			<div
-				className={`overflow-y-auto p-2 max-h-96 flex flex-col gap-0.5 bg-white ${
+				className={`overflow-y-auto p-2 max-h-96 flex flex-col gap-0.5 bg-background ${
 					isDialogMode ? "max-h-96" : "max-h-60"
 				}`}
 			>
@@ -351,10 +374,10 @@ function SearchSelectField({
 					disabled={isDisabled}
 					onClick={() => setIsOpen(!isOpen)}
 					className={`
-						w-full min-h-[42px] px-3 py-2 rounded-lg border transition-all duration-150 text-left
+						w-full min-h-[42px] px-3 py-2 rounded-lg border-border  border transition-all duration-150 text-left
 						flex items-center gap-2 flex-wrap
-						${error ? "border-red-500" : "border-gray-300"}
-						${isDisabled ? "bg-gray-100 cursor-not-allowed opacity-50" : "bg-white hover:border-gray-400"}
+						${error ? "border-red-500" : "border-input"}
+						${isDisabled ? "bg-gray-100 cursor-not-allowed opacity-50" : "bg-background hover:border-gray-400"}
 						${isOpen && !isDisabled && !isDialogMode ? "border-blue-500 ring-2 ring-blue-200" : ""}
 					`}
 				>
@@ -396,7 +419,7 @@ function SearchSelectField({
 				</button>
 
 				{!isDialogMode && isOpen && !isDisabled ? (
-					<div className="absolute label-dropdown z-50 w-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg">
+					<div className="absolute label-dropdown z-50 w-full mt-2 bg-white border border-input rounded-lg shadow-lg">
 						{renderSearchContent()}
 					</div>
 				) : null}
@@ -420,7 +443,7 @@ function SearchSelectField({
 							aria-modal="true"
 							className="bg-white rounded-xl shadow-2xl w-full max-w-lg transform transition-all"
 						>
-							<div className="flex items-center justify-between p-4 border-b border-gray-200">
+							<div className="flex items-center justify-between p-4 border-b border-input">
 								<h3 className="text-lg font-semibold text-gray-900">
 									{field.label || "Select Options"}
 								</h3>

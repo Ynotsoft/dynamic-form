@@ -144,25 +144,25 @@ function DayTimePickerField({
 						onKeyDown={(e) => e.key === "Enter" && setOpen(true)}
 						onBlur={() => handleBlur(name)}
 						className={`
-							group inline-flex items-center justify-between gap-2
-							w-full h-10 rounded-lg border bg-white
+							group inline-flex items-center justify-between gap-2 text-primary-foreground
+							w-full h-10 rounded-lg border  bg-background
 							px-3 py-2 text-sm font-normal shadow-sm transition-all
-							hover:bg-slate-50 hover:border-slate-300
-							focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
+							hover:border-slate-300 	
+              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
 							disabled:cursor-not-allowed disabled:opacity-50
 							${
 								error
 									? "border-red-500 focus-visible:ring-red-500"
-									: "border-slate-200 focus-visible:ring-blue-500"
+									: "border-input focus-visible:ring-primary"
 							}
 						`}
 					>
 						{selected ? (
-							<span className="text-slate-900">
+							<span className="text-primary group-hover:text-primary ">
 								{selected.toLocaleString()}
 							</span>
 						) : (
-							<span className="text-slate-400">
+							<span className="text-primary group-hover:text-primary">
 								{field.placeholder || "Select date and time"}
 							</span>
 						)}
@@ -191,7 +191,7 @@ function DayTimePickerField({
 				<PopoverContent
 					align="start"
 					sideOffset={4}
-					className="z-50 w-auto p-0 bg-white rounded-xl shadow-xl border border-slate-200"
+					className="z-50 w-auto p-0 bg-background rounded-xl shadow-xl border border-input"
 				>
 					<div className="p-3">
 						<DayPicker
@@ -201,18 +201,18 @@ function DayTimePickerField({
 							showOutsideDays
 							className="p-0"
 							classNames={{
-								day_selected:
-									"bg-blue-600 text-white hover:bg-blue-600 hover:text-white focus:bg-blue-600 focus:text-white rounded-md",
-								day_today: "bg-slate-100 text-slate-900 font-bold rounded-md",
-								day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-slate-100 rounded-md transition-colors",
-								head_cell:
-									"text-slate-500 rounded-md w-9 font-normal text-[0.8rem]",
+								selected:
+									"bg-primary/75 text-primary-foreground hover:bg-primary hover:text-white focus:bg-primary focus:text-white rounded-md",
+								today: "border-primary text-primary font-bold rounded-md",
+								day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-primary hover:text-primary-foreground rounded-md transition-colors",
+								chevron:
+									"text-primary hover:text-primary-foreground hover:bg-primary/50 ",
 							}}
 						/>
 					</div>
 
 					{/* Time Picker */}
-					<div className="border-t border-slate-100 p-4 bg-slate-50/50">
+					<div className="border-t border-slate-100 p-4 bg-background">
 						<div className="flex items-center justify-center gap-4">
 							<div className="flex items-center gap-2">
 								{/* Hours */}
@@ -240,7 +240,7 @@ function DayTimePickerField({
 										</svg>
 									</button>
 
-									<div className="w-12 h-10 flex items-center justify-center bg-white border border-slate-200 rounded-lg text-lg font-semibold shadow-sm text-slate-700">
+									<div className="w-12 h-10 flex items-center justify-center bg-background border border-slate-200 rounded-lg text-lg font-semibold shadow-sm text-primary">
 										{displayHours}
 									</div>
 
@@ -297,7 +297,7 @@ function DayTimePickerField({
 										</svg>
 									</button>
 
-									<div className="w-12 h-10 flex items-center justify-center bg-white border border-slate-200 rounded-lg text-lg font-semibold shadow-sm text-slate-700">
+									<div className="w-12 h-10 flex items-center justify-center bg-background border border-slate-200 rounded-lg text-lg font-semibold shadow-sm text-primary">
 										{displayMinutes}
 									</div>
 
@@ -327,7 +327,7 @@ function DayTimePickerField({
 							</div>
 
 							{/* Period */}
-							<div className="flex flex-col gap-1 bg-white p-1 rounded-lg border border-slate-200 shadow-sm">
+							<div className="flex flex-col gap-1 bg-background p-1 rounded-lg border border-slate-200 shadow-sm">
 								<button
 									type="button"
 									onClick={() => displayPeriod !== "AM" && togglePeriod()}
@@ -335,8 +335,8 @@ function DayTimePickerField({
 									title="Set period to AM"
 									className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${
 										displayPeriod === "AM"
-											? "bg-blue-50 text-blue-600"
-											: "text-slate-400 hover:text-slate-600"
+											? "bg-primary text-primary-foreground"
+											: "text-foreground hover:text-primary-foreground hover:bg-primary"
 									}`}
 								>
 									AM
@@ -348,8 +348,8 @@ function DayTimePickerField({
 									title="Set period to PM"
 									className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${
 										displayPeriod === "PM"
-											? "bg-blue-50 text-blue-600"
-											: "text-slate-400 hover:text-slate-600"
+											? "bg-primary text-primary-foreground"
+											: "text-foreground hover:text-primary-foreground hover:bg-primary"
 									}`}
 								>
 									PM
@@ -359,13 +359,13 @@ function DayTimePickerField({
 					</div>
 
 					{/* Actions */}
-					<div className="flex items-center justify-between gap-2 border-t border-slate-100 p-3 bg-white rounded-b-xl">
+					<div className="flex items-center justify-between gap-2 border-t border-slate-100 p-3 bg-background rounded-b-xl">
 						<button
 							type="button"
 							onClick={handleClear}
 							aria-label="Clear date and time"
 							title="Clear date and time"
-							className="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 text-slate-500 hover:text-slate-900 hover:bg-slate-100 h-9 px-4 py-2"
+							className="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 text-primary hover:text-primary-foreground hover:bg-slate-100 h-9 px-4 py-2"
 						>
 							Clear
 						</button>
@@ -374,7 +374,7 @@ function DayTimePickerField({
 							onClick={() => setOpen(false)}
 							aria-label="Done"
 							title="Done"
-							className="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-blue-600 text-white hover:bg-blue-700 shadow-sm h-9 px-6 py-2"
+							className="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-secondary hover:text-secondary-foreground shadow-sm h-9 px-6 py-2"
 						>
 							Done
 						</button>

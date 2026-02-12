@@ -233,10 +233,10 @@ export default function FileField({
 		focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50
 		${
 			isDisabled
-				? "bg-gray-50 border-gray-300 text-gray-400 cursor-not-allowed opacity-70"
+				? "bg-gray-50 border-gray-300 text-secondary cursor-not-allowed opacity-70"
 				: isDragging
 					? "bg-blue-50 border-blue-500 text-blue-600"
-					: "bg-white border-gray-300 hover:border-blue-400 hover:bg-gray-50 cursor-pointer"
+					: "bg-background border-gray-300 hover:border-blue-400 hover:bg-gray-50 cursor-pointer"
 		}
 	`;
 
@@ -249,7 +249,7 @@ export default function FileField({
 				{/* Drag and drop zone */}
 				<button
 					type="button"
-					className={dragDropClasses}
+					className={`group ${dragDropClasses}`}
 					onClick={() => {
 						if (!isDisabled) {
 							fileInputRefs.current?.[field.name]?.click();
@@ -261,21 +261,24 @@ export default function FileField({
 					onDrop={handleDrop}
 					disabled={isDisabled}
 				>
-					<div className="border-gray-400 border p-1 mb-3 rounded-md bg-gray-100 shadow-md">
-						<UploadCloud size={24} className="m-1" />
+					<div className="border-gray-400 border p-1 mb-3 rounded-md bg-primary shadow-md">
+						<UploadCloud size={24} className="m-1 text-primary-foreground" />
 					</div>
 
-					<p className="text-sm font-normal">
+					<p className=" text-sm font-normal">
 						<span
 							className={
 								isDisabled
-									? "text-gray-400"
-									: "text-blue-600 hover:text-blue-700 underline"
+									? "text-primary"
+									: "text-primary group-hover:text-primary underline"
 							}
 						>
 							Upload {isMultiple ? "Files" : "a file"}
 						</span>
-						<span className="font-light"> or drag and drop</span>
+						<span className="font-light text-secondary-foreground group-hover:text-secondary">
+							{" "}
+							or drag and drop
+						</span>
 					</p>
 
 					<p className="text-xs mt-1 text-gray-500">
@@ -342,10 +345,10 @@ export default function FileField({
 						return (
 							<div key={fileName} className="relative pt-1">
 								<div className="flex items-center justify-between">
-									<span className="text-xs font-semibold inline-block text-blue-600">
+									<span className="text-xs font-semibold inline-block text-primary">
 										Uploading {fileName}
 									</span>
-									<span className="text-xs font-semibold inline-block text-blue-600">
+									<span className="text-xs font-semibold inline-block text-primary">
 										{upload.progress}%
 									</span>
 								</div>

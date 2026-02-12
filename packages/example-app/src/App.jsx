@@ -13,7 +13,7 @@ export default function App() {
 
   return (
     <Router>
-      <div className=" w-full mx-auto mt-10">
+      <div className="relative w-full mx-auto mt-10">
         <div className="w-full  mx-auto p-8 space-y-8">
           <h1 className="text-3xl font-bold">
             DynamicForm Example

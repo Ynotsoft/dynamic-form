@@ -77,7 +77,7 @@ export default function ExampleNormalPage() {
       },
 
       {
-        name: "agreeTerms",
+        name: "sports",
         label: "Sports",
         type: "checkbox",
         required: true,
@@ -179,8 +179,8 @@ export default function ExampleNormalPage() {
         underline: true, // Boolean - adds bottom border
       },
       {
-        type: "litertext",
-        content: '<div class="alert">Important notice here</div>',
+        type: "richtext",
+        content: "",
       },
       {
         name: "interests",

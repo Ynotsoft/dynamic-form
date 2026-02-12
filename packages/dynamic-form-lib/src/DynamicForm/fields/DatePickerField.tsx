@@ -50,23 +50,25 @@ export default function DatePickerField({
 						onKeyDown={(e) => e.key === "Enter" && setOpen(true)}
 						onBlur={() => handleBlur(name)}
 						className={`
-							inline-flex items-center justify-between gap-2
-							w-full h-9 rounded-md border bg-white
-							px-3 py-2 text-sm font-normal shadow-sm
-							hover:bg-gray-50 hover:text-gray-900
-							focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
+							group inline-flex items-center justify-between gap-2 text-primary-foreground
+							w-full h-10 rounded-lg border  bg-background
+							px-3 py-2 text-sm font-normal shadow-sm transition-all
+							hover:border-slate-300 	
+              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
 							disabled:cursor-not-allowed disabled:opacity-50
 							${
 								error
 									? "border-red-500 focus-visible:ring-red-500"
-									: "border-gray-300 focus-visible:ring-blue-500"
+									: "border-input focus-visible:ring-primary"
 							}
 						`}
 					>
 						{selected ? (
-							<span>{selected.toLocaleDateString()}</span>
+							<span className="text-primary group-hover:text-primary ">
+								{selected.toLocaleDateString()}
+							</span>
 						) : (
-							<span className="text-muted-foreground">
+							<span className="text-primary group-hover:text-primary ">
 								{placeholder || "Select date"}
 							</span>
 						)}
@@ -92,29 +94,41 @@ export default function DatePickerField({
 
 				<PopoverContent
 					align="start"
-					sideOffset={2}
-					className="z-50 rounded-md border border-gray-200 bg-white p-0 shadow-md w-auto"
+					sideOffset={4}
+					className="z-50 w-auto p-0 bg-background rounded-xl shadow-xl border border-input"
 				>
-					<DayPicker
-						mode="single"
-						selected={selected ?? undefined}
-						onSelect={handleSelect}
-						showOutsideDays
-						className="rounded-md bg-white p-3 text-xs"
-					/>
+					<div className="p-3">
+						<DayPicker
+							mode="single"
+							selected={selected ?? undefined}
+							onSelect={handleSelect}
+							showOutsideDays
+							className="p-0"
+							classNames={{
+								selected:
+									"bg-primary/70 text-primary-foreground hover:bg-primary hover:text-white focus:bg-primary focus:text-white rounded-md",
+								today:
+									"bg-primary text-primary-foreground font-bold rounded-md",
+								day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-primary hover:text-primary-foreground rounded-md transition-colors",
+								chevron:
+									"text-primary hover:text-primary-foreground hover:bg-primary/50 ",
+							}}
+						/>
+					</div>
 
-					<div className="flex items-center justify-between gap-2 border-t border-gray-200 p-3">
+					{/* Actions */}
+					<div className="flex items-center justify-between gap-2 border-t border-slate-100 p-3 bg-background rounded-b-xl">
 						<button
 							type="button"
 							onClick={handleClear}
-							className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-gray-300 bg-white hover:bg-gray-100 hover:text-gray-900 h-9 px-4 py-2"
+							className="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 text-primary hover:text-primary-foreground hover:bg-slate-100 h-9 px-4 py-2"
 						>
 							Clear
 						</button>
 						<button
 							type="button"
 							onClick={() => setOpen(false)}
-							className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-blue-600 text-white hover:bg-blue-700 h-9 px-4 py-2"
+							className="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-secondary hover:text-secondary-foreground shadow-sm h-9 px-6 py-2"
 						>
 							Done
 						</button>

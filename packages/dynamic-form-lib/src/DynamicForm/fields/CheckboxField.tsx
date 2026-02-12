@@ -1,3 +1,5 @@
+import React from "react";
+import { Check } from "lucide-react";
 import type {
 	FieldComponentProps,
 	FieldRuntime,
@@ -16,7 +18,7 @@ type CheckboxOption =
 export type CheckboxFieldType = FieldRuntime<InputProps> & {
 	options?: CheckboxOption[];
 	inline?: boolean;
-	layout?: "inline" | "stacked";
+	layout?: "inline" | "stacked" | "grid";
 };
 
 type Props = Omit<FieldComponentProps<unknown, InputProps>, "field"> & {
@@ -41,10 +43,9 @@ export default function CheckboxField({
 			: (disabled ?? !!field.disabled);
 
 	const options = field.options ?? [];
-	const isInline = field.inline || field.layout === "inline";
 
 	/* =============================
-	   Checkbox group
+	   Checkbox group (Pill/Chip Style)
 	   ============================= */
 	if (options.length > 0) {
 		const selectedValues = Array.isArray(formValues[name])
@@ -62,24 +63,30 @@ export default function CheckboxField({
 			handleChange(name, nextValues);
 		};
 
-		const showError = !!error && field.required && selectedValues.length === 0;
-
 		return (
-			<div
-				className={isInline ? "grid grid-cols-4 gap-3 mt-3" : "space-y-3 mt-3"}
-			>
-				{options.map((option) => {
-					const value = typeof option === "string" ? option : option.value;
-					const label = typeof option === "string" ? option : option.label;
-					const description =
-						typeof option === "string" ? undefined : option.description;
+			<div className="flex flex-col gap-5 py-1">
+				<div className="flex flex-wrap gap-3">
+					{options.map((option) => {
+						const value = typeof option === "string" ? option : option.value;
+						const label = typeof option === "string" ? option : option.label;
+						const id = `${name}-${value}`;
+						const checked = selectedValues.includes(value);
 
-					const id = `${name}-${value}`;
-					const checked = selectedValues.includes(value);
-
-					return (
-						<div key={value} className="relative flex items-start">
-							<div className="flex h-6 items-center">
+						return (
+							<label
+								key={value}
+								htmlFor={id}
+								className={`
+									relative flex items-center gap-2.5 px-3 py-1.5 rounded-md border transition-all duration-200 select-none
+									${
+										checked
+											? "border-primary bg-background shadow-md ring-1 ring-primary"
+											: "border-border bg-muted/85 hover:border-ring"
+									}
+									${isDisabled ? "opacity-40 cursor-not-allowed" : "cursor-pointer active:scale-95"}
+									${error && !checked ? "border-destructive" : ""}
+								`}
+							>
 								<input
 									{...(field.props ?? {})}
 									id={id}
@@ -90,71 +97,78 @@ export default function CheckboxField({
 									}
 									onBlur={() => handleBlur(name)}
 									disabled={isDisabled}
-									className={`
-										size-4 rounded border-gray-300 text-blue-600 transition-all
-										focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-										${
-											isDisabled
-												? "opacity-50 cursor-not-allowed bg-gray-100"
-												: "cursor-pointer hover:border-blue-400"
-										}
-										${showError ? "border-red-500" : ""}
-									`}
+									className="sr-only"
 								/>
-							</div>
 
-							<div className="ml-3 text-sm">
-								<label
-									htmlFor={id}
-									className={`font-medium ${
-										isDisabled
-											? "text-gray-500"
-											: "text-gray-900 cursor-pointer"
-									}`}
+								{/* Selection Indicator */}
+								{checked && (
+									<div className="flex items-center justify-center size-6 rounded-full  animate-in zoom-in-75 duration-150">
+										<Check className="size-4 text-primary stroke-[4px]" />
+									</div>
+								)}
+
+								<span
+									className={`text-base font-medium ${checked ? "text-primary" : "text-muted-foreground"}`}
 								>
 									{label}
-								</label>
-
-								{description && !isInline && (
-									<p
-										className={`text-sm ${
-											isDisabled ? "text-gray-400" : "text-gray-500"
-										}`}
-									>
-										{description}
-									</p>
-								)}
-							</div>
-						</div>
-					);
-				})}
+								</span>
+							</label>
+						);
+					})}
+				</div>
+				{error && (
+					<p className="text-sm text-destructive font-medium">{error}</p>
+				)}
 			</div>
 		);
 	}
 
 	/* =============================
-	   Single checkbox
+	   Single checkbox (Theme Bound)
 	   ============================= */
+	const isChecked = Boolean(formValues[name]);
+
 	return (
-		<div className="mt-1">
-			<div className="space-x-2">
+		<div className="flex flex-col gap-2">
+			<label
+				htmlFor={`id_${name}`}
+				className={`
+					inline-flex items-center gap-3 px-5 py-3 border transition-all rounded-[var(--radius)]
+					${isChecked ? "border-primary bg-background shadow-sm ring-1 ring-primary" : "border-border hover:bg-accent"}
+					${isDisabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer active:scale-[0.98]"}
+					${error ? "border-destructive" : ""}
+				`}
+			>
 				<input
 					{...(field.props ?? {})}
 					id={`id_${name}`}
 					type="checkbox"
-					checked={Boolean(formValues[name])}
+					checked={isChecked}
 					onChange={(e) => handleChange(name, e.target.checked)}
 					onBlur={() => handleBlur(name)}
 					disabled={isDisabled}
-					className={`rounded border-gray-300 ${
-						isDisabled ? "opacity-50 cursor-not-allowed" : ""
-					} ${error ? "border-red-500" : ""}`}
+					className="sr-only"
 				/>
-				<label htmlFor={`id_${name}`}>
+				<div
+					className={`
+					flex items-center justify-center size-5 rounded-sm border transition-all
+					${isChecked ? "bg-primary border-primary" : "bg-background border-input"}
+				`}
+				>
+					{isChecked && (
+						<Check className="size-3 text-primary-foreground stroke-[4px]" />
+					)}
+				</div>
+				<span
+					className={`text-sm font-medium ${isChecked ? "text-foreground" : "text-muted-foreground"}`}
+				>
 					{field.label}
-					{field.required && <span className="text-red-500">*</span>}
-				</label>
-			</div>
+					{field.required && <span className="ml-1 text-destructive">*</span>}
+				</span>
+			</label>
+			{error && (
+				<p className="text-xs text-destructive font-medium px-2">{error}</p>
+			)}
 		</div>
 	);
 }
