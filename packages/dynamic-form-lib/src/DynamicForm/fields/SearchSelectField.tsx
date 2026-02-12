@@ -83,9 +83,6 @@ function SearchSelectField({
 	const [selectedOptionsCache, setSelectedOptionsCache] =
 		useState<SelectedOptionsCache>({});
 
-	type SelectedMap = Record<string, boolean>;
-	const [selectedMap, setSelectedMap] = useState<SelectedMap>({});
-
 	const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const dropdownRef = useRef<HTMLDivElement | null>(null);
 	const searchInputRef = useRef<HTMLInputElement | null>(null);
@@ -100,9 +97,7 @@ function SearchSelectField({
 			selectedValues = currentValues;
 		} else {
 			selectedValues = (currentValues as unknown[])
-				.filter(
-					(val): val is string => typeof val === "string" && val.length > 0,
-				)
+				.filter((val): val is string => typeof v === "string" && v.length > 0)
 				.map((rawValue) => {
 					const found = options.find((o) => o.value === rawValue);
 					if (found) return found;
@@ -132,64 +127,39 @@ function SearchSelectField({
 
 	const loadOptions = useCallback(
 		async (inputValue: string): Promise<SearchSelectOption[]> => {
-			// Nothing to do – keep current options
-			if (!field.optionsUrl && !field.onSearch) {
-				return options;
-			}
-
+			if (!field.optionsUrl && !field.onSearch) return options;
 			const minSearchLength = field.minSearchLength ?? 0;
-			if (minSearchLength > 0 && inputValue.length < minSearchLength) {
+			if (minSearchLength > 0 && inputValue.length < minSearchLength)
 				return options;
-			}
 
 			setIsLoading(true);
 			setSearchError(null);
 
 			try {
 				let results: SearchSelectOption[] = [];
-
 				if (field.onSearch) {
 					results = await field.onSearch(inputValue, formValues);
 				} else if (field.optionsUrl && apiClient) {
 					const searchParam = field.searchParam || "search";
-
 					const baseUrl = field.optionsUrl.includes("?")
 						? `${field.optionsUrl}&${searchParam}=${encodeURIComponent(inputValue)}`
 						: `${field.optionsUrl}?${searchParam}=${encodeURIComponent(inputValue)}`;
-
-					const url = baseUrl; // no valueId
-					const response = await apiClient(url);
-
-					// Normalise response into a single "raw" value
+					const response = await apiClient(baseUrl);
 					const raw =
 						typeof response === "object" &&
 						response !== null &&
 						"data" in response
 							? (response as { data: unknown }).data
 							: response;
-
-					if (field.transformResponse) {
-						results = field.transformResponse(raw);
-					} else {
-						// If you don't have transformResponse, we assume raw already matches
-						results = raw as SearchSelectOption[];
-					}
+					results = field.transformResponse
+						? field.transformResponse(raw)
+						: (raw as SearchSelectOption[]);
 				}
-
 				setOptions(results);
-				setSearchError(null);
 				return results;
 			} catch (err: unknown) {
-				console.error(
-					`Cannot find search results for ${String(field.name)}`,
-					err,
-				);
-
 				const message =
-					err instanceof Error
-						? err.message
-						: "Failed to load search results. Please try again.";
-
+					err instanceof Error ? err.message : "Failed to load search results.";
 				setSearchError(message);
 				return [];
 			} finally {
@@ -198,11 +168,9 @@ function SearchSelectField({
 		},
 		[field, apiClient, formValues, options],
 	);
-	useEffect(() => {
-		if (isOpen && searchInputRef.current) {
-			searchInputRef.current.focus();
-		}
 
+	useEffect(() => {
+		if (isOpen && searchInputRef.current) searchInputRef.current.focus();
 		if (
 			isOpen &&
 			options.length === 0 &&
@@ -258,8 +226,10 @@ function SearchSelectField({
 			}
 		}
 
-		const primitiveValues = newValues.map((v) => v.value);
-		handleChange(field.name, primitiveValues);
+		handleChange(
+			field.name,
+			newValues.map((v) => v.value),
+		);
 		if (field.clearSearchOnSelect) setSearchTerm("");
 	};
 
@@ -289,7 +259,7 @@ function SearchSelectField({
 		<>
 			<div className="p-3 border-b border-input">
 				<div className="relative">
-					<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+					<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
 					<input
 						ref={searchInputRef}
 						type="text"
@@ -300,20 +270,17 @@ function SearchSelectField({
 								? "Type to search..."
 								: "Search options..."
 						}
-						className="w-full pl-9 pr-3 py-2 text-sm border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+						className="w-full pl-9 pr-3 py-2 text-sm border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-ring transition-all"
 					/>
 				</div>
 			</div>
 
-			{/* Options list */}
 			<div
-				className={`overflow-y-auto p-2 max-h-96 flex flex-col gap-0.5 bg-background ${
-					isDialogMode ? "max-h-96" : "max-h-60"
-				}`}
+				className={`overflow-y-auto p-2 flex flex-col gap-0.5 bg-background ${isDialogMode ? "max-h-96" : "max-h-60"}`}
 			>
 				{isLoading ? (
-					<div className="py-8 text-center text-gray-500 text-sm">
-						<Loader2 className="w-5 h-5 mx-auto mb-2 animate-spin" />
+					<div className="py-8 text-center text-muted-foreground text-sm">
+						<Loader2 className="w-5 h-5 mx-auto mb-2 animate-spin text-primary" />
 						Searching...
 					</div>
 				) : filteredOptions.length > 0 ? (
@@ -329,32 +296,30 @@ function SearchSelectField({
 								className={`
 									px-3 py-2 text-sm rounded cursor-pointer transition-colors
 									flex items-center justify-between
-									${isSelected ? "bg-primary text-gray-800" : "hover:bg-gray-100 text-gray-800"}
+									${
+										isSelected
+											? "bg-primary text-primary-foreground"
+											: "hover:bg-accent hover:text-accent-foreground text-foreground"
+									}
 								`}
 							>
 								<span>{option.label}</span>
-								{isSelected ? (
-									<span className="text-xs font-bold">
-										<Check className="w-4 h-4" />
-									</span>
-								) : null}
+								{isSelected && <Check className="w-4 h-4" />}
 							</button>
 						);
 					})
 				) : searchError ? (
 					<div className="py-8 px-4 text-center">
-						<div className="text-red-500 text-sm font-medium mb-2">
-							! Search Error
+						<div className="text-destructive text-sm font-medium mb-2">
+							Search Error
 						</div>
-						<div className="text-gray-600 text-xs">{searchError}</div>
+						<div className="text-muted-foreground text-xs">{searchError}</div>
 					</div>
 				) : (
-					<div className="py-8 text-center text-gray-500 text-sm">
-						{field.optionsUrl || field.onSearch
-							? searchTerm.length < (field.minSearchLength ?? 2)
-								? `Type at least ${field.minSearchLength ?? 2} characters to search`
-								: "No results found"
-							: "No options available"}
+					<div className="py-8 text-center text-muted-foreground text-sm">
+						{searchTerm.length < (field.minSearchLength ?? 2)
+							? `Type at least ${field.minSearchLength ?? 2} characters`
+							: "No results found"}
 					</div>
 				)}
 			</div>
@@ -363,7 +328,7 @@ function SearchSelectField({
 
 	return (
 		<div
-			className={`mb-4 ${field.fieldClass ? field.fieldClass : "col-span-full"}`}
+			className={`mb-4 ${field.fieldClass || "col-span-full"}`}
 			ref={!isDialogMode ? dropdownRef : undefined}
 		>
 			<div className="relative">
@@ -374,129 +339,99 @@ function SearchSelectField({
 					disabled={isDisabled}
 					onClick={() => setIsOpen(!isOpen)}
 					className={`
-						w-full min-h-[42px] px-3 py-2 rounded-lg border-border  border transition-all duration-150 text-left
-						flex items-center gap-2 flex-wrap
-						${error ? "border-red-500" : "border-input"}
-						${isDisabled ? "bg-gray-100 cursor-not-allowed opacity-50" : "bg-background hover:border-gray-400"}
-						${isOpen && !isDisabled && !isDialogMode ? "border-blue-500 ring-2 ring-blue-200" : ""}
+						w-full min-h-[42px] px-3 py-2 rounded-lg border transition-all duration-150 text-left
+						flex items-center gap-2 flex-wrap shadow-xs
+						${error ? "border-destructive" : "border-input"}
+						${isDisabled ? "bg-muted cursor-not-allowed opacity-70" : "bg-background hover:border-ring/50"}
+						${isOpen && !isDisabled && !isDialogMode ? "border-ring ring-2 ring-ring/20" : ""}
 					`}
 				>
 					{selectedValues.length > 0 ? (
 						selectedValues.map((item) => (
 							<span
 								key={item.value}
-								className="inline-flex items-center gap-1 px-2 py-1 bg-zinc-200 text-slate-950 rounded-md text-sm"
+								className="inline-flex items-center gap-1 px-2 py-0.5 bg-secondary text-secondary-foreground border border-border rounded-md text-xs font-medium"
 							>
 								{item.label}
-								{!isDisabled ? (
+								{!isDisabled && (
 									<button
 										type="button"
 										onClick={(e) => handleRemoveItem(item.value, e)}
-										className="hover:bg-blue-300 rounded-sm p-0.5 transition-colors"
-										aria-label={`Remove ${item.label}`}
+										className="hover:text-destructive transition-colors"
 									>
 										<X className="w-3 h-3" />
 									</button>
-								) : null}
+								)}
 							</span>
 						))
 					) : (
-						<span className="text-gray-400 text-sm">
+						<span className="text-muted-foreground text-sm">
 							{field.placeholder || "Select options..."}
 						</span>
 					)}
 
 					<div className="ml-auto flex items-center gap-2">
-						{isLoading ? (
-							<Loader2 className="w-4 h-4 text-gray-400 animate-spin" />
-						) : null}
+						{isLoading && (
+							<Loader2 className="w-4 h-4 text-muted-foreground animate-spin" />
+						)}
 						<ChevronDown
-							className={`w-4 h-4 text-gray-500 transition-transform ${
-								isOpen ? "rotate-180" : ""
-							}`}
+							className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
 						/>
 					</div>
 				</button>
 
-				{!isDialogMode && isOpen && !isDisabled ? (
-					<div className="absolute label-dropdown z-50 w-full mt-2 bg-white border border-input rounded-lg shadow-lg">
+				{!isDialogMode && isOpen && !isDisabled && (
+					<div className="absolute z-50 w-full mt-2 bg-popover border border-border rounded-lg shadow-lg overflow-hidden">
 						{renderSearchContent()}
 					</div>
-				) : null}
+				)}
 			</div>
 
-			{isDialogMode && isOpen && !isDisabled ? (
+			{isDialogMode && isOpen && !isDisabled && (
 				<>
 					<div
-						className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
-						aria-hidden="true"
-						onClick={() => {
-							setIsOpen(false);
-							handleBlur(field.name);
-						}}
+						className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm"
+						onClick={() => setIsOpen(false)}
 					/>
-
 					<div className="fixed inset-0 z-50 flex items-center justify-center p-4">
 						<div
 							ref={dropdownRef}
-							role="dialog"
-							aria-modal="true"
-							className="bg-white rounded-xl shadow-2xl w-full max-w-lg transform transition-all"
+							className="bg-popover border border-border rounded-xl shadow-2xl w-full max-w-lg overflow-hidden"
 						>
-							<div className="flex items-center justify-between p-4 border-b border-input">
-								<h3 className="text-lg font-semibold text-gray-900">
+							<div className="flex items-center justify-between p-4 border-b border-border">
+								<h3 className="text-lg font-semibold text-foreground">
 									{field.label || "Select Options"}
 								</h3>
 								<button
-									type="button"
-									onClick={() => {
-										setIsOpen(false);
-										handleBlur(field.name);
-									}}
-									className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition"
+									onClick={() => setIsOpen(false)}
+									className="text-muted-foreground hover:text-foreground p-1 rounded-md hover:bg-accent transition"
 								>
 									<X className="w-5 h-5" />
 								</button>
 							</div>
-
 							{renderSearchContent()}
-
-							<div className="flex items-center justify-between p-4 border-t border-gray-200 bg-gray-50 rounded-b-xl">
-								<span className="text-sm text-gray-600">
+							<div className="flex items-center justify-between p-4 border-t border-border bg-muted/30">
+								<span className="text-sm text-muted-foreground">
 									{isSingleSelect
 										? selectedValues.length > 0
 											? "1 selected"
-											: "None selected"
+											: "None"
 										: `${selectedValues.length} selected`}
 								</span>
-
-								<div className="gap-4 flex">
+								<div className="flex gap-2">
 									<button
-										type="button"
-										onClick={() => {
-											setIsOpen(false);
-											handleBlur(field.name);
-										}}
-										className="px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-dark transition"
+										onClick={() => setIsOpen(false)}
+										className="px-4 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:opacity-90 transition"
 									>
 										Done
-									</button>
-									<button
-										type="button"
-										onClick={() => {
-											setIsOpen(false);
-											handleBlur(field.name);
-										}}
-										className="px-4 py-2 bg-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-secondary-400 transition"
-									>
-										Cancel
 									</button>
 								</div>
 							</div>
 						</div>
 					</div>
 				</>
-			) : null}
+			)}
+			{error && <p className="mt-1.5 text-xs text-destructive">{error}</p>}
 		</div>
 	);
 }
