@@ -1,5 +1,9 @@
-
-import type { FieldComponentProps, FieldRuntime, InputProps } from "@/types";
+import type {
+	FieldComponentProps,
+	FieldRuntime,
+	InputProps,
+	FormValues,
+} from "@/types";
 
 type InputFieldType = FieldRuntime<InputProps> & {
 	type?: string;
@@ -7,8 +11,10 @@ type InputFieldType = FieldRuntime<InputProps> & {
 	maxLength?: number;
 };
 
+// Assuming formValues is passed correctly from the parent
 type Props = Omit<FieldComponentProps<string, InputProps>, "field"> & {
 	field: InputFieldType;
+	formValues: FormValues; // Ensure this is explicitly typed
 };
 
 function InputField({
@@ -20,18 +26,29 @@ function InputField({
 	disabled,
 }: Props) {
 	const name = field.name;
-	const isDisabled = !!disabled;
+
+	// Determine disabled state (matching your SearchSelect logic)
+	const fieldDisabled =
+		typeof field.disabled === "function"
+			? field.disabled(formValues)
+			: !!field.disabled;
+
+	const isDisabled = !!disabled || fieldDisabled;
+
+	// Defensive check: handle potential nested paths or missing values
+	const displayValue = (formValues[name] as string) ?? "";
 
 	return (
 		<input
+			// Spread props first so internal logic overrides them
 			{...(field.props ?? {})}
 			id={name}
-			type={field.type || ""}
-			value={(formValues[name] as string) ?? ""}
+			name={name}
+			type={field.type || "text"} // Default to "text" if empty
+			value={displayValue}
 			onChange={(e) => handleChange(name, e.target.value)}
 			onBlur={() => handleBlur(name)}
 			disabled={isDisabled}
-			name={name}
 			placeholder={field.placeholder || ""}
 			minLength={field.minLength}
 			maxLength={field.maxLength}
@@ -39,12 +56,9 @@ function InputField({
 				error
 					? "border-red-500 focus-visible:ring-red-500"
 					: "border-input focus-visible:ring-blue-500"
-			} ${
-				isDisabled ? "bg-gray-50 text-gray-500" : "bg-background"
-			}`}
+			} ${isDisabled ? "bg-gray-50 text-gray-500" : "bg-background"}`}
 		/>
 	);
 }
 
 export default InputField;
-

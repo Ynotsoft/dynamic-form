@@ -116,9 +116,6 @@ export default function CheckboxField({
 						);
 					})}
 				</div>
-				{error && (
-					<p className="text-sm text-destructive font-medium">{error}</p>
-				)}
 			</div>
 		);
 	}
@@ -166,9 +163,6 @@ export default function CheckboxField({
 					{field.required && <span className="ml-1 text-destructive">*</span>}
 				</span>
 			</label>
-			{error && (
-				<p className="text-xs text-destructive font-medium px-2">{error}</p>
-			)}
 		</div>
 	);
 }

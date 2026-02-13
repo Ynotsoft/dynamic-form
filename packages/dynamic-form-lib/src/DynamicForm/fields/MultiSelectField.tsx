@@ -129,7 +129,6 @@ function MultiSelectField({
 						"p-4 text-muted-foreground text-sm text-center",
 				}}
 			/>
-			{error && <p className="mt-1.5 text-xs text-destructive">{error}</p>}
 		</div>
 	);
 }

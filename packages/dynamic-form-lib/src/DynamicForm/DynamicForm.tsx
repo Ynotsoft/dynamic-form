@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
-import { toast } from "react-hot-toast";
+import { toast } from "sonner";
 import dayjs from "dayjs";
 
 import { Lock as LucideLock, LockOpen as LucideLockOpen } from "lucide-react";
@@ -27,9 +27,7 @@ import RenderAlertMessageField from "./fields/AlertMessageField";
 
 import type { DynamicFormProps, Field, FormValues } from "../types";
 
-type FileInputRefs = React.MutableRefObject<
-	Record<string, HTMLInputElement | null>
->;
+type FileInputRefs = React.RefObject<Record<string, HTMLInputElement | null>>;
 
 type ConfirmModalState = {
 	isOpen: boolean;
@@ -66,9 +64,7 @@ export const DynamicForm = ({
 	sendFormValues,
 	children,
 }: DynamicFormProps) => {
-	const [formValues, setFormValues] = useState<FormValues>({
-		...defaultValues,
-	});
+	const [formValues, setFormValues] = useState<FormValues>({});
 	const [errors, setErrors] = useState<Record<string, string>>({});
 	const [touched, setTouched] = useState<Record<string, boolean>>({});
 	const [charCounts, setCharCounts] = useState<Record<string, number>>({});
@@ -83,7 +79,7 @@ export const DynamicForm = ({
 	});
 
 	const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
-	const didInit = useRef(false);
+	const lastDefaultValues = useRef<string>("");
 
 	const excludeFromFieldFormat = useMemo(
 		() => ["hidden", "html", "linebreak", "header", "alert"],
@@ -134,15 +130,14 @@ export const DynamicForm = ({
 	const loadOptionsForField = useCallback(
 		async (field: Field) => {
 			if (!apiClient) {
-				const msg = `apiClient prop is required when using fields with optionsUrl. Field "${field.name}" requires optionsUrl but no apiClient was provided.`;
+				const msg = `apiClient prop is required. Field "${field.name}" failed.`;
 				if (debugMode) console.error(msg);
-				toast.error(msg);
+				toast.error("Configuration Error", { description: msg });
 				return;
 			}
 
 			try {
 				const response = await apiClient(`/${String(field.optionsUrl ?? "")}`);
-
 				type OptionItem = { value: string; label: string };
 				const data = (response?.data ?? []) as unknown[];
 
@@ -176,7 +171,6 @@ export const DynamicForm = ({
 						.filter((x): x is OptionItem => x !== null);
 				}
 
-				// NOTE: keeps your existing mutation behaviour
 				formDefinition.fields.forEach((f) => {
 					if (f.name === field.name) f.options = options;
 				});
@@ -193,20 +187,20 @@ export const DynamicForm = ({
 
 	useEffect(() => {
 		if (!formDefinition?.fields?.length) return;
-
 		formDefinition.fields.forEach((field) => {
 			if (field.optionsUrl) void loadOptionsForField(field);
 		});
 	}, [formDefinition, loadOptionsForField]);
 
 	useEffect(() => {
-		if (didInit.current) return;
 		if (!formDefinition?.fields?.length) return;
 
-		didInit.current = true;
+		const currentDefaultsString = JSON.stringify(defaultValues);
+		if (lastDefaultValues.current === currentDefaultsString) return;
+
+		lastDefaultValues.current = currentDefaultsString;
 
 		const initialValues: FormValues = {};
-
 		formDefinition.fields.forEach((field) => {
 			if (!field.name) return;
 
@@ -220,7 +214,7 @@ export const DynamicForm = ({
 		});
 
 		setFormValues(initialValues);
-	}, [formDefinition]); // intentionally NOT listening to defaultValues
+	}, [formDefinition, defaultValues]);
 
 	const validateField = (
 		field: Field,
@@ -243,10 +237,6 @@ export const DynamicForm = ({
 				Object.keys(value as Record<string, unknown>).length === 0);
 
 		if (field.required && isEmpty) {
-			if (debugMode)
-				console.warn(
-					`VALIDATION FAILED (REQUIRED): ${String(field.name)} is empty.`,
-				);
 			return `${String(field.label ?? field.name ?? "This field")} is required`;
 		}
 
@@ -257,30 +247,6 @@ export const DynamicForm = ({
 			if (err) return err;
 		}
 
-		if (field.type === "email" && value) {
-			const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-			if (!emailRegex.test(String(value))) {
-				return "Please enter a valid email address";
-			}
-		}
-
-		if (field.type === "number") {
-			const num = typeof value === "number" ? value : Number(value);
-			if (field.min !== undefined && num < field.min)
-				return `${String(field.label ?? field.name)} must be at least ${field.min}`;
-			if (field.max !== undefined && num > field.max)
-				return `${String(field.label ?? field.name)} must be no more than ${field.max}`;
-		}
-
-		if (field.type === "date" && value) {
-			if (!dayjs(value as unknown as string | number | Date).isValid())
-				return `${String(field.label ?? field.name)} must be a valid date`;
-		}
-
-		if (field.maxLength && value && String(value).length > field.maxLength) {
-			return `${String(field.label ?? field.name)} must not exceed ${field.maxLength} characters`;
-		}
-
 		return null;
 	};
 
@@ -288,47 +254,31 @@ export const DynamicForm = ({
 		const field = formDefinition.fields.find((f) => f.name === fieldName);
 		if (!field) return;
 
-		const newValues: FormValues = { ...formValues };
+		setFormValues((prev) => {
+			const newValues: FormValues = { ...prev };
+			newValues[fieldName] = value;
 
-		// Always set the incoming value
-		newValues[fieldName] = value;
+			if (field.type === "multiselect" || field.type === "searchselect") {
+				newValues[fieldName] = Array.isArray(value) ? value : [];
+			}
 
-		// Normalise multi fields
-		if (field.type === "multiselect" || field.type === "searchselect") {
-			newValues[fieldName] = Array.isArray(value) ? value : [];
-		}
-
-		// Reset hidden fields when a select changes
-		if (field.type === "select") {
 			formDefinition.fields.forEach((f) => {
-				if (f.showIf && !f.showIf(newValues)) {
-					if (!f.name) return;
+				if (!f.name) return;
+				const isHidden = f.showIf && !f.showIf(newValues);
+				const isDisabledByLogic =
+					typeof f.disabled === "function" && f.disabled(newValues);
 
+				if (isHidden || isDisabledByLogic) {
 					const shouldBeArray =
 						f.type === "multiselect" ||
 						f.type === "searchselect" ||
 						(f.type === "checkbox" && (f.options?.length ?? 0) > 0);
-
 					newValues[f.name] = shouldBeArray ? [] : "";
 				}
 			});
-		}
 
-		// Reset disabled fields
-		formDefinition.fields.forEach((f) => {
-			if (typeof f.disabled === "function" && f.disabled(newValues)) {
-				if (!f.name) return;
-
-				const shouldBeArray =
-					f.type === "multiselect" ||
-					f.type === "searchselect" ||
-					(f.type === "checkbox" && (f.options?.length ?? 0) > 0);
-
-				newValues[f.name] = shouldBeArray ? [] : "";
-			}
+			return newValues;
 		});
-
-		setFormValues(newValues);
 	};
 
 	const handleBlur = (fieldName: string) => {
@@ -339,14 +289,11 @@ export const DynamicForm = ({
 		e.preventDefault();
 
 		const allTouched: Record<string, boolean> = {};
-		formDefinition.fields.forEach((field) => {
-			if (field.name) allTouched[field.name] = true;
-		});
-		setTouched(allTouched);
-
 		const newErrors: Record<string, string> = {};
+
 		formDefinition.fields.forEach((field) => {
 			if (!field.name) return;
+			allTouched[field.name] = true;
 
 			if (!field.showIf || field.showIf(formValues)) {
 				const err = validateField(field, formValues[field.name], formValues);
@@ -354,59 +301,32 @@ export const DynamicForm = ({
 			}
 		});
 
+		setTouched(allTouched);
 		setErrors(newErrors);
 
-		if (Object.keys(newErrors).length !== 0) {
-			toast.error("Please correct the errors in the form");
+		const errorValues = Object.values(newErrors);
+
+		if (errorValues.length !== 0) {
+			// Trigger a separate toast for every validation error
+			errorValues.forEach((errorMessage) => {
+				toast.error("Validation Error", {
+					description: errorMessage,
+				});
+			});
 			return;
 		}
-
-		const castValue = (val: unknown, type: string | undefined) => {
-			if (val === "" || val === null || val === undefined) return null;
-			const typeLower = String(type ?? "").toLowerCase();
-
-			if (Array.isArray(val)) {
-				if (typeLower === "number" || typeLower === "integer") {
-					return val.map((v) => (v === "" ? null : Number(v)));
-				}
-				return val;
-			}
-
-			switch (typeLower) {
-				case "number":
-				case "integer":
-				case "float":
-					return Number(val);
-				case "boolean":
-				case "bool":
-					return String(val).toLowerCase() === "true" || val === true;
-				case "date":
-				case "datetime": {
-					const dateObj = dayjs(val as unknown as string | number | Date);
-					return dateObj.isValid() ? dateObj.toISOString() : val;
-				}
-				default:
-					return val;
-			}
-		};
 
 		const formattedValues: Record<string, unknown> = {};
 		formDefinition.fields.forEach((field) => {
 			if (!field.name) return;
-
-			const rawValue = formValues[field.name];
-			const type = field.fieldType || "string";
-			const convertedValue = castValue(rawValue, type);
-
-			formattedValues[field.name] = returnType
-				? { value: convertedValue, fieldType: type }
-				: convertedValue;
+			formattedValues[field.name] = formValues[field.name];
 		});
 
 		if (debugMode) {
-			console.log("Form submitted with values:", formattedValues);
-			return;
+			console.log("Form Submitted Successfully:", formattedValues);
 		}
+
+		toast.success("Form submitted successfully!");
 
 		if (sendFormValues) sendFormValues(formattedValues);
 	};
@@ -457,9 +377,7 @@ export const DynamicForm = ({
 
 		const toggleOverride = () => {
 			if (!field.name) return;
-
-			const willBeEnabled = !isOverridden;
-			if (willBeEnabled) {
+			if (!isOverridden) {
 				setConfirmModal({ isOpen: true, fieldName: field.name });
 			} else {
 				setOverrideStatus((prev) => ({
@@ -482,16 +400,7 @@ export const DynamicForm = ({
 							<button
 								type="button"
 								onClick={toggleOverride}
-								className={`ml-2 p-[0.25rem] rounded-sm transition-all duration-150 ${
-									isOverridden
-										? "text-gray-600 bg-gray-100"
-										: "text-gray-600 hover:bg-gray-300"
-								}`}
-								title={
-									isOverridden
-										? "Field is overridden (enabled)"
-										: "Field is locked (disabled)"
-								}
+								className="ml-2 p-[0.25rem] rounded-sm transition-all duration-150 text-gray-600 hover:bg-gray-300"
 							>
 								{isOverridden ? (
 									<LucideLockOpen size={14} />
@@ -502,9 +411,7 @@ export const DynamicForm = ({
 						)}
 					</label>
 				)}
-
 				<div>{child}</div>
-
 				{error && <p className="text-sm text-red-500 mt-1">{error}</p>}
 			</>
 		);
@@ -529,80 +436,75 @@ export const DynamicForm = ({
 
 		const name = field.name;
 		const error = name ? (errors[name] ?? null) : null;
-
 		const isFundamentallyDisabled =
 			typeof field.disabled === "function"
 				? field.disabled(formValues)
 				: !!field.disabled;
-
 		const isOverridden = name ? overrideStatus[name] === true : false;
 		const effectiveDisabled = isFundamentallyDisabled && !isOverridden;
-
-		const child = (
-			<FieldComponent
-				field={field}
-				formValues={formValues}
-				handleChange={handleChange}
-				handleBlur={handleBlur}
-				setCharCounts={setCharCounts}
-				charCount={name ? charCounts[name] || 0 : 0}
-				api_URL={api_URL}
-				error={name && touched[name] ? error : null}
-				fileInputRefs={fileInputRefs}
-				fileUploads={fileUploads}
-				onFieldsChange={onFieldsChange}
-				disabled={effectiveDisabled}
-				apiClient={apiClient}
-			/>
-		);
 
 		return (
 			<div
 				className="col-span-full"
-				key={name ?? `${field.type}-${field.label ?? "field"}`}
+				key={name ?? `${field.type}-${field.label}`}
 			>
-				{fieldFormat(child, field, name && touched[name] ? error : null)}
+				{fieldFormat(
+					<FieldComponent
+						field={field}
+						formValues={formValues}
+						handleChange={handleChange}
+						handleBlur={handleBlur}
+						setCharCounts={setCharCounts}
+						charCount={name ? charCounts[name] || 0 : 0}
+						api_URL={api_URL}
+						error={name && touched[name] ? error : null}
+						fileInputRefs={fileInputRefs}
+						fileUploads={fileUploads}
+						onFieldsChange={onFieldsChange}
+						disabled={effectiveDisabled}
+						apiClient={apiClient}
+					/>,
+					field,
+					name && touched[name] ? error : null,
+				)}
 			</div>
 		);
 	};
-
-	const showFooter = footerMode !== "none";
 
 	return (
 		<div className="w-full">
 			{confirmModal.isOpen && (
 				<div className="fixed inset-0 z-50 flex items-center justify-center p-4">
 					<button
-						type="submit"
+						type="button"
 						className="absolute inset-0 bg-black/40"
 						onClick={handleCancel}
-					/>
-					<div className="relative z-10 w-full max-w-md rounded-lg bg-background p-4 shadow-xl">
-						<h3 className="text-base font-semibold text-gray-900">
-							Enable locked field?
-						</h3>
-						<p className="mt-1 text-sm text-gray-600">
-							This field is locked by default. Enabling override allows it to be
-							edited.
-						</p>
-
-						<div className="mt-4 flex justify-end gap-2">
-							<button
-								type="button"
-								onClick={handleCancel}
-								className="h-9 rounded-md border border-gray-300 bg-background px-4 text-sm hover:bg-gray-50"
-							>
-								Cancel
-							</button>
-							<button
-								type="button"
-								onClick={handleConfirm}
-								className="h-9 rounded-md bg-blue-600 px-4 text-sm text-white hover:bg-blue-700"
-							>
-								Enable
-							</button>
+					>
+						<div className="relative z-10 w-full max-w-md rounded-lg bg-background p-4 shadow-xl">
+							<h3 className="text-base font-semibold text-gray-900">
+								Enable locked field?
+							</h3>
+							<p className="mt-1 text-sm text-gray-600">
+								This field is locked. Enable override to edit.
+							</p>
+							<div className="mt-4 flex justify-end gap-2">
+								<button
+									type="button"
+									onClick={handleCancel}
+									className="h-9 px-4 text-sm border rounded-md"
+								>
+									Cancel
+								</button>
+								<button
+									type="button"
+									onClick={handleConfirm}
+									className="h-9 px-4 text-sm bg-blue-600 text-white rounded-md"
+								>
+									Enable
+								</button>
+							</div>
 						</div>
-					</div>
+					</button>
 				</div>
 			)}
 
@@ -611,37 +513,24 @@ export const DynamicForm = ({
 				className="grid grid-cols-12 gap-x-4 mx-auto w-full"
 			>
 				{formDefinition.fields.map((field) => renderField(field))}
-
-				{children ? <div className="col-span-full">{children}</div> : null}
-
-				{showFooter && (
+				{children && <div className="col-span-full">{children}</div>}
+				{footerMode !== "none" && (
 					<div
-						className={`col-span-full ${
-							footerMode === "sticky"
-								? "sticky bottom-0 bg-white border-t border-gray-200 py-3"
-								: "pt-2"
-						}`}
+						className={`col-span-full ${footerMode === "sticky" ? "sticky bottom-0 bg-white border-t py-3" : "pt-2"}`}
 					>
-						<div className="flex items-center justify-end gap-2">
+						<div className="flex justify-end">
 							<button
 								type="submit"
-								className="h-10 rounded-md bg-primary p-2 text-sm font-medium text-primary-foreground hover:bg-primary-foreground hover:text-primary shadow-md"
+								className="h-10 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground shadow-md"
 							>
 								Submit
 							</button>
 						</div>
 					</div>
 				)}
-
 				{debugMode && (
-					<div className="col-span-full mt-4 bg-background text-foreground rounded-md border border-gray-200  p-3">
-						<pre className="text-xs whitespace-pre-wrap">
-							{JSON.stringify(
-								{ formValues, errors, touched, overrideStatus },
-								null,
-								2,
-							)}
-						</pre>
+					<div className="col-span-full mt-4 p-3 bg-gray-100 rounded-md">
+						<pre className="text-xs">{JSON.stringify(formValues, null, 2)}</pre>
 					</div>
 				)}
 			</form>

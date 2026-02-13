@@ -16,7 +16,6 @@ export default function ExampleNormalPage() {
         maxLength: 100,
         onChange: (value) => console.log("input selection: ", value),
         validate: (value) => {
-          console.log(value);
           if (value.length < 2) return "Name must be at least 2 characters";
           return null;
         },
@@ -195,7 +194,7 @@ export default function ExampleNormalPage() {
           { value: "travel", label: "Travel" },
         ],
         validate: (value) => {
-          if (value && value.length > 3) return "Select up to 3 interests";
+          if (value && value.length < 3) return "Select up to 3 interests";
           return null;
         },
       },

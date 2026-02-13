@@ -40,8 +40,6 @@ type Props = Omit<
 	apiClient?: ApiClient;
 };
 
-type SelectedCache = Record<string, SearchSelectOption>;
-
 function isArrayOfOptionObjects(value: unknown): value is SearchSelectOption[] {
 	return (
 		Array.isArray(value) &&
@@ -97,7 +95,9 @@ function SearchSelectField({
 			selectedValues = currentValues;
 		} else {
 			selectedValues = (currentValues as unknown[])
-				.filter((val): val is string => typeof v === "string" && v.length > 0)
+				.filter(
+					(val): val is string => typeof val === "string" && val.length > 0,
+				)
 				.map((rawValue) => {
 					const found = options.find((o) => o.value === rawValue);
 					if (found) return found;
@@ -166,7 +166,7 @@ function SearchSelectField({
 				setIsLoading(false);
 			}
 		},
-		[field, apiClient, formValues, options],
+		[field, apiClient, formValues], // Removed options from deps to prevent potential loops
 	);
 
 	useEffect(() => {
@@ -332,19 +332,26 @@ function SearchSelectField({
 			ref={!isDialogMode ? dropdownRef : undefined}
 		>
 			<div className="relative">
-				<button
-					type="button"
+				<div
+					role="combobox"
 					aria-haspopup="listbox"
 					aria-expanded={isOpen}
-					disabled={isDisabled}
-					onClick={() => setIsOpen(!isOpen)}
+					aria-controls={isOpen ? `${field.name}-options` : undefined}
+					tabIndex={isDisabled ? -1 : 0}
+					onClick={() => !isDisabled && setIsOpen(!isOpen)}
+					onKeyDown={(e) => {
+						if (!isDisabled && (e.key === "Enter" || e.key === " ")) {
+							e.preventDefault();
+							setIsOpen(!isOpen);
+						}
+					}}
 					className={`
-						w-full min-h-[42px] px-3 py-2 rounded-lg border transition-all duration-150 text-left
-						flex items-center gap-2 flex-wrap shadow-xs
-						${error ? "border-destructive" : "border-input"}
-						${isDisabled ? "bg-muted cursor-not-allowed opacity-70" : "bg-background hover:border-ring/50"}
-						${isOpen && !isDisabled && !isDialogMode ? "border-ring ring-2 ring-ring/20" : ""}
-					`}
+				w-full min-h-[42px] px-3 py-2 rounded-lg border transition-all duration-150 text-left
+				flex items-center gap-2 flex-wrap shadow-xs
+				${error ? "border-destructive" : "border-input"}
+				${isDisabled ? "bg-muted cursor-not-allowed opacity-70" : "bg-background hover:border-ring/50 cursor-pointer"}
+				${isOpen && !isDisabled && !isDialogMode ? "border-ring ring-2 ring-ring/20" : ""}
+			`}
 				>
 					{selectedValues.length > 0 ? (
 						selectedValues.map((item) => (
@@ -378,7 +385,7 @@ function SearchSelectField({
 							className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
 						/>
 					</div>
-				</button>
+				</div>
 
 				{!isDialogMode && isOpen && !isDisabled && (
 					<div className="absolute z-50 w-full mt-2 bg-popover border border-border rounded-lg shadow-lg overflow-hidden">
@@ -389,9 +396,15 @@ function SearchSelectField({
 
 			{isDialogMode && isOpen && !isDisabled && (
 				<>
-					<div
+					<button
+						type="submit"
 						className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm"
+						aria-label="Close overlay"
+						tabIndex={-1}
 						onClick={() => setIsOpen(false)}
+						onKeyDown={(e) => {
+							if (e.key === "Escape") setIsOpen(false);
+						}}
 					/>
 					<div className="fixed inset-0 z-50 flex items-center justify-center p-4">
 						<div
@@ -403,6 +416,7 @@ function SearchSelectField({
 									{field.label || "Select Options"}
 								</h3>
 								<button
+									type="button"
 									onClick={() => setIsOpen(false)}
 									className="text-muted-foreground hover:text-foreground p-1 rounded-md hover:bg-accent transition"
 								>
@@ -420,6 +434,7 @@ function SearchSelectField({
 								</span>
 								<div className="flex gap-2">
 									<button
+										type="button"
 										onClick={() => setIsOpen(false)}
 										className="px-4 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:opacity-90 transition"
 									>
@@ -431,7 +446,6 @@ function SearchSelectField({
 					</div>
 				</>
 			)}
-			{error && <p className="mt-1.5 text-xs text-destructive">{error}</p>}
 		</div>
 	);
 }
