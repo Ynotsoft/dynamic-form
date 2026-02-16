@@ -528,7 +528,7 @@ const GridImpl = <TRecord extends Record<string, any>>({
 				})}
 			</div>
 
-			<div className="mb-4">
+			<div className="mb-4 overflow-x-auto">
 				<table className="max-w-full w-full mx-auto bg-white divide-y divide-gray-200">
 					<thead className="bg-slate-200">
 						<tr>
