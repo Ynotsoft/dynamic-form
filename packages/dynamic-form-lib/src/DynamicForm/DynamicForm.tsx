@@ -71,6 +71,11 @@ export const DynamicForm = ({
 	const [overrideStatus, setOverrideStatus] = useState<Record<string, boolean>>(
 		{},
 	);
+
+	const [dynamicOptions, setDynamicOptions] = useState<Record<string, any[]>>(
+		{},
+	);
+
 	const [fileUploads, setFileUploads] = useState<unknown>(null);
 
 	const [confirmModal, setConfirmModal] = useState<ConfirmModalState>({
@@ -171,9 +176,10 @@ export const DynamicForm = ({
 						.filter((x): x is OptionItem => x !== null);
 				}
 
-				formDefinition.fields.forEach((f) => {
-					if (f.name === field.name) f.options = options;
-				});
+				setDynamicOptions((prev) => ({
+					...prev,
+					[field.name!]: options,
+				}));
 			} catch (err) {
 				if (debugMode)
 					console.error(
@@ -216,39 +222,19 @@ export const DynamicForm = ({
 		setFormValues(initialValues);
 	}, [formDefinition, defaultValues]);
 
-	const validateField = (
-		field: Field,
-		value: unknown,
-		allValues: FormValues,
-	): string | null => {
-		const isPlainObject =
-			typeof value === "object" &&
-			value !== null &&
-			!Array.isArray(value) &&
-			!(value instanceof Date);
-
-		const isEmpty =
-			value === null ||
-			value === undefined ||
-			(typeof value === "string" && value.trim() === "") ||
-			(Array.isArray(value) && value.length === 0) ||
-			(field.type === "checkbox" && value === false) ||
-			(isPlainObject &&
-				Object.keys(value as Record<string, unknown>).length === 0);
-
-		if (field.required && isEmpty) {
-			return `${String(field.label ?? field.name ?? "This field")} is required`;
-		}
-
-		if (isEmpty && !field.required) return null;
-
-		if (field.validate) {
-			const err = field.validate(value, allValues);
-			if (err) return err;
-		}
-
-		return null;
-	};
+	const validateField = useCallback(
+		(field: Field, value: unknown, allValues: FormValues): string | null => {
+			if (
+				field.required &&
+				(!value || (Array.isArray(value) && value.length === 0))
+			) {
+				return `${field.label || field.name} is required`;
+			}
+			if (field.validate) return field.validate(value, allValues);
+			return null;
+		},
+		[],
+	);
 
 	const handleChange = (fieldName: string, value: unknown) => {
 		const field = formDefinition.fields.find((f) => f.name === fieldName);
@@ -264,15 +250,18 @@ export const DynamicForm = ({
 
 			formDefinition.fields.forEach((f) => {
 				if (!f.name) return;
-				const isHidden = f.showIf && !f.showIf(newValues);
+
+				// typeof check for safety
+				const isHidden = typeof f.showIf === "function" && !f.showIf(newValues);
+
+				// typeof check for disabled logic
 				const isDisabledByLogic =
 					typeof f.disabled === "function" && f.disabled(newValues);
 
 				if (isHidden || isDisabledByLogic) {
-					const shouldBeArray =
-						f.type === "multiselect" ||
-						f.type === "searchselect" ||
-						(f.type === "checkbox" && (f.options?.length ?? 0) > 0);
+					const shouldBeArray = ["multiselect", "searchselect"].includes(
+						f.type,
+					);
 					newValues[f.name] = shouldBeArray ? [] : "";
 				}
 			});
@@ -293,9 +282,12 @@ export const DynamicForm = ({
 
 		formDefinition.fields.forEach((field) => {
 			if (!field.name) return;
-			allTouched[field.name] = true;
 
-			if (!field.showIf || field.showIf(formValues)) {
+			// Safety check for showIf in submit logic
+			const isVisible =
+				typeof field.showIf === "function" ? field.showIf(formValues) : true;
+
+			if (isVisible) {
 				const err = validateField(field, formValues[field.name], formValues);
 				if (err) newErrors[field.name] = err;
 			}
@@ -307,12 +299,7 @@ export const DynamicForm = ({
 		const errorValues = Object.values(newErrors);
 
 		if (errorValues.length !== 0) {
-			// Trigger a separate toast for every validation error
-			errorValues.forEach((errorMessage) => {
-				toast.error("Validation Error", {
-					description: errorMessage,
-				});
-			});
+			toast.error(`Please fix ${errorValues.length} form validation errors`);
 			return;
 		}
 
@@ -412,7 +399,11 @@ export const DynamicForm = ({
 					</label>
 				)}
 				<div>{child}</div>
-				{error && <p className="text-sm text-red-500 mt-1">{error}</p>}
+				{error && (
+					<p id={`${field.name}-error`} className="text-sm text-red-500 mt-1">
+						{error}
+					</p>
+				)}
 			</>
 		);
 
@@ -428,18 +419,29 @@ export const DynamicForm = ({
 	};
 
 	const renderField = (field: Field) => {
-		if (field.showIf && !field.showIf(formValues)) return null;
+		const isVisible =
+			typeof field.showIf === "function" ? field.showIf(formValues) : true;
+		if (!isVisible) return null;
 
 		const FieldComponent =
 			(FIELD_RENDERERS[field.type] as FieldRenderer | undefined) ??
 			(RenderInputField as unknown as FieldRenderer);
 
-		const name = field.name;
+		const name = field.name || "";
+
+		const fieldWithDynamicOptions = {
+			...field,
+			options: dynamicOptions[name] || field.options,
+		};
+
 		const error = name ? (errors[name] ?? null) : null;
+
+		// handlelocked/overridden fields
 		const isFundamentallyDisabled =
 			typeof field.disabled === "function"
 				? field.disabled(formValues)
 				: !!field.disabled;
+
 		const isOverridden = name ? overrideStatus[name] === true : false;
 		const effectiveDisabled = isFundamentallyDisabled && !isOverridden;
 
@@ -450,7 +452,7 @@ export const DynamicForm = ({
 			>
 				{fieldFormat(
 					<FieldComponent
-						field={field}
+						field={fieldWithDynamicOptions}
 						formValues={formValues}
 						handleChange={handleChange}
 						handleBlur={handleBlur}
@@ -474,37 +476,44 @@ export const DynamicForm = ({
 	return (
 		<div className="w-full">
 			{confirmModal.isOpen && (
-				<div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-					<button
-						type="button"
+				<div
+					className="fixed inset-0 z-50 flex items-center justify-center p-4"
+					role="alertdialog"
+					aria-modal="true"
+					aria-labelledby="modal-title"
+				>
+					<div
 						className="absolute inset-0 bg-black/40"
 						onClick={handleCancel}
-					>
-						<div className="relative z-10 w-full max-w-md rounded-lg bg-background p-4 shadow-xl">
-							<h3 className="text-base font-semibold text-gray-900">
-								Enable locked field?
-							</h3>
-							<p className="mt-1 text-sm text-gray-600">
-								This field is locked. Enable override to edit.
-							</p>
-							<div className="mt-4 flex justify-end gap-2">
-								<button
-									type="button"
-									onClick={handleCancel}
-									className="h-9 px-4 text-sm border rounded-md"
-								>
-									Cancel
-								</button>
-								<button
-									type="button"
-									onClick={handleConfirm}
-									className="h-9 px-4 text-sm bg-blue-600 text-white rounded-md"
-								>
-									Enable
-								</button>
-							</div>
+						aria-hidden="true"
+					/>
+					<div className="relative z-10 w-full max-w-md rounded-lg bg-background p-4 shadow-xl">
+						<h3
+							id="modal-title"
+							className="text-base font-semibold text-gray-900"
+						>
+							Enable locked field?
+						</h3>
+						<p className="mt-1 text-sm text-gray-600">
+							This field is locked. Enable override to edit.
+						</p>
+						<div className="mt-4 flex justify-end gap-2">
+							<button
+								type="button"
+								onClick={handleCancel}
+								className="h-9 px-4 text-sm border rounded-md"
+							>
+								Cancel
+							</button>
+							<button
+								type="button"
+								onClick={handleConfirm}
+								className="h-9 px-4 text-sm bg-blue-600 text-white rounded-md"
+							>
+								Enable
+							</button>
 						</div>
-					</button>
+					</div>
 				</div>
 			)}
 
