@@ -1,5 +1,6 @@
 import { DynamicForm } from "ynotsoft-dynamic-form";
 import { mockApiClient } from "../services/mockApi";
+import { Button } from "react-day-picker";
 
 export default function ExampleNormalPage() {
   const formDefinition = {
@@ -11,8 +12,6 @@ export default function ExampleNormalPage() {
         required: true,
         placeholder: "Enter your name",
         value: "John Doe",
-        disabled: true,
-        override: true,
         maxLength: 100,
         onChange: (value) => console.log("input selection: ", value),
         validate: (value) => {
@@ -211,7 +210,11 @@ export default function ExampleNormalPage() {
         footerMode="normal"
         debugMode={true}
         apiClient={(url, valueId) => mockApiClient(url, valueId)}
-      ></DynamicForm>
+      >
+        <button onClick={() => console.log("Form values: ", formValues)}>
+          Submit
+        </button>
+      </DynamicForm>
     </div>
   );
 }

@@ -51,8 +51,6 @@ export type FieldBase = {
 	maxLength?: number;
 	min?: number;
 	max?: number;
-
-	override?: boolean;
 };
 
 export type Field = FieldBase;

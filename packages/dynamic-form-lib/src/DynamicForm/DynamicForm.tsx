@@ -3,8 +3,6 @@ import type { FormEvent, ReactNode } from "react";
 import { toast } from "sonner";
 import dayjs from "dayjs";
 
-import { Lock as LucideLock, LockOpen as LucideLockOpen } from "lucide-react";
-
 import RenderHiddenField from "./fields/HiddenField";
 import RenderMultiSelectField from "./fields/MultiSelectField";
 import SearchSelectField from "./fields/SearchSelectField";
@@ -28,11 +26,6 @@ import RenderAlertMessageField from "./fields/AlertMessageField";
 import type { DynamicFormProps, Field, FormValues } from "../types";
 
 type FileInputRefs = React.RefObject<Record<string, HTMLInputElement | null>>;
-
-type ConfirmModalState = {
-	isOpen: boolean;
-	fieldName: string | null;
-};
 
 type FieldRendererProps = {
 	field: Field;
@@ -68,20 +61,12 @@ export const DynamicForm = ({
 	const [errors, setErrors] = useState<Record<string, string>>({});
 	const [touched, setTouched] = useState<Record<string, boolean>>({});
 	const [charCounts, setCharCounts] = useState<Record<string, number>>({});
-	const [overrideStatus, setOverrideStatus] = useState<Record<string, boolean>>(
-		{},
-	);
 
 	const [dynamicOptions, setDynamicOptions] = useState<Record<string, any[]>>(
 		{},
 	);
 
 	const [fileUploads, setFileUploads] = useState<unknown>(null);
-
-	const [confirmModal, setConfirmModal] = useState<ConfirmModalState>({
-		isOpen: false,
-		fieldName: null,
-	});
 
 	const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 	const lastDefaultValues = useRef<string>("");
@@ -322,20 +307,6 @@ export const DynamicForm = ({
 		if (onFieldsChange) onFieldsChange(formValues);
 	}, [formValues, onFieldsChange]);
 
-	const handleConfirm = () => {
-		if (confirmModal.fieldName) {
-			setOverrideStatus((prev) => ({
-				...prev,
-				[confirmModal.fieldName as string]: true,
-			}));
-		}
-		setConfirmModal({ isOpen: false, fieldName: null });
-	};
-
-	const handleCancel = () => {
-		setConfirmModal({ isOpen: false, fieldName: null });
-	};
-
 	const fieldFormat = (
 		child: ReactNode,
 		field: Field,
@@ -357,23 +328,6 @@ export const DynamicForm = ({
 					}`
 				: "";
 
-		const isOverridden = field.name
-			? overrideStatus[field.name] === true
-			: false;
-		const showToggleButton = field.disabled === true && field.override === true;
-
-		const toggleOverride = () => {
-			if (!field.name) return;
-			if (!isOverridden) {
-				setConfirmModal({ isOpen: true, fieldName: field.name });
-			} else {
-				setOverrideStatus((prev) => ({
-					...prev,
-					[field.name as string]: false,
-				}));
-			}
-		};
-
 		const fieldContent = (
 			<>
 				{field.label && (
@@ -383,19 +337,6 @@ export const DynamicForm = ({
 					>
 						{field.label}
 						{field.required && <span className="text-red-500 ml-1">*</span>}
-						{showToggleButton && (
-							<button
-								type="button"
-								onClick={toggleOverride}
-								className="ml-2 p-[0.25rem] rounded-sm transition-all duration-150 text-gray-600 hover:bg-gray-300"
-							>
-								{isOverridden ? (
-									<LucideLockOpen size={14} />
-								) : (
-									<LucideLock size={14} />
-								)}
-							</button>
-						)}
 					</label>
 				)}
 				<div>{child}</div>
@@ -436,14 +377,11 @@ export const DynamicForm = ({
 
 		const error = name ? (errors[name] ?? null) : null;
 
-		// handlelocked/overridden fields
+		// Check disabled logic
 		const isFundamentallyDisabled =
 			typeof field.disabled === "function"
 				? field.disabled(formValues)
 				: !!field.disabled;
-
-		const isOverridden = name ? overrideStatus[name] === true : false;
-		const effectiveDisabled = isFundamentallyDisabled && !isOverridden;
 
 		return (
 			<div
@@ -463,7 +401,7 @@ export const DynamicForm = ({
 						fileInputRefs={fileInputRefs}
 						fileUploads={fileUploads}
 						onFieldsChange={onFieldsChange}
-						disabled={effectiveDisabled}
+						disabled={isFundamentallyDisabled}
 						apiClient={apiClient}
 					/>,
 					field,
@@ -475,48 +413,6 @@ export const DynamicForm = ({
 
 	return (
 		<div className="w-full">
-			{confirmModal.isOpen && (
-				<div
-					className="fixed inset-0 z-50 flex items-center justify-center p-4"
-					role="alertdialog"
-					aria-modal="true"
-					aria-labelledby="modal-title"
-				>
-					<div
-						className="absolute inset-0 bg-black/40"
-						onClick={handleCancel}
-						aria-hidden="true"
-					/>
-					<div className="relative z-10 w-full max-w-md rounded-lg bg-background p-4 shadow-xl">
-						<h3
-							id="modal-title"
-							className="text-base font-semibold text-gray-900"
-						>
-							Enable locked field?
-						</h3>
-						<p className="mt-1 text-sm text-gray-600">
-							This field is locked. Enable override to edit.
-						</p>
-						<div className="mt-4 flex justify-end gap-2">
-							<button
-								type="button"
-								onClick={handleCancel}
-								className="h-9 px-4 text-sm border rounded-md"
-							>
-								Cancel
-							</button>
-							<button
-								type="button"
-								onClick={handleConfirm}
-								className="h-9 px-4 text-sm bg-blue-600 text-white rounded-md"
-							>
-								Enable
-							</button>
-						</div>
-					</div>
-				</div>
-			)}
-
 			<form
 				onSubmit={handleSubmit}
 				className="grid grid-cols-12 gap-x-4 mx-auto w-full"
