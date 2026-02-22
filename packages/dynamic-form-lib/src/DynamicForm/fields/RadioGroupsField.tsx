@@ -74,10 +74,9 @@ function RadioGroupField({
 									htmlFor={itemId}
 									className={`
 										flex items-center justify-center px-4 py-6 rounded-md text-sm font-medium transition-all duration-200 cursor-pointer select-none
-										${
-											isChecked
-												? "bg-white text-blue-700 shadow-sm border border-slate-200"
-												: "text-slate-500 hover:text-slate-700 hover:bg-slate-100/50"
+										${isChecked
+											? "bg-white text-blue-700 shadow-sm border border-slate-200"
+											: "text-slate-500 hover:text-slate-700 hover:bg-slate-100/50"
 										}
 										${isDisabled ? "opacity-50 cursor-not-allowed" : ""}
 									`}
@@ -112,7 +111,6 @@ function RadioGroupField({
 				})}
 			</RadioGroup>
 
-			{error ? <p className="mt-1 text-sm text-red-500">{error}</p> : null}
 		</div>
 	);
 }

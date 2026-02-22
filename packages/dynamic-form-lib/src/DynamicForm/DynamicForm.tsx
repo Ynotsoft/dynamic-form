@@ -35,7 +35,6 @@ type FieldRendererProps = {
 	onFieldsChange?: (values: FormValues) => void;
 	setCharCounts: React.Dispatch<React.SetStateAction<Record<string, number>>>;
 	charCount: number;
-	api_URL?: string;
 	error: string | null;
 	fileInputRefs: FileInputRefs;
 	fileUploads?: unknown;
@@ -49,8 +48,6 @@ export const DynamicForm = ({
 	formDefinition,
 	defaultValues = {},
 	apiClient,
-	api_URL,
-	returnType = false,
 	footerMode = "normal",
 	debugMode = false,
 	onFieldsChange,
@@ -250,7 +247,7 @@ export const DynamicForm = ({
 					newValues[f.name] = shouldBeArray ? [] : "";
 				}
 			});
-
+			console.log(formValues)
 			return newValues;
 		});
 	};
@@ -259,33 +256,35 @@ export const DynamicForm = ({
 		setTouched((prev) => ({ ...prev, [fieldName]: true }));
 	};
 
-	const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+	const handleSubmit = (e: FormEvent<HTMLFormElement>, validation: boolean = true) => {
 		e.preventDefault();
 
-		const allTouched: Record<string, boolean> = {};
-		const newErrors: Record<string, string> = {};
+		if (validation) {
+			const allTouched: Record<string, boolean> = {};
+			const newErrors: Record<string, string> = {};
 
-		formDefinition.fields.forEach((field) => {
-			if (!field.name) return;
+			formDefinition.fields.forEach((field) => {
+				if (!field.name) return;
 
-			// Safety check for showIf in submit logic
-			const isVisible =
-				typeof field.showIf === "function" ? field.showIf(formValues) : true;
+				// Safety check for showIf in submit logic
+				const isVisible =
+					typeof field.showIf === "function" ? field.showIf(formValues) : true;
 
-			if (isVisible) {
-				const err = validateField(field, formValues[field.name], formValues);
-				if (err) newErrors[field.name] = err;
+				if (isVisible) {
+					const err = validateField(field, formValues[field.name], formValues);
+					if (err) newErrors[field.name] = err;
+				}
+			});
+
+			setTouched(allTouched);
+			setErrors(newErrors);
+
+			const errorValues = Object.values(newErrors);
+
+			if (errorValues.length !== 0) {
+				toast.error(`Please fix ${errorValues.length} form validation errors`);
+				return;
 			}
-		});
-
-		setTouched(allTouched);
-		setErrors(newErrors);
-
-		const errorValues = Object.values(newErrors);
-
-		if (errorValues.length !== 0) {
-			toast.error(`Please fix ${errorValues.length} form validation errors`);
-			return;
 		}
 
 		const formattedValues: Record<string, unknown> = {};
@@ -321,11 +320,10 @@ export const DynamicForm = ({
 
 		const containerClasses =
 			containerStyle === "card"
-				? `rounded-lg border text-card-foreground shadow-sm p-4 ${
-						field.containerClassName ||
-						FIELD_COLOR_VARIANTS[color as keyof typeof FIELD_COLOR_VARIANTS] ||
-						FIELD_COLOR_VARIANTS.blue
-					}`
+				? `rounded-lg border text-card-foreground shadow-sm p-4 ${field.containerClassName ||
+				FIELD_COLOR_VARIANTS[color as keyof typeof FIELD_COLOR_VARIANTS] ||
+				FIELD_COLOR_VARIANTS.blue
+				}`
 				: "";
 
 		const fieldContent = (
@@ -396,7 +394,7 @@ export const DynamicForm = ({
 						handleBlur={handleBlur}
 						setCharCounts={setCharCounts}
 						charCount={name ? charCounts[name] || 0 : 0}
-						api_URL={api_URL}
+
 						error={name && touched[name] ? error : null}
 						fileInputRefs={fileInputRefs}
 						fileUploads={fileUploads}
