@@ -29,10 +29,10 @@ const DynamicForm = ({
 	footerMode = "normal",
 	formDefinition,
 	returnType = false,
-	sendFormValues = () => {},
+	sendFormValues = () => { },
 	children,
 	defaultValues = {},
-	onFieldsChange = () => {},
+	onFieldsChange = () => { },
 	debugMode = false,
 }) => {
 	const [formValues, setFormValues] = useState({ ...defaultValues });
@@ -235,8 +235,8 @@ const DynamicForm = ({
 			newValues[fieldName] = Array.isArray(value)
 				? value
 				: Array.from(value.target.selectedOptions).map(
-						(option) => option.value,
-					);
+					(option) => option.value,
+				);
 		}
 		// Handle DateRangePicker (dayPicker)
 		else if (field.type === "dateRange") {
@@ -290,30 +290,37 @@ const DynamicForm = ({
 		setTouched({ ...touched, [fieldName]: true });
 	};
 
-	const handleSubmit = (e) => {
+	const handleSubmit = (e, validation = true) => {
 		e.preventDefault();
 
-		const allTouched = {};
-		formDefinition.fields.forEach((field) => {
-			if (field.name) allTouched[field.name] = true;
-		});
-		setTouched(allTouched);
+		let isValid = true;
+		if (validation) {
+			const allTouched = {};
+			formDefinition.fields.forEach((field) => {
+				if (field.name) allTouched[field.name] = true;
+			});
+			setTouched(allTouched);
 
-		const newErrors = {};
+			const newErrors = {};
 
-		formDefinition.fields.forEach((field) => {
-			if (!field.name) return;
+			formDefinition.fields.forEach((field) => {
+				if (!field.name) return;
 
-			// Validation runs if the field is shown
-			if (!field.showIf || field.showIf(formValues)) {
-				const error = validateField(field, formValues[field.name], formValues);
-				if (error) newErrors[field.name] = error;
+				// Validation runs if the field is shown
+				if (!field.showIf || field.showIf(formValues)) {
+					const error = validateField(field, formValues[field.name], formValues);
+					if (error) newErrors[field.name] = error;
+				}
+			});
+
+			setErrors(newErrors);
+			if (Object.keys(newErrors).length !== 0) {
+				isValid = false;
+				toast.error("Please correct the errors in the form");
 			}
-		});
+		}
 
-		setErrors(newErrors);
-
-		if (Object.keys(newErrors).length === 0) {
+		if (isValid) {
 			// --- TYPE CONVERSION HELPER ---
 			const castValue = (value, type) => {
 				if (value === "" || value === null || value === undefined) return null;
@@ -373,8 +380,6 @@ const DynamicForm = ({
 			} else {
 				sendFormValues(formattedValues);
 			}
-		} else {
-			toast.error("Please correct the errors in the form");
 		}
 	};
 
@@ -481,11 +486,10 @@ const DynamicForm = ({
 								type="button"
 								onClick={toggleOverride}
 								className={`ml-2 p-[0.25rem] rounded-sm transition-all duration-150 
-								${
-									isOverridden
+								${isOverridden
 										? " text-gray-600 bg-gray-100"
 										: " text-gray-600 hover:bg-gray-300"
-								}`}
+									}`}
 								title={
 									isOverridden
 										? "Field is Overridden (Enabled)"
