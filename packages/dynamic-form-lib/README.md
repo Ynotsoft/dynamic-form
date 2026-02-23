@@ -1,3 +1,104 @@
+# DynamicForm Component - Complete Field Reference
+
+## Install and Development Setup (Bun Monorepo)
+
+This project uses **Bun** as the package manager and **Vite** with custom path aliasing for Hot Module Replacement (HMR) in the monorepo workspace.
+
+### 1\. Prerequisites
+
+You **must** have **Bun** installed to manage dependencies and run development scripts.  
+( <https://bun.com/docs/installation> )
+
+> Can now use npm instead of bun </br>
+> node ^v22.7.0 required
+
+### 2\. Install Dependencies
+
+From the root of the repository (`dynamic-form/`):
+
+```bash
+# Install all dependencies and create workspace symlinks using Bun
+bun install
+```
+
+### 3\. Build the Library (Initial Setup)
+
+Because the library's `package.json` entry points point to files in the `/dist` directory, you must run an initial build so the example app can resolve the dependency.
+
+From the root of the repository:
+
+```bash
+npm run build    #runs: bun run --filter @ynotsoft/dynamic-form build
+```
+
+or you can use npm commands using the workspace (--workspace) flag and passing in the name of the package
+
+```
+npm run build --workspace ynotsoft-dynamic-form
+```
+
+### 4\. Start the Example App
+
+Run the development server for the example application.
+
+From the root of the repository:
+
+```bash
+npm run example  #runs: bun --filter example dev
+```
+
+or you can use npm commands using the workspace (--workspace) flag and passing in the name of the package
+
+```
+npm run dev --workspace ynotsoft-dynamic-form
+```
+
+> **IMPORTANT NOTE ON HMR (Hot Module Replacement):**
+> If HMR fails for changes made in the `packages/dynamic-form-lib/` source code, ensure your `example-app/vite.config.js` has the necessary **Path Aliasing** configured to bypass the symlink watcher issue. This is configured to resolve HMR issues and is essential for local development.
+
+### 5\. How to push changes
+
+#### For Regular Development Changes:
+```bash
+# 1. Commit your changes
+git add .
+git commit -m "feat: your change description"
+
+# 2. Create tag
+git tag v1.0.[version-number]
+```
+
+#### For NPM Package Releases:
+```bash
+# 1. Update version in package.json (in packages/dynamic-form-lib/)
+npm version patch   # for bug fixes (1.0.0 → 1.0.1)
+
+# 2. Build the library
+npm run build
+
+# 3. Create and push version tag
+git push origin v1.0.[version-number]   # Replace with your actual version
+
+# 4. GitHub Actions will automatically publish to NPM
+```
+
+#### Version Management:
+- **Single Source of Truth:** Version is maintained in `packages/dynamic-form-lib/package.json`
+- **Git Tags:** Use format `v1.0.[version-number]` (matches package.json version with "v" prefix)
+- **NPM Registry:** GitHub Actions reads git tag, strips "v" prefix, publishes as `1.0.[version-number]` to NPM
+- **Auto-Sync:** Git tag version must match package.json version for successful deployment
+
+**Quick Check:**
+```bash
+# Verify versions match before pushing
+cat packages/dynamic-form-lib/package.json | grep version
+git tag --list | tail -1
+```
+
+> **Note:** The GitHub Actions workflow automatically publishes to NPM when you push a version tag (e.g., `v1.0.[version-number]`). No manual `npm publish` required unless you are not logged into NPM already.
+
+---
+
 ## Overview
 
 The DynamicForm component provides a flexible, declarative way to build forms with various field types, validation, conditional logic, and styling options.
@@ -15,7 +116,7 @@ const formDefinition = {
 
 <DynamicForm
   formDefinition={formDefinition}
-  returnType={false}
+  returnType= {false}
   defaultValues={{ name: "John Doe" }}
   sendFormValues={(values) => console.log(values)}
   onFieldsChange={(values) => console.log("Changed:", values)}
@@ -153,10 +254,10 @@ Search for selections and select multiple/single
       required: true,
       placeholder: "Type to search users...",
       // layout: "inline", // default inline
-      layout: "dialog",
+      layout: "dialog", 
       optionsUrl: "/api/users/search", // API endpoint
-      minSearchLength: 2, // Minimum characters before search (default: 2)
-      selectMode: "single", // 'single' | 'multiple' (default: 'single')
+      minSearchLength: 2, // Minimum characters before search (default: 2)      
+      selectMode: "single", // 'single' | 'multiple' (default: 'single')  
     }
 ```
 
