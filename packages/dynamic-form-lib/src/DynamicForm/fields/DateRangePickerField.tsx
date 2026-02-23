@@ -45,10 +45,16 @@ function DateRangePickerField({
 		return `${format(selected.from, "PPP")} – ${format(selected.to, "PPP")}`;
 	}, [selected, field.placeholder]);
 
-	const handleSelect = (range: DateRange | undefined) =>
+	const handleSelect = (range: DateRange | undefined) => {
 		handleChange(name, range ?? EMPTY_RANGE);
+		handleBlur(name);
+		setOpen(false);
+	};
 
-	const handleClear = () => handleChange(name, EMPTY_RANGE);
+	const handleClear = () => {
+		handleChange(name, EMPTY_RANGE);
+		handleBlur(name);
+	};
 
 	return (
 		<div>
@@ -109,7 +115,10 @@ function DateRangePickerField({
 						<DayPicker
 							mode="range"
 							selected={selected}
-							onSelect={handleSelect}
+							onSelect={(range) => {
+								handleChange(name, range ?? EMPTY_RANGE);
+								handleBlur(name);
+							}}
 							showOutsideDays
 							className="rounded-md bg-white p-3 text-xs"
 						/>

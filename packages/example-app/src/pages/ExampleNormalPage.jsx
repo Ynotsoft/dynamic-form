@@ -35,7 +35,34 @@ export default function ExampleNormalPage() {
           console.log("searchselect changed: ", valueId);
         },
       },
-
+      {
+        name: "projectDates",
+        label: "Project Timeline",
+        type: "dateRange",
+        required: true,
+        placeholder: "Select date range",
+        value: {
+          from: new Date("2025-01-01"),
+          to: new Date("2025-12-31"),
+        },
+      },
+      {
+        name: "birthDate",
+        label: "Birth Date",
+        type: "date",
+        required: true,
+        placeholder: "Select date",
+        value: new Date("1990-01-01"),
+      },
+      {
+        name: "documents",
+        label: "Upload Documents",
+        type: "file", // or 'multifile' for multiple
+        required: true,
+        accept: ".pdf,.doc,.docx,.jpg,.jpeg,.png",
+        maxSize: 5 * 1024 * 1024, // 5 MB
+        multiple: false,
+      },
     ],
   };
 
@@ -49,8 +76,7 @@ export default function ExampleNormalPage() {
         footerMode="normal"
         debugMode={true}
         apiClient={(url, valueId) => mockApiClient(url, valueId)}
-      >
-      </DynamicForm>
+      ></DynamicForm>
     </div>
   );
 }

@@ -206,18 +206,47 @@ export const DynamicForm = ({
 
 	const validateField = useCallback(
 		(field: Field, value: unknown, allValues: FormValues): string | null => {
-			if (
-				field.required &&
-				(!value || (Array.isArray(value) && value.length === 0))
-			) {
-				return `${field.label || field.name} is required`;
+			// REQUIRED
+			if (field.required) {
+				// dateRange emptiness
+				if (field.type === "dateRange") {
+					const v = value as { from?: Date; to?: Date } | null | undefined;
+					const isEmpty = !v?.from; // require at least a start date
+					if (isEmpty) return `${field.label || field.name} is required`;
+				} else if (!value || (Array.isArray(value) && value.length === 0)) {
+					return `${field.label || field.name} is required`;
+				}
 			}
+
+			// date validity (single date)
+			if (field.type === "date" && value != null) {
+				if (!(value instanceof Date) || Number.isNaN(value.getTime())) {
+					return `${field.label || field.name} must be a valid date`;
+				}
+			}
+
+			// optional: dateRange validity
+			if (field.type === "dateRange" && value != null) {
+				const v = value as { from?: Date; to?: Date };
+				if (
+					v.from &&
+					(!(v.from instanceof Date) || Number.isNaN(v.from.getTime()))
+				) {
+					return `${field.label || field.name} must be a valid date range`;
+				}
+				if (v.to && (!(v.to instanceof Date) || Number.isNaN(v.to.getTime()))) {
+					return `${field.label || field.name} must be a valid date range`;
+				}
+				if (v.from && v.to && v.from.getTime() > v.to.getTime()) {
+					return `${field.label || field.name} start date must be before end date`;
+				}
+			}
+
 			if (field.validate) return field.validate(value, allValues);
 			return null;
 		},
 		[],
 	);
-
 	const handleChange = (fieldName: string, value: unknown) => {
 		const field = formDefinition.fields.find((f) => f.name === fieldName);
 		if (!field) return;
@@ -247,7 +276,7 @@ export const DynamicForm = ({
 					newValues[f.name] = shouldBeArray ? [] : "";
 				}
 			});
-			console.log(formValues)
+			console.log(formValues);
 			return newValues;
 		});
 	};
@@ -256,7 +285,10 @@ export const DynamicForm = ({
 		setTouched((prev) => ({ ...prev, [fieldName]: true }));
 	};
 
-	const handleSubmit = (e: FormEvent<HTMLFormElement>, validation: boolean = true) => {
+	const handleSubmit = (
+		e: FormEvent<HTMLFormElement>,
+		validation: boolean = true,
+	) => {
 		e.preventDefault();
 
 		if (validation) {
@@ -266,14 +298,15 @@ export const DynamicForm = ({
 			formDefinition.fields.forEach((field) => {
 				if (!field.name) return;
 
-				// Safety check for showIf in submit logic
 				const isVisible =
 					typeof field.showIf === "function" ? field.showIf(formValues) : true;
 
-				if (isVisible) {
-					const err = validateField(field, formValues[field.name], formValues);
-					if (err) newErrors[field.name] = err;
-				}
+				if (!isVisible) return;
+
+				allTouched[field.name] = true;
+
+				const err = validateField(field, formValues[field.name], formValues);
+				if (err) newErrors[field.name] = err;
 			});
 
 			setTouched(allTouched);
@@ -320,10 +353,11 @@ export const DynamicForm = ({
 
 		const containerClasses =
 			containerStyle === "card"
-				? `rounded-lg border text-card-foreground shadow-sm p-4 ${field.containerClassName ||
-				FIELD_COLOR_VARIANTS[color as keyof typeof FIELD_COLOR_VARIANTS] ||
-				FIELD_COLOR_VARIANTS.blue
-				}`
+				? `rounded-lg border text-card-foreground shadow-sm p-4 ${
+						field.containerClassName ||
+						FIELD_COLOR_VARIANTS[color as keyof typeof FIELD_COLOR_VARIANTS] ||
+						FIELD_COLOR_VARIANTS.blue
+					}`
 				: "";
 
 		const fieldContent = (
@@ -394,7 +428,6 @@ export const DynamicForm = ({
 						handleBlur={handleBlur}
 						setCharCounts={setCharCounts}
 						charCount={name ? charCounts[name] || 0 : 0}
-
 						error={name && touched[name] ? error : null}
 						fileInputRefs={fileInputRefs}
 						fileUploads={fileUploads}
