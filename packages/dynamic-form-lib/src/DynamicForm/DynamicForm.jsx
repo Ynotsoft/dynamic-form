@@ -21,7 +21,6 @@ import { default as RenderHeaderField } from "./fields/HeaderField.jsx";
 import { default as RenderDatePickerField } from "./fields/DatePickerField.jsx";
 import { default as RenderTimeField } from "./fields/timeField.jsx";
 import { default as RenderAlertMessageField } from "./fields/AlertMessageField.jsx";
-import { Lock, LockOpen, X } from "lucide-react"; // Imported X for modal close button
 
 const DynamicForm = ({
 	apiClient,
@@ -39,13 +38,8 @@ const DynamicForm = ({
 	const [errors, setErrors] = useState({});
 	const [touched, setTouched] = useState({});
 	const [charCounts, setCharCounts] = useState({});
-	const [overrideStatus, setOverrideStatus] = useState({});
 
-	// NEW: State for managing the confirmation modal
-	const [confirmModal, setConfirmModal] = useState({
-		isOpen: false,
-		fieldName: null,
-	});
+
 
 	// FIX: Initialize the ref object here to hold references to file inputs
 	const fileInputRefs = useRef({});
@@ -290,37 +284,32 @@ const DynamicForm = ({
 		setTouched({ ...touched, [fieldName]: true });
 	};
 
-	const handleSubmit = (e, validation = true) => {
+	const handleSubmit = (e) => {
 		e.preventDefault();
 
-		let isValid = true;
-		if (validation) {
-			const allTouched = {};
-			formDefinition.fields.forEach((field) => {
-				if (field.name) allTouched[field.name] = true;
-			});
-			setTouched(allTouched);
 
-			const newErrors = {};
 
-			formDefinition.fields.forEach((field) => {
-				if (!field.name) return;
+		const allTouched = {};
+		formDefinition.fields.forEach((field) => {
+			if (field.name) allTouched[field.name] = true;
+		});
+		setTouched(allTouched);
 
-				// Validation runs if the field is shown
-				if (!field.showIf || field.showIf(formValues)) {
-					const error = validateField(field, formValues[field.name], formValues);
-					if (error) newErrors[field.name] = error;
-				}
-			});
+		const newErrors = {};
 
-			setErrors(newErrors);
-			if (Object.keys(newErrors).length !== 0) {
-				isValid = false;
-				toast.error("Please correct the errors in the form");
+		formDefinition.fields.forEach((field) => {
+			if (!field.name) return;
+
+			// Validation runs if the field is shown
+			if (!field.showIf || field.showIf(formValues)) {
+				const error = validateField(field, formValues[field.name], formValues);
+				if (error) newErrors[field.name] = error;
 			}
-		}
+		});
 
-		if (isValid) {
+		setErrors(newErrors);
+
+		if (Object.keys(newErrors).length === 0) {
 			// --- TYPE CONVERSION HELPER ---
 			const castValue = (value, type) => {
 				if (value === "" || value === null || value === undefined) return null;
@@ -380,6 +369,8 @@ const DynamicForm = ({
 			} else {
 				sendFormValues(formattedValues);
 			}
+		} else {
+			toast.error("Please correct the errors in the form");
 		}
 	};
 
@@ -400,21 +391,9 @@ const DynamicForm = ({
 		orange: "border-orange-500 bg-orange-50",
 	};
 
-	// Confirmation handlers for the modal
-	const handleConfirm = () => {
-		if (confirmModal.fieldName) {
-			// Execute the actual toggle (set override to true)
-			setOverrideStatus((prev) => ({
-				...prev,
-				[confirmModal.fieldName]: true,
-			}));
-		}
-		setConfirmModal({ isOpen: false, fieldName: null });
-	};
 
-	const handleCancel = () => {
-		setConfirmModal({ isOpen: false, fieldName: null });
-	};
+
+
 
 	function fieldFormat(children, field, error) {
 		// DEBUG: Log the error being passed to the renderer
@@ -443,34 +422,6 @@ const DynamicForm = ({
 				? `rounded-lg border text-card-foreground shadow-sm p-4 ${field.containerClassName || FIELD_COLOR_VARIANTS[color] || FIELD_COLOR_VARIANTS.blue}`
 				: "";
 
-		// --- Override Logic Calculation (using closure state/props) ---
-		// 1. Check if the user has overridden the disabled state
-		const isOverridden = overrideStatus[field.name] === true;
-
-		// 2. Determine if we should show the toggle button
-		// RENDER ONLY IF field.disabled is TRUE (static disable) AND field.override is TRUE
-		const showToggleButton = field.disabled === true && field.override === true;
-
-		const toggleOverride = () => {
-			const fieldName = field.name;
-			const willBeEnabled = !isOverridden; // We are currently locked, clicking will unlock
-
-			if (willBeEnabled) {
-				// Show confirmation ONLY when enabling (unlocking)
-				setConfirmModal({
-					isOpen: true,
-					fieldName: fieldName,
-				});
-			} else {
-				// If it's currently enabled (overridden), just disable it back immediately.
-				setOverrideStatus((prev) => ({
-					...prev,
-					[fieldName]: false, // Lock it back (set override to false)
-				}));
-			}
-		};
-		// --- End Override Logic Calculation ---
-
 		const fieldContent = (
 			<>
 				{field.label && (
@@ -480,25 +431,6 @@ const DynamicForm = ({
 					>
 						{field.label}
 						{field.required && <span className="text-red-500 ml-1">*</span>}
-
-						{showToggleButton && (
-							<button
-								type="button"
-								onClick={toggleOverride}
-								className={`ml-2 p-[0.25rem] rounded-sm transition-all duration-150 
-								${isOverridden
-										? " text-gray-600 bg-gray-100"
-										: " text-gray-600 hover:bg-gray-300"
-									}`}
-								title={
-									isOverridden
-										? "Field is Overridden (Enabled)"
-										: "Field is Locked (Disabled)"
-								}
-							>
-								{isOverridden ? <LockOpen size={14} /> : <Lock size={14} />}
-							</button>
-						)}
 					</label>
 				)}
 
@@ -540,19 +472,9 @@ const DynamicForm = ({
 		// Error is derived directly from the errors state
 		const error = errors[field.name] ? errors[field.name] : null;
 
-		// --- Disable/Override Logic for FieldComponent Prop ---
-
-		// 1. Calculate fundamental disabled status safely
-		const isFundamentallyDisabled =
-			typeof field.disabled === "function"
-				? field.disabled(formValues)
-				: !!field.disabled;
-
-		// 2. Check if the user has overridden the disabled state
-		const isOverridden = overrideStatus[field.name] === true;
-
-		// 3. The field is visually disabled if it is fundamentally disabled AND the user has NOT overridden it.
-		const effectiveDisabled = isFundamentallyDisabled && !isOverridden;
+		const effectiveDisabled = typeof field.disabled === "function"
+			? field.disabled(formValues)
+			: !!field.disabled;
 
 		return fieldFormat(
 			<FieldComponent
@@ -576,12 +498,6 @@ const DynamicForm = ({
 		);
 	};
 
-	// Find the field object for the modal
-	const fieldToConfirm = formDefinition?.fields?.find(
-		(f) => f.name === confirmModal.fieldName,
-	);
-	const fieldLabelToConfirm = fieldToConfirm?.label || confirmModal.fieldName;
-
 	return (
 		<form
 			onSubmit={handleSubmit}
@@ -603,92 +519,20 @@ const DynamicForm = ({
 						: "col-span-full mt-4 flex justify-end gap-2"
 				}
 			>
-				{children}
+				{React.Children.map(children, (child) => {
+					if (!React.isValidElement(child)) return child;
+					
+					if (child.props.onClick) {
+						return React.cloneElement(child, {
+							onClick: (e) => {
+								child.props.onClick(formValues, e);
+							},
+						});
+					}
+					return child;
+				})}
 			</div>
 
-			{confirmModal.isOpen && (
-				<>
-					{/* Modal Backdrop - This should remain non-interactive and just handle the click-to-cancel */}
-					<div
-						className="fixed inset-0 z-30 bg-black opacity-40"
-						onClick={handleCancel}
-						tabIndex={0}
-						role="button"
-						onKeyDown={(e) => {
-							// Allows the element to be activated with Enter or Space
-							if (e.key === "Enter" || e.key === " ") {
-								handleCancel();
-							}
-						}}
-					></div>
-
-					{/* Modal Wrapper/Overlay - The backdrop is separate, so this wrapper no longer needs tabIndex/role/onKeyDown. */}
-					{/* We use a focus trap or the content box itself for keyboard interaction. */}
-					<div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-						{/* Modal Content Box - This is the actual dialog. */}
-						{/* It should manage focus and keyboard events for the dialog itself. */}
-						<div
-							className="bg-white rounded-xl shadow-2xl w-full max-w-sm transform transition-all"
-							onClick={(e) => e.stopPropagation()}
-							tabIndex={-1} // tabIndex is fine here as it's the dialog root, set to -1 to allow programmatic focus
-							role="dialog"
-							aria-modal="true"
-							// Listen for Escape key on the dialog container
-							onKeyDown={(e) => {
-								if (e.key === "Escape") {
-									handleCancel();
-								}
-							}}
-						>
-							{/* Header */}
-							<div className="flex justify-between items-center border-b p-4">
-								<h3 className="text-xl font-bold text-gray-900">
-									Confirm Field Unlock
-								</h3>
-								<button
-									type="button"
-									onClick={handleCancel}
-									className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition"
-									aria-label="Close"
-								>
-									<X size={20} />
-								</button>
-							</div>
-							{/* Body */}
-							<div className="p-6 flex flex-col gap-2">
-								<p className="text-gray-700 text-sm leading-relaxed ">
-									Are you sure you want to{" "}
-									<span className="font-extrabold text-destructive">
-										unlock{" "}
-									</span>
-									the field
-								</p>
-
-								<p className="font-bold">"{fieldLabelToConfirm}"</p>
-								<div className="italic text-sm text-gray-500 mb-2">
-									This action allows editing of a protected value.
-								</div>
-								<div className="flex justify-end gap-3 ">
-									<button
-										type="button"
-										onClick={handleCancel}
-										className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition"
-									>
-										Cancel
-									</button>
-									<button
-										type="button"
-										onClick={handleConfirm}
-										className="px-4 py-2 text-sm font-medium text-white bg-destructive rounded-lg hover:bg-red-700 transition shadow-md"
-									>
-										Unlock Field
-									</button>
-								</div>
-							</div>
-						</div>
-					</div>
-				</>
-			)}
 		</form>
 	);
 };

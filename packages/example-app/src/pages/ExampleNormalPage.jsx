@@ -50,6 +50,14 @@ export default function ExampleNormalPage() {
         debugMode={true}
         apiClient={(url, valueId) => mockApiClient(url, valueId)}
       >
+        <Button className="bg-blue-600 text-white px-4 py-2 rounded">
+          Submit
+        </Button>
+        <Button className="bg-gray-600 text-white px-4 py-2 rounded" onClick={(s) => console.log(s)}>
+          Reset
+        </Button>
+
+
       </DynamicForm>
     </div>
   );
