@@ -165,7 +165,7 @@ function SearchSelectField({
       }
 
       // Set new timer
-      const debounceDelay = field.debounceDelay || 300; // Default 300ms
+      const debounceDelay = 300; // Default 300ms
       debounceTimerRef.current = setTimeout(() => {
         loadOptions(inputValue);
       }, debounceDelay);
