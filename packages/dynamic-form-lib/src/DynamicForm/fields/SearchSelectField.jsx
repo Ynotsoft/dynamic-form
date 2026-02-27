@@ -58,7 +58,28 @@ function SearchSelectField({
         return;
       }
 
-      if (!field.optionsUrl || !apiClient) return;
+      // If no optionsUrl or apiClient, handle client-side filtering
+      if (!field.optionsUrl || !apiClient) {
+        if (field.options && Array.isArray(field.options)) {
+          const allOptions = field.options.map(item => ({
+            value: item[field.valueId || "value"] || item.value || item.id,
+            label: item[field.labelId || "label"] || item.label || item.name
+          }));
+
+          if (!inputValue) {
+            setOptions(allOptions);
+          } else {
+            const lowerTerm = inputValue.toLowerCase();
+            const filtered = allOptions.filter(opt =>
+              String(opt.label).toLowerCase().includes(lowerTerm)
+            );
+            setOptions(filtered);
+          }
+        } else {
+          setOptions([]);
+        }
+        return;
+      }
 
       setIsLoading(true);
       try {
@@ -100,7 +121,7 @@ function SearchSelectField({
 
   useEffect(() => {
     if (isOpen) {
-      if (options.length === 0) loadOptions("");
+      if (options.length === 0 || (!field.optionsUrl && !apiClient && !field.onSearch)) loadOptions("");
       // Little delay to allow render before focus
       setTimeout(() => searchInputRef.current?.focus(), 50);
     }
@@ -110,6 +131,7 @@ function SearchSelectField({
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsOpen(false);
+        setSearchTerm("");
         handleBlur(field.name);
       }
     };
