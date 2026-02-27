@@ -90,7 +90,7 @@ function SearchSelectField({
       }
 
       // Allow empty search to load all options initially
-      const minSearchLength = field.minSearchLength || 0; // Changed default to 0
+      const minSearchLength = field.minSearchLength || 2; // Changed default to 2
       if (inputValue.length < minSearchLength && minSearchLength > 0) {
         return options;
       }
@@ -110,11 +110,11 @@ function SearchSelectField({
           const searchParam = field.searchParam || "search";
           const url = field.optionsUrl.includes("?")
             ? `${field.optionsUrl}&${searchParam}=${encodeURIComponent(
-                inputValue
-              )}`
+              inputValue
+            )}`
             : `${field.optionsUrl}?${searchParam}=${encodeURIComponent(
-                inputValue
-              )}`;
+              inputValue
+            )}`;
 
           const response = await apiClient(url);
 
@@ -134,12 +134,12 @@ function SearchSelectField({
         return results;
       } catch (error) {
         console.error(`Search failed for ${field.name}:`, error);
-        return []; // Return empty array on error instead of existing options to break dependency loop
+        return options; // Return existing options on error
       } finally {
         setIsLoading(false);
       }
     },
-    [field, apiClient, formValues] // Removed options from dependency array
+    [field, options, apiClient, formValues]
   );
 
   // Focus search input when dropdown opens and load initial options
@@ -147,13 +147,12 @@ function SearchSelectField({
     if (isOpen && searchInputRef.current) {
       searchInputRef.current.focus();
     }
-    
+
     // If no options are loaded and search is configured, load initial options
-    // Only run this ONCE when opening, not every time options change to empty array
-    if (isOpen && options.length === 0 && (field.optionsUrl || field.onSearch) && !searchTerm) {
+    if (isOpen && options.length === 0 && (field.optionsUrl || field.onSearch)) {
       loadOptions(''); // Load with empty search to get all options
     }
-  }, [isOpen, field.optionsUrl, field.onSearch]); // Deliberately removed options.length and loadOptions to prevent loops
+  }, [isOpen, options.length, field.optionsUrl, field.onSearch, loadOptions]);
 
   // Debounced search handler
   const handleSearchChange = useCallback(
@@ -276,9 +275,8 @@ function SearchSelectField({
 
       {/* Options list */}
       <div
-        className={`overflow-y-auto p-2 max-h-96 flex flex-col gap-0.5 ${
-          isDialogMode ? "max-h-96" : "max-h-60"
-        }`}
+        className={`overflow-y-auto p-2 max-h-96 flex flex-col gap-0.5 ${isDialogMode ? "max-h-96" : "max-h-60"
+          }`}
       >
         {isLoading ? (
           <div className="py-8 text-center text-gray-500 text-sm">
@@ -313,9 +311,8 @@ function SearchSelectField({
           <div className="py-8 text-center text-gray-500 text-sm">
             {field.optionsUrl || field.onSearch
               ? searchTerm.length < (field.minSearchLength || 2)
-                ? `Type at least ${
-                    field.minSearchLength || 2
-                  } characters to search`
+                ? `Type at least ${field.minSearchLength || 2
+                } characters to search`
                 : "No results found"
               : "No options available"}
           </div>
@@ -326,9 +323,8 @@ function SearchSelectField({
 
   return (
     <div
-      className={`mb-4 ${
-        field.fieldClass ? field.fieldClass : "col-span-full"
-      }`}
+      className={`mb-4 ${field.fieldClass ? field.fieldClass : "col-span-full"
+        }`}
       ref={!isDialogMode ? dropdownRef : null}
     >
       {/* Main container */}
@@ -340,15 +336,13 @@ function SearchSelectField({
 						min-h-[42px] px-3 py-2 rounded-lg border transition-all duration-150 cursor-pointer
 						flex items-center gap-2 flex-wrap
 						${error ? "border-red-500" : "border-gray-300"}
-						${
-              isDisabled
-                ? "bg-gray-100 cursor-not-allowed opacity-50"
-                : "bg-white hover:border-gray-400"
+						${isDisabled
+              ? "bg-gray-100 cursor-not-allowed opacity-50"
+              : "bg-white hover:border-gray-400"
             }
-						${
-              isOpen && !isDisabled && !isDialogMode
-                ? "border-blue-500 ring-2 ring-blue-200"
-                : ""
+						${isOpen && !isDisabled && !isDialogMode
+              ? "border-blue-500 ring-2 ring-blue-200"
+              : ""
             }
 					`}
         >
@@ -383,9 +377,8 @@ function SearchSelectField({
               <Loader2 className="w-4 h-4 text-gray-400 animate-spin" />
             )}
             <ChevronDown
-              className={`w-4 h-4 text-gray-500 transition-transform ${
-                isOpen ? "rotate-180" : ""
-              }`}
+              className={`w-4 h-4 text-gray-500 transition-transform ${isOpen ? "rotate-180" : ""
+                }`}
             />
           </div>
         </div>
@@ -442,28 +435,28 @@ function SearchSelectField({
                 <span className="text-sm text-gray-600">
                   {isSingleSelect ? (selectedValues.length > 0 ? '1 selected' : 'None selected') : `${selectedValues.length} selected`}
                 </span>
-				<div className="gap-4 flex">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsOpen(false);
-                    handleBlur(field.name);
-                  }}
-                  className="px-4 py-2 bg-blue-500 text-white text-sm font-medium rounded-lg hover:bg-blue-600 transition"
-                >
-                  Done
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsOpen(false);
-                    handleBlur(field.name);
-                  }}
-                  className="px-4 py-2 bg-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-400 transition"
-                >
-                  Cancel
-                </button>
-				</div>
+                <div className="gap-4 flex">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsOpen(false);
+                      handleBlur(field.name);
+                    }}
+                    className="px-4 py-2 bg-blue-500 text-white text-sm font-medium rounded-lg hover:bg-blue-600 transition"
+                  >
+                    Done
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsOpen(false);
+                      handleBlur(field.name);
+                    }}
+                    className="px-4 py-2 bg-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-400 transition"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
             </div>
           </div>
