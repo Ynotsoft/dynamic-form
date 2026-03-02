@@ -1,6 +1,9 @@
 @import "tailwindcss";
 
 
+@plugin "@tailwindcss/typography";
+
+
 
 @source "./**/*.{js,jsx,ts,tsx}";
 

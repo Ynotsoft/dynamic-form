@@ -35,7 +35,19 @@ export default function ExampleNormalPage() {
           console.log("searchselect changed: ", valueId);
         },
       },
-
+      {
+        id: "field_001",
+        type: "html",
+        name: "blog_content",
+        required: true,
+        label: "Article Body",
+        content: "<p>Start writing your masterpiece here...</p>",
+        fieldClass: "col-span-12",
+        placeholder: "Enter your content",
+        validation: {
+          required: true,
+        },
+      },
     ],
   };
 
@@ -53,11 +65,12 @@ export default function ExampleNormalPage() {
         <Button className="bg-blue-600 text-white px-4 py-2 rounded">
           Submit
         </Button>
-        <Button className="bg-gray-600 text-white px-4 py-2 rounded" onClick={(s) => console.log(s)}>
+        <Button
+          className="bg-gray-600 text-white px-4 py-2 rounded"
+          onClick={(s) => console.log(s)}
+        >
           Reset
         </Button>
-
-
       </DynamicForm>
     </div>
   );

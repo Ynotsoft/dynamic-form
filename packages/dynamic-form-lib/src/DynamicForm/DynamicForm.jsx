@@ -28,18 +28,16 @@ const DynamicForm = ({
 	footerMode = "normal",
 	formDefinition,
 	returnType = false,
-	sendFormValues = () => { },
+	sendFormValues = () => {},
 	children,
 	defaultValues = {},
-	onFieldsChange = () => { },
+	onFieldsChange = () => {},
 	debugMode = false,
 }) => {
 	const [formValues, setFormValues] = useState({ ...defaultValues });
 	const [errors, setErrors] = useState({});
 	const [touched, setTouched] = useState({});
 	const [charCounts, setCharCounts] = useState({});
-
-
 
 	// FIX: Initialize the ref object here to hold references to file inputs
 	const fileInputRefs = useRef({});
@@ -64,7 +62,7 @@ const DynamicForm = ({
 			searchselect: SearchSelectField,
 			select: RenderSelectField,
 			email: RenderEmailField,
-			litertext: RenderHtmlField,
+			html: RenderHtmlField,
 			checkbox: RenderCheckboxField,
 			radiogroup: RenderRadioGroupField,
 			input: RenderInputField,
@@ -291,8 +289,6 @@ const DynamicForm = ({
 	const handleSubmit = (e) => {
 		e.preventDefault();
 
-
-
 		const allTouched = {};
 		formDefinition.fields.forEach((field) => {
 			if (field.name) allTouched[field.name] = true;
@@ -395,10 +391,6 @@ const DynamicForm = ({
 		orange: "border-orange-500 bg-orange-50",
 	};
 
-
-
-
-
 	function fieldFormat(children, field, error) {
 		// DEBUG: Log the error being passed to the renderer
 		if (debugMode) {
@@ -476,9 +468,10 @@ const DynamicForm = ({
 		// Error is derived directly from the errors state
 		const error = errors[field.name] ? errors[field.name] : null;
 
-		const effectiveDisabled = typeof field.disabled === "function"
-			? field.disabled(formValues)
-			: !!field.disabled;
+		const effectiveDisabled =
+			typeof field.disabled === "function"
+				? field.disabled(formValues)
+				: !!field.disabled;
 
 		return fieldFormat(
 			<FieldComponent
@@ -536,7 +529,6 @@ const DynamicForm = ({
 					return child;
 				})}
 			</div>
-
 		</form>
 	);
 };
