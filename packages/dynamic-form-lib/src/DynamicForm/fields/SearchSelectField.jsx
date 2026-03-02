@@ -19,7 +19,6 @@ function SearchSelectField({
   const [searchTerm, setSearchTerm] = useState("");
   // Cache allows us to keep labels specific to selected IDs even if they aren't in the current search results
   const [selectedOptionsCache, setSelectedOptionsCache] = useState({});
-
   const dropdownRef = useRef(null);
   const searchInputRef = useRef(null);
   const debounceTimerRef = useRef(null);
@@ -28,6 +27,7 @@ function SearchSelectField({
   const currentRawValue = formValues[field.name];
 
   const getSelectedItems = () => {
+    // console.log("Current raw value for field", field.name, ":", currentRawValue);
     if (currentRawValue === null || currentRawValue === undefined || currentRawValue === "") return [];
 
     // Ensure we handle both single value and array
@@ -40,13 +40,15 @@ function SearchSelectField({
 
       // 2. Try to find in cache
       if (selectedOptionsCache[val]) return selectedOptionsCache[val];
-
+      // console.log("Selected value not found in options or cache:", val);
       // 3. Fallback
       return { value: val, label: val };
+
     });
   };
 
   const selectedItems = getSelectedItems();
+
 
   // --- DATA FETCHING ---
   const loadOptions = useCallback(
@@ -121,7 +123,11 @@ function SearchSelectField({
 
   useEffect(() => {
     if (isOpen) {
-      if (options.length === 0 || (!field.optionsUrl && !apiClient && !field.onSearch)) loadOptions("");
+      if (searchTerm === "") {
+        loadOptions("");
+      } else if (options.length === 0 || (!field.optionsUrl && !apiClient && !field.onSearch)) {
+        loadOptions(searchTerm);
+      }
       // Little delay to allow render before focus
       setTimeout(() => searchInputRef.current?.focus(), 50);
     }
@@ -153,7 +159,7 @@ function SearchSelectField({
         ? currentArray.filter(v => v !== option.value)
         : [...currentArray, option.value];
     }
-
+    console.log("Selected value(s) for field", field.name, ":", newRawValue);
     handleChange(field.name, newRawValue);
     if (field.clearSearchOnSelect) setSearchTerm("");
   };
@@ -205,8 +211,8 @@ function SearchSelectField({
       {isOpen && !isDisabled && (
         <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl overflow-hidden">
           <div className="p-2 border-b border-gray-100 bg-gray-50">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <div className="relative flex items-center">
+              <Search className="absolute left-3 w-4 h-4 text-gray-400" />
               <input
                 ref={searchInputRef}
                 type="text"

@@ -226,11 +226,15 @@ const DynamicForm = ({
 		const newValues = { ...formValues };
 		// Handle multiselect values
 		if (field.type === "multiselect" || field.type === "searchselect") {
-			newValues[fieldName] = Array.isArray(value)
-				? value
-				: Array.from(value.target.selectedOptions).map(
+			if (Array.isArray(value)) {
+				newValues[fieldName] = value;
+			} else if (value && value.target && value.target.selectedOptions) {
+				newValues[fieldName] = Array.from(value.target.selectedOptions).map(
 					(option) => option.value,
 				);
+			} else {
+				newValues[fieldName] = value;
+			}
 		}
 		// Handle DateRangePicker (dayPicker)
 		else if (field.type === "dateRange") {
@@ -521,7 +525,7 @@ const DynamicForm = ({
 			>
 				{React.Children.map(children, (child) => {
 					if (!React.isValidElement(child)) return child;
-					
+
 					if (child.props.onClick) {
 						return React.cloneElement(child, {
 							onClick: (e) => {
