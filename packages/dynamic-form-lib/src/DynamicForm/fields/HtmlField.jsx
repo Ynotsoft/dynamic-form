@@ -22,19 +22,13 @@ import {
 
 // MenuBar component remains the same...
 const MenuBar = ({ editor, error }) => {
-	const [, setUpdate] = useState(0);
+	const [, setTick] = useState(0);
 
 	useEffect(() => {
 		if (!editor) return;
-
-		const onTransaction = () => {
-			setUpdate((s) => s + 1);
-		};
-
-		editor.on("transaction", onTransaction);
-		return () => {
-			editor.off("transaction", onTransaction);
-		};
+		const handler = () => setTick((t) => t + 1);
+		editor.on("transaction", handler);
+		return () => editor.off("transaction", handler);
 	}, [editor]);
 
 	if (!editor) return null;
@@ -234,17 +228,15 @@ function HtmlField({
 		},
 	});
 
+	// Sync editor content with external form changes
 	useEffect(() => {
 		if (editor && formValues[field.name] !== editor.getHTML()) {
-			// If the form value is empty string, clear the editor
 			editor.commands.setContent(formValues[field.name] || "");
 		}
 	}, [formValues[field.name], editor]);
 
 	useEffect(() => {
-		if (editor) {
-			editor.setEditable(!isDisabled);
-		}
+		if (editor) editor.setEditable(!isDisabled);
 	}, [isDisabled, editor]);
 
 	return (
