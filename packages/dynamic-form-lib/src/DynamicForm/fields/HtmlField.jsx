@@ -22,6 +22,21 @@ import {
 
 // MenuBar component remains the same...
 const MenuBar = ({ editor, error }) => {
+	const [, setUpdate] = useState(0);
+
+	useEffect(() => {
+		if (!editor) return;
+
+		const onTransaction = () => {
+			setUpdate((s) => s + 1);
+		};
+
+		editor.on("transaction", onTransaction);
+		return () => {
+			editor.off("transaction", onTransaction);
+		};
+	}, [editor]);
+
 	if (!editor) return null;
 
 	const btnClass = (active) =>

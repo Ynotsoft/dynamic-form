@@ -26,6 +26,7 @@ export default defineConfig({
 				"react",
 				"react-dom",
 				"@tiptap/react",
+				"@tiptap/core",
 				"@tiptap/starter-kit",
 				"@tiptap/extension-underline",
 				"@tiptap/extension-character-count",
