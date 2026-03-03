@@ -559,6 +559,8 @@ Load options from API:
 
 Add custom styles to control field layout flow like: col-span-full | col-span-6
 
+field property: 'class:'
+
 ```javascript
 {
   name: 'city',
