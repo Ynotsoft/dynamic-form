@@ -3,7 +3,7 @@ import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import CharacterCount from "@tiptap/extension-character-count";
 import DOMPurify from "dompurify";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
 	Bold,
 	Italic,
