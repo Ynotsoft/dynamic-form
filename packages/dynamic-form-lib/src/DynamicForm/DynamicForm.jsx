@@ -406,9 +406,7 @@ const DynamicForm = ({
 		}
 
 		if (excludeFromFieldFormat.includes(field.type)) {
-			return (
-				<div className={field.fieldClass || "col-span-full"}>{children}</div>
-			);
+			return <div className={field.class || "col-span-full"}>{children}</div>;
 		}
 
 		const containerStyle = field.containerStyle;
@@ -432,13 +430,17 @@ const DynamicForm = ({
 
 				<div>{children}</div>
 
+				{field.description && (
+					<p class="text-xs mt-1.5 text-gray-400">{field.description}</p>
+				)}
+
 				{/* THIS IS THE ERROR RENDERING LINE */}
 				{error && <p className="text-sm text-red-500 mt-1">{error}</p>}
 			</>
 		);
 
 		return (
-			<div className={`mb-4 ${field.fieldClass || "col-span-8"}`}>
+			<div className={`mb-4`}>
 				{containerStyle === "card" ? (
 					<div className={containerClasses}>{fieldContent}</div>
 				) : (
@@ -502,7 +504,10 @@ const DynamicForm = ({
 		>
 			{formDefinition ? (
 				formDefinition.fields.map((field) => (
-					<div className="col-span-full" key={field.name + field.type}>
+					<div
+						className={`${field.class || "col-span-full"} `}
+						key={field.name + field.type}
+					>
 						{renderField(field)}
 					</div>
 				))

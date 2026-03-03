@@ -9,8 +9,10 @@ export default function ExampleNormalPage() {
         name: "fullName",
         label: "Full Name",
         type: "input",
+        class: "col-span-6",
         required: true,
         placeholder: "Enter your name",
+        description: "Use this to enter your full name",
         value: "John Doe",
         maxLength: 100,
         onChange: (value) => console.log("input selection: ", value),
@@ -24,6 +26,7 @@ export default function ExampleNormalPage() {
         label: "Search for Users",
         type: "searchselect",
         required: true,
+        class: "col-span-6",
         placeholder: "Type to search users...",
         layout: "inline",
         // layout: "dialog",
@@ -47,6 +50,13 @@ export default function ExampleNormalPage() {
         validation: {
           required: true,
         },
+      },
+      {
+        name: "sort",
+        label: "Sort Order",
+        type: "select",
+        description:
+          "Sort by priority. 1 = Highest Priority , 5 = Lowest Priority", // Use to add description below fields
       },
     ],
   };

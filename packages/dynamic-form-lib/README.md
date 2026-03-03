@@ -59,6 +59,7 @@ npm run dev --workspace ynotsoft-dynamic-form
 ### 5\. How to push changes
 
 #### For Regular Development Changes:
+
 ```bash
 # 1. Commit your changes
 git add .
@@ -69,6 +70,7 @@ git tag v1.0.[version-number]
 ```
 
 #### For NPM Package Releases:
+
 ```bash
 # 1. Update version in package.json (in packages/dynamic-form-lib/)
 npm version patch   # for bug fixes (1.0.0 → 1.0.1)
@@ -83,12 +85,14 @@ git push origin v1.0.[version-number]   # Replace with your actual version
 ```
 
 #### Version Management:
+
 - **Single Source of Truth:** Version is maintained in `packages/dynamic-form-lib/package.json`
 - **Git Tags:** Use format `v1.0.[version-number]` (matches package.json version with "v" prefix)
 - **NPM Registry:** GitHub Actions reads git tag, strips "v" prefix, publishes as `1.0.[version-number]` to NPM
 - **Auto-Sync:** Git tag version must match package.json version for successful deployment
 
 **Quick Check:**
+
 ```bash
 # Verify versions match before pushing
 cat packages/dynamic-form-lib/package.json | grep version
@@ -116,7 +120,7 @@ const formDefinition = {
 
 <DynamicForm
   formDefinition={formDefinition}
-  returnType= {false}
+  returnType={false}
   defaultValues={{ name: "John Doe" }}
   sendFormValues={(values) => console.log(values)}
   onFieldsChange={(values) => console.log("Changed:", values)}
@@ -254,10 +258,10 @@ Search for selections and select multiple/single
       required: true,
       placeholder: "Type to search users...",
       // layout: "inline", // default inline
-      layout: "dialog", 
+      layout: "dialog",
       optionsUrl: "/api/users/search", // API endpoint
-      minSearchLength: 2, // Minimum characters before search (default: 2)      
-      selectMode: "single", // 'single' | 'multiple' (default: 'single')  
+      minSearchLength: 2, // Minimum characters before search (default: 2)
+      selectMode: "single", // 'single' | 'multiple' (default: 'single')
     }
 ```
 
@@ -548,6 +552,32 @@ Load options from API:
   type: 'select',
   optionsUrl: '/api/cities',
   dependsOn: 'state',  // Reload when state changes
+}
+```
+
+### Adding Custom styles per field
+
+Add custom styles to control field layout flow like: col-span-full | col-span-6
+
+```javascript
+{
+  name: 'city',
+  label: 'City',
+  type: 'select',
+  class: "col-span-6" // using tailwind classes to control layout flow.
+}
+```
+
+### Adding description per field.
+
+Add description below the input field to give helpful information to users
+
+```javascript
+{
+  name: 'sort',
+  label: 'Sort Order',
+  type: 'select',
+  description: "Sort by priority. 1: Highest Priority , 5 Lowerst Priority" // Use to add description below fields
 }
 ```
 
