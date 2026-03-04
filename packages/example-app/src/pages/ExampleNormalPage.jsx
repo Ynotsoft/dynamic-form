@@ -55,6 +55,11 @@ export default function ExampleNormalPage() {
         name: "sort",
         label: "Sort Order",
         type: "select",
+        options: [
+          { value: "us", label: "United States" },
+          { value: "uk", label: "United Kingdom" },
+          { value: "ca", label: "Canada" },
+        ],
         description:
           "Sort by priority. 1 = Highest Priority , 5 = Lowest Priority", // Use to add description below fields
       },
@@ -75,6 +80,33 @@ export default function ExampleNormalPage() {
 
         containerStyle: "card", // Wraps in bordered card
         color: "blue", // 'green' | 'blue' | 'red' | 'yellow' | 'purple' | 'indigo' | 'gray' | 'pink' | 'orange'
+      },
+      {
+        name: "number",
+        label: "Number Field",
+        type: "number",
+        min: 1,
+        max: 9,
+      },
+
+      {
+        name: "paymentMethod",
+        label: "Payment Method",
+        type: "radiogroup",
+        required: true,
+        value: "card",
+        options: [
+          { value: "card", label: "Credit Card" },
+          { value: "paypal", label: "PayPal" },
+          { value: "bank", label: "Bank Transfer" },
+        ],
+
+        // Layout options
+        inline: true, // Display options horizontally
+
+        // Card container styling
+        containerStyle: "card",
+        color: "green",
       },
     ],
   };

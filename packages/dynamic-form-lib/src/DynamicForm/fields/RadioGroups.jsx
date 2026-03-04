@@ -7,39 +7,40 @@ function RadioGroupField({
 	handleChange,
 	handleBlur,
 	error,
-	disabled, // Accept effective disabled state (handles global and override status)
+	disabled,
+	...props // Capture ARIA props: aria-describedby, aria-invalid
 }) {
-	// --- Value and State Calculation (Simplified to use the default empty string fallback) ---
 	const value = formValues[field.name] || "";
-
-	// --- Disabled State ---
-	// The 'disabled' prop is the effective state calculated in the parent.
 	const isDisabled = disabled;
-
 	const options = field.options || [];
 	const isInline = field.inline || false;
-
-	// New prop to enable segmented button styling
 	const isSegmented = field.renderType === "segment";
+	const errorId = props["aria-describedby"];
 
-	// Class for the main container wrapper. If segmented, it's a unified pill box.
+	// Container using theme variables for background and border
 	const groupContainerClass = isSegmented
-		? "mt-2 inline-flex w-full md:w-auto p-1 rounded-md bg-gray-50 border border-gray-200 shadow-inner"
+		? "mt-2 inline-flex w-full p-1 rounded-lg bg-muted/50 border border-border shadow-inner"
 		: isInline
-			? "flex flex-wrap gap-4"
-			: "space-y-3";
+			? "flex flex-wrap gap-6 mt-2"
+			: "space-y-4 mt-2";
 
 	return (
-		<div
+		<fieldset
 			className={`mb-4 ${field.fieldClass ? field.fieldClass : "col-span-full"}`}
+			aria-labelledby={`${field.name}-legend`}
+			aria-describedby={errorId}
 		>
+			<legend id={`${field.name}-legend`} className="sr-only">
+				{field.label}
+			</legend>
+
 			<RadioGroup
+				{...props}
 				value={value}
 				onValueChange={(val) => handleChange(field.name, val)}
 				onBlur={() => handleBlur(field.name)}
 				disabled={isDisabled}
 				className={groupContainerClass}
-				aria-label={field.label || field.name}
 			>
 				{options.map((option) => {
 					const optionValue =
@@ -49,66 +50,77 @@ function RadioGroupField({
 					const optionDescription =
 						typeof option === "object" ? option.description : null;
 					const itemId = `${field.name}-${optionValue}`;
-
 					const isChecked = value === optionValue;
 
 					if (isSegmented) {
-						// --- Segmented Button Look ---
 						return (
 							<label
 								key={optionValue}
 								htmlFor={itemId}
-								// Styling for the button segment itself
+								// focus-within keeps focus indicator on label for modern look
 								className={`
-                  relative flex-1 min-w-max text-center px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ease-in-out cursor-pointer select-none
-                  ${
-									isChecked
-										? "bg-white text-gray-900 shadow-md ring-2 ring-gray-100"
-										: "text-gray-500 hover:bg-gray-100" // Unselected state
-								}
-                  ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}                                `}
+									relative flex-1 min-w-max text-center px-4 py-2 rounded-md text-sm font-medium 
+									transition-all duration-200 cursor-pointer select-none
+									focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2
+									${
+										isChecked
+											? "bg-background text-primary shadow-sm"
+											: "text-muted-foreground hover:text-foreground"
+									}
+									${isDisabled ? "opacity-40 cursor-not-allowed" : ""}
+								`}
 							>
 								<RadioGroupItem
 									value={optionValue}
 									id={itemId}
 									disabled={isDisabled}
-									// Visually hide the native radio circle but keep it for function/accessibility
-									className="absolute truncate h-0 w-0 opacity-0 pointer-events-none"
+									className="sr-only"
 								/>
 								{optionLabel}
 							</label>
 						);
 					}
 
-					// --- Default Radio Button Look ---
 					return (
-						<div key={optionValue} className="relative flex items-start">
+						<div key={optionValue} className="relative flex items-start group">
 							<div className="flex h-6 items-center">
 								<RadioGroupItem
 									value={optionValue}
 									id={itemId}
 									disabled={isDisabled}
 									className={`
-                    relative size-4 rounded-full border transition-all
-                    ${
-										isDisabled
-											? "border-gray-300 bg-gray-100 cursor-not-allowed"
-											: "border-gray-300 bg-white hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-									}
-                    data-[state=checked]:border-blue-600 data-[state=checked]:bg-blue-600
-                  `}
+										size-4 flex items-center justify-center rounded-full border border-input transition-all
+										focus:ring-2 focus:ring-ring focus:ring-offset-2 ring
+										data-[state=checked]:bg-primary                     
+                    data-[state=checked]::after:content-[''] 
+                    data-[state=checked]::after:absolute 
+                    data-[state=checked]::after:size-2.5 
+                    data-[state=checked]::after:rounded-full 
+                    data-[state=checked]::after:bg-white 
+                    data-[state=checked]::after:border-[3px] 
+                    data-[state=checked]::after:border-background 
+										${
+											isDisabled
+												? "bg-muted opacity-50"
+												: "bg-background cursor-pointer hover:border-primary/50"
+										}
+									`}
 								/>
 							</div>
-							<div className="ml-3 text-sm">
+							<div className="ml-3 text-sm leading-6">
 								<label
 									htmlFor={itemId}
-									className={`font-medium ${isDisabled ? "text-gray-500" : "text-gray-900 cursor-pointer"}`}
+									className={`font-medium transition-colors ${
+										isDisabled
+											? "text-muted-foreground"
+											: "text-foreground cursor-pointer group-hover:text-primary"
+									}`}
 								>
 									{optionLabel}
 								</label>
 								{optionDescription && !isInline && (
 									<p
-										className={`text-sm ${isDisabled ? "text-gray-400" : "text-gray-500"}`}
+										className={`${isDisabled ? "text-muted-foreground/60" : "text-muted-foreground"}`}
 									>
 										{optionDescription}
 									</p>
@@ -118,8 +130,7 @@ function RadioGroupField({
 					);
 				})}
 			</RadioGroup>
-			{error && <p className="mt-1 text-sm text-red-500">{error}</p>}
-		</div>
+		</fieldset>
 	);
 }
 
