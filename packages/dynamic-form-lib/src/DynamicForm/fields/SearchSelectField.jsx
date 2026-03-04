@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { X, ChevronDown, Search, Loader2, Check } from "lucide-react";
 
 function SearchSelectField({
@@ -9,87 +9,60 @@ function SearchSelectField({
 	error,
 	disabled,
 	apiClient,
+	...props
 }) {
-	const isDisabled =
-		disabled ||
-		(field.disabled &&
-			(typeof field.disabled === "function"
-				? field.disabled(formValues)
-				: field.disabled));
+	const isDisabled = disabled;
 	const isSingleSelect = field.selectMode !== "multiple";
 
 	const [options, setOptions] = useState([]);
 	const [isLoading, setIsLoading] = useState(false);
 	const [isOpen, setIsOpen] = useState(false);
 	const [searchTerm, setSearchTerm] = useState("");
-	// Cache allows us to keep labels specific to selected IDs even if they aren't in the current search results
+	const [activeIndex, setActiveIndex] = useState(-1);
 	const [selectedOptionsCache, setSelectedOptionsCache] = useState({});
+
 	const dropdownRef = useRef(null);
 	const searchInputRef = useRef(null);
 	const debounceTimerRef = useRef(null);
 
-	// --- VALUE HANDLING ---
 	const currentRawValue = formValues[field.name];
 
-	const getSelectedItems = () => {
-		// console.log("Current raw value for field", field.name, ":", currentRawValue);
-		if (
-			currentRawValue === null ||
-			currentRawValue === undefined ||
-			currentRawValue === ""
-		)
-			return [];
-
-		// Ensure we handle both single value and array
+	const getSelectedItems = useCallback(() => {
+		if (!currentRawValue) return [];
 		const values = Array.isArray(currentRawValue)
 			? currentRawValue
 			: [currentRawValue];
-
 		return values.map((val) => {
-			// 1. Try to find in current loaded options
 			const foundInOptions = options.find((o) => o.value === val);
 			if (foundInOptions) return foundInOptions;
-
-			// 2. Try to find in cache
 			if (selectedOptionsCache[val]) return selectedOptionsCache[val];
-			// console.log("Selected value not found in options or cache:", val);
-			// 3. Fallback
 			return { value: val, label: val };
 		});
-	};
+	}, [currentRawValue, options, selectedOptionsCache]);
 
 	const selectedItems = getSelectedItems();
 
-	// --- DATA FETCHING ---
 	const loadOptions = useCallback(
 		async (inputValue = "") => {
-			// Allow custom onSearch if strictly needed, but prioritize optionsUrl per request
-			if (field.onSearch && typeof field.onSearch === "function") {
+			if (field.onSearch) {
 				const results = await field.onSearch(inputValue, formValues);
 				setOptions(results);
 				return;
 			}
-
-			// If no optionsUrl or apiClient, handle client-side filtering
 			if (!field.optionsUrl || !apiClient) {
-				if (field.options && Array.isArray(field.options)) {
-					const allOptions = field.options.map((item) => ({
-						value: item[field.valueId || "value"] || item.value || item.id,
-						label: item[field.labelId || "label"] || item.label || item.name,
-					}));
-
-					if (!inputValue) {
-						setOptions(allOptions);
-					} else {
-						const lowerTerm = inputValue.toLowerCase();
-						const filtered = allOptions.filter((opt) =>
-							String(opt.label).toLowerCase().includes(lowerTerm),
-						);
-						setOptions(filtered);
-					}
-				} else {
-					setOptions([]);
-				}
+				const allOptions = (field.options || []).map((item) => ({
+					value: item[field.valueId || "value"] || item.value || item.id,
+					label: item[field.labelId || "label"] || item.label || item.name,
+				}));
+				setOptions(
+					!inputValue
+						? allOptions
+						: allOptions.filter((opt) =>
+								String(opt.label)
+									.toLowerCase()
+									.includes(inputValue.toLowerCase()),
+							),
+				);
 				return;
 			}
 
@@ -97,24 +70,17 @@ function SearchSelectField({
 			try {
 				const searchParam = field.searchParam || "search";
 				const separator = field.optionsUrl.includes("?") ? "&" : "?";
-				// Implementation for: "url?search=term"
 				const url = `${field.optionsUrl}${separator}${searchParam}=${encodeURIComponent(inputValue)}`;
-
 				const response = await apiClient(url);
-
-				// Handle various response shapes
 				const data = response.data || response;
 				const results = Array.isArray(data) ? data : [];
-
-				// Map to {value, label}
-				const mappedResults = results.map((item) => ({
-					value: item[field.valueId || "value"] || item.value || item.id,
-					label: item[field.labelId || "label"] || item.label || item.name,
-				}));
-
-				setOptions(mappedResults);
+				setOptions(
+					results.map((item) => ({
+						value: item[field.valueId || "value"] || item.value || item.id,
+						label: item[field.labelId || "label"] || item.label || item.name,
+					})),
+				);
 			} catch (err) {
-				console.error("Search failed:", err);
 				setOptions([]);
 			} finally {
 				setIsLoading(false);
@@ -123,34 +89,101 @@ function SearchSelectField({
 		[field, apiClient, formValues],
 	);
 
+	const handleSelect = useCallback(
+		(option) => {
+			if (!option) return;
+			setSelectedOptionsCache((prev) => ({ ...prev, [option.value]: option }));
+
+			let newRawValue;
+			if (isSingleSelect) {
+				newRawValue = option.value;
+				setIsOpen(false);
+			} else {
+				const currentArray = Array.isArray(currentRawValue)
+					? currentRawValue
+					: [];
+				newRawValue = currentArray.includes(option.value)
+					? currentArray.filter((v) => v !== option.value)
+					: [...currentArray, option.value];
+			}
+			handleChange(field.name, newRawValue);
+
+			// --- FIX: Trigger blur to clear validation errors ---
+			handleBlur(field.name);
+
+			if (field.clearSearchOnSelect) setSearchTerm("");
+		},
+		[
+			currentRawValue,
+			field.clearSearchOnSelect,
+			field.name,
+			handleChange,
+			handleBlur,
+			isSingleSelect,
+		],
+	);
+
+	const handleKeyDown = (e) => {
+		if (isDisabled) return;
+		switch (e.key) {
+			case "ArrowDown":
+				e.preventDefault();
+				if (!isOpen) {
+					setIsOpen(true);
+				} else {
+					setActiveIndex((prev) =>
+						prev < options.length - 1 ? prev + 1 : prev,
+					);
+				}
+				break;
+			case "ArrowUp":
+				e.preventDefault();
+				if (isOpen) {
+					setActiveIndex((prev) => (prev > 0 ? prev - 1 : 0));
+				}
+				break;
+			case "Enter":
+				e.preventDefault();
+				if (isOpen && activeIndex >= 0 && options[activeIndex]) {
+					handleSelect(options[activeIndex]);
+				} else if (!isOpen) {
+					setIsOpen(true);
+				}
+				break;
+			case "Escape":
+				setIsOpen(false);
+				break;
+			case "Tab":
+				setIsOpen(false);
+				handleBlur(field.name);
+				break;
+			default:
+				break;
+		}
+	};
+
 	const handleSearchChange = (e) => {
 		const value = e.target.value;
 		setSearchTerm(value);
-
+		setActiveIndex(-1);
 		if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
 		debounceTimerRef.current = setTimeout(() => loadOptions(value), 300);
 	};
 
 	useEffect(() => {
 		if (isOpen) {
-			if (searchTerm === "") {
-				loadOptions("");
-			} else if (
-				options.length === 0 ||
-				(!field.optionsUrl && !apiClient && !field.onSearch)
-			) {
-				loadOptions(searchTerm);
-			}
-			// Little delay to allow render before focus
-			setTimeout(() => searchInputRef.current?.focus(), 50);
+			loadOptions(searchTerm);
+			const timer = setTimeout(() => searchInputRef.current?.focus(), 50);
+			return () => clearTimeout(timer);
+		} else {
+			setActiveIndex(-1);
 		}
-	}, [isOpen]);
+	}, [isOpen, loadOptions, searchTerm]);
 
 	useEffect(() => {
-		const handleClickOutside = (event) => {
-			if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+		const handleClickOutside = (e) => {
+			if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
 				setIsOpen(false);
-				setSearchTerm("");
 				handleBlur(field.name);
 			}
 		};
@@ -158,40 +191,16 @@ function SearchSelectField({
 		return () => document.removeEventListener("mousedown", handleClickOutside);
 	}, [field.name, handleBlur]);
 
-	const handleSelect = (option) => {
-		setSelectedOptionsCache((prev) => ({ ...prev, [option.value]: option }));
-
-		let newRawValue;
-		if (isSingleSelect) {
-			newRawValue = option.value;
-			setIsOpen(false);
-		} else {
-			const currentArray = Array.isArray(currentRawValue)
-				? currentRawValue
-				: [];
-			const exists = currentArray.includes(option.value);
-			newRawValue = exists
-				? currentArray.filter((v) => v !== option.value)
-				: [...currentArray, option.value];
-		}
-		console.log("Selected value(s) for field", field.name, ":", newRawValue);
-		handleChange(field.name, newRawValue);
-		if (field.clearSearchOnSelect) setSearchTerm("");
-	};
-
 	const handleRemove = (e, valueToRemove) => {
 		e.stopPropagation();
-		if (isSingleSelect) {
-			handleChange(field.name, null);
-		} else {
-			const currentArray = Array.isArray(currentRawValue)
-				? currentRawValue
-				: [];
-			handleChange(
-				field.name,
-				currentArray.filter((v) => v !== valueToRemove),
-			);
-		}
+		const currentArray = Array.isArray(currentRawValue) ? currentRawValue : [];
+		const newValue = isSingleSelect
+			? null
+			: currentArray.filter((v) => v !== valueToRemove);
+		handleChange(field.name, newValue);
+
+		// --- FIX: Trigger blur after removal ---
+		handleBlur(field.name);
 	};
 
 	return (
@@ -199,29 +208,35 @@ function SearchSelectField({
 			className={`mb-4 relative ${field.fieldClass || "col-span-full"}`}
 			ref={dropdownRef}
 		>
-			{/* Trigger */}
 			<div
+				role="combobox"
+				aria-expanded={isOpen}
+				aria-haspopup="listbox"
+				aria-controls={`${field.name}-listbox`}
+				tabIndex={isDisabled ? -1 : 0}
 				onClick={() => !isDisabled && setIsOpen(!isOpen)}
+				onKeyDown={handleKeyDown}
 				className={`
-          w-full min-h-[42px] px-3 py-2 border rounded-lg bg-white cursor-pointer
-          flex items-center flex-wrap gap-2
-          ${error ? "border-red-500" : "border-gray-300 hover:border-gray-400"}
-          ${isOpen ? "ring-2 ring-blue-100 border-blue-500" : ""}
-          ${isDisabled ? "bg-gray-100 opacity-60 cursor-not-allowed" : ""}
-        `}
+					w-full min-h-10 px-2 py-1 border rounded-lg bg-background cursor-pointer
+					flex items-center flex-wrap gap-2 transition-all outline-none
+					${error ? "border-destructive ring-1 ring-destructive" : "border-input hover:border-accent-foreground/20"}
+					${isOpen ? "ring-2 ring-ring border-primary" : "focus-visible:ring-2 focus-visible:ring-ring"}
+					${isDisabled ? "bg-muted opacity-60 cursor-not-allowed" : ""}
+				`}
 			>
 				{selectedItems.length > 0 ? (
 					selectedItems.map((item) => (
 						<span
 							key={item.value}
-							className="inline-flex items-center px-2 py-1 bg-blue-50 text-blue-700 text-sm rounded-md border border-blue-100"
+							className="inline-flex items-center px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-sm border border-primary/20"
 						>
 							{item.label}
 							{!isDisabled && (
 								<button
 									type="button"
+									aria-label={`Remove ${item.label}`}
 									onClick={(e) => handleRemove(e, item.value)}
-									className="ml-1 p-0.5 hover:bg-blue-200 rounded-full"
+									className="ml-1 p-0.5 hover:bg-primary/20 rounded-full transition-colors"
 								>
 									<X className="w-3 h-3" />
 								</button>
@@ -229,57 +244,81 @@ function SearchSelectField({
 						</span>
 					))
 				) : (
-					<span className="text-gray-400 text-sm">
+					<span className="text-muted-foreground text-sm leading-tight">
 						{field.placeholder || "Select..."}
 					</span>
 				)}
-				<div className="ml-auto flex items-center">
+				<div className="ml-auto flex items-center gap-2">
 					{isLoading && (
-						<Loader2 className="w-4 h-4 mr-2 animate-spin text-gray-400" />
+						<Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
 					)}
 					<ChevronDown
-						className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
+						className={`w-4 h-4 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`}
 					/>
 				</div>
 			</div>
 
-			{/* Dropdown */}
 			{isOpen && !isDisabled && (
-				<div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl overflow-hidden">
-					<div className="p-2 border-b border-gray-100 bg-gray-50">
+				<div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-lg shadow-xl overflow-hidden">
+					<div className="p-2 border-b border-border bg-muted/30">
 						<div className="relative flex items-center">
-							<Search className="absolute left-3 w-4 h-4 text-gray-400" />
+							<Search className="absolute left-3 w-4 h-4 text-muted-foreground" />
 							<input
 								ref={searchInputRef}
-								type="text"
+								type="search"
+								aria-autocomplete="list"
+								aria-controls={`${field.name}-listbox`}
+								aria-activedescendant={
+									activeIndex >= 0
+										? `${field.name}-opt-${activeIndex}`
+										: undefined
+								}
 								value={searchTerm}
 								onChange={handleSearchChange}
-								className="w-full pl-9 pr-3 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+								onKeyDown={handleKeyDown}
+								className="w-full h-9 pl-9 pr-3 text-sm bg-transparent border border-input rounded-md focus:outline-none focus:ring-1 focus:ring-ring"
 								placeholder="Type to search..."
 							/>
 						</div>
 					</div>
-					<div className="max-h-60 overflow-y-auto p-1">
+					<div
+						id={`${field.name}-listbox`}
+						role="listbox"
+						aria-label={field.label}
+						className="max-h-60 overflow-y-auto p-1"
+					>
 						{options.length > 0 ? (
-							options.map((option) => {
+							options.map((option, index) => {
 								const isSelected = selectedItems.some(
 									(i) => i.value === option.value,
 								);
+								const isActive = index === activeIndex;
 								return (
 									<div
 										key={option.value}
+										id={`${field.name}-opt-${index}`}
+										role="option"
+										tabIndex={-1}
+										aria-selected={isSelected}
 										onClick={() => handleSelect(option)}
-										className={`px-3 py-2 text-sm rounded cursor-pointer flex items-center justify-between ${isSelected ? "bg-blue-50 text-blue-700" : "hover:bg-gray-100 text-gray-700"}`}
+										onKeyDown={(e) => e.key === "Enter" && handleSelect(option)}
+										onMouseEnter={() => setActiveIndex(index)}
+										className={`
+											px-3 py-2 text-sm rounded-md cursor-pointer flex items-center justify-between transition-colors outline-none
+											${isActive ? "bg-accent text-accent-foreground" : ""}
+											${isSelected ? "text-primary font-medium" : "text-foreground"}
+											${!isActive && !isSelected ? "hover:bg-muted" : ""}
+										`}
 									>
 										<span>{option.label}</span>
-										{isSelected && <Check className="w-4 h-4" />}
+										{isSelected && <Check className="w-4 h-4 text-primary" />}
 									</div>
 								);
 							})
 						) : (
-							<div className="py-4 text-center text-sm text-gray-500">
-								{isLoading ? "Loading..." : "No results found"}
-							</div>
+							<output className="block py-8 text-center text-sm text-muted-foreground">
+								{isLoading ? "Searching..." : "No results found"}
+							</output>
 						)}
 					</div>
 				</div>
@@ -287,4 +326,5 @@ function SearchSelectField({
 		</div>
 	);
 }
+
 export default SearchSelectField;
