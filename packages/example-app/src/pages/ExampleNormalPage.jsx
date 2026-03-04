@@ -58,6 +58,24 @@ export default function ExampleNormalPage() {
         description:
           "Sort by priority. 1 = Highest Priority , 5 = Lowest Priority", // Use to add description below fields
       },
+
+      {
+        name: "agreeTerms",
+        label: "I agree to terms",
+        type: "checkbox",
+        required: true,
+        value: false,
+        description: "By checking this, you agree to our terms and conditions",
+        options: [
+          { value: "option1", label: "Option 1", description: "" },
+          { value: "option2", label: "Option 2", description: "" },
+          { value: "option3", label: "Option 3", description: "" },
+        ],
+        layout: "inline", // 'inline' | 'stacked' | 'default'
+
+        containerStyle: "card", // Wraps in bordered card
+        color: "blue", // 'green' | 'blue' | 'red' | 'yellow' | 'purple' | 'indigo' | 'gray' | 'pink' | 'orange'
+      },
     ],
   };
 
