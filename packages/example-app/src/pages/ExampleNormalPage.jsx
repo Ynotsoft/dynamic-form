@@ -42,19 +42,17 @@ export default function ExampleNormalPage() {
         id: "field_001",
         type: "html",
         name: "blog_content",
-        required: true,
         label: "Article Body",
+        required: true,
         content: "<p>Start writing your masterpiece here...</p>",
         fieldClass: "col-span-12",
         placeholder: "Enter your content",
-        validation: {
-          required: true,
-        },
       },
       {
         name: "sort",
         label: "Sort Order",
         type: "select",
+        required: true,
         options: [
           { value: "us", label: "United States" },
           { value: "uk", label: "United Kingdom" },

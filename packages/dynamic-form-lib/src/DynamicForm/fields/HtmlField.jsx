@@ -244,14 +244,6 @@ function HtmlField({
 			className={`mb-4 ${field.fieldClass || "col-span-full"}`}
 			id={`${field.name}_id`}
 		>
-			{field.label && (
-				<label
-					htmlFor={field.name}
-					className={`block text-sm font-medium mb-1.5 ${error ? "text-red-500" : "text-foreground"}`}
-				>
-					{field.label}
-				</label>
-			)}
 			<div
 				className={`w-full border rounded-lg overflow-hidden transition-all duration-200 ${
 					error

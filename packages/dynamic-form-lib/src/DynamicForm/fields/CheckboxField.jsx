@@ -14,10 +14,11 @@ function CheckboxField({
 	const isInline = field.inline || field.layout === "inline";
 	const errorId = props["aria-describedby"];
 
+	// UPDATED: Uses theme variables and accent-primary for the orange checkmark
 	const checkboxBaseClass = `
-		size-4 rounded border-gray-300 text-blue-600 transition-all 
-		focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 
-		dark:bg-slate-900 dark:border-slate-700
+		size-4 rounded border-input bg-background transition-all accent-primary
+		focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 
+		disabled:cursor-not-allowed disabled:opacity-50
 	`;
 
 	if (options.length > 0) {
@@ -30,12 +31,14 @@ function CheckboxField({
 				? [...selectedValues, optionValue]
 				: selectedValues.filter((v) => v !== optionValue);
 			handleChange(field.name, newValues);
+			// Trigger blur to clear validation errors immediately
+			handleBlur(field.name);
 		};
 
 		return (
 			<fieldset
 				className="mt-2"
-				aria-invalid={props["aria-invalid"]}
+				aria-invalid={!!error}
 				aria-describedby={errorId}
 			>
 				<legend className="sr-only">{field.label}</legend>
@@ -71,10 +74,8 @@ function CheckboxField({
 										onBlur={() => handleBlur(field.name)}
 										disabled={isDisabled}
 										className={`${checkboxBaseClass} ${
-											isDisabled
-												? "opacity-40 cursor-not-allowed grayscale"
-												: "cursor-pointer hover:border-blue-500 hover:ring-1 hover:ring-blue-500/20"
-										} ${error ? "border-red-500 ring-red-200" : ""}`}
+											!isDisabled && "cursor-pointer hover:border-primary/50"
+										} ${error ? "border-destructive ring-destructive/20" : "border-input"}`}
 									/>
 								</div>
 								<div className="ml-3 text-sm leading-6">
@@ -82,15 +83,15 @@ function CheckboxField({
 										htmlFor={itemId}
 										className={`font-medium select-none transition-colors ${
 											isDisabled
-												? "text-gray-400"
-												: "text-slate-700 dark:text-slate-200 cursor-pointer group-hover:text-blue-600"
+												? "text-muted-foreground"
+												: "text-foreground cursor-pointer group-hover:text-primary"
 										}`}
 									>
 										{optionLabel}
 									</label>
 									{optionDescription && !isInline && (
 										<p
-											className={`${isDisabled ? "text-gray-400" : "text-slate-500 dark:text-slate-400"}`}
+											className={`text-xs ${isDisabled ? "text-muted-foreground/60" : "text-muted-foreground"}`}
 										>
 											{optionDescription}
 										</p>
@@ -113,28 +114,29 @@ function CheckboxField({
 					id={field.name}
 					type="checkbox"
 					checked={!!formValues[field.name]}
-					onChange={(e) => handleChange(field.name, e.target.checked)}
+					onChange={(e) => {
+						handleChange(field.name, e.target.checked);
+						handleBlur(field.name);
+					}}
 					onBlur={() => handleBlur(field.name)}
 					disabled={isDisabled}
 					className={`${checkboxBaseClass} ${
-						isDisabled
-							? "opacity-40 cursor-not-allowed grayscale"
-							: "cursor-pointer hover:border-blue-500"
-					} ${error ? "border-red-500" : ""}`}
+						!isDisabled && "cursor-pointer hover:border-primary/50"
+					} ${error ? "border-destructive" : "border-input"}`}
 				/>
 			</div>
 			<div className="ml-3 text-sm leading-6">
 				<label
 					htmlFor={field.name}
-					className={`font-medium select-none ${
+					className={`font-medium select-none transition-colors ${
 						isDisabled
-							? "text-gray-400"
-							: "text-slate-700 dark:text-slate-200 cursor-pointer group-hover:text-blue-600"
+							? "text-muted-foreground"
+							: "text-foreground cursor-pointer group-hover:text-primary"
 					}`}
 				>
 					{field.label}
 					{field.required && (
-						<span className="text-red-500 ml-1" aria-hidden="true">
+						<span className="text-destructive ml-1" aria-hidden="true">
 							*
 						</span>
 					)}

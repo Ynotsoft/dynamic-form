@@ -42,13 +42,7 @@ const DynamicForm = ({
 	// FIX: Initialize the ref object here to hold references to file inputs
 	const fileInputRefs = useRef({});
 
-	const excludeFromFieldFormat = [
-		"hidden",
-		"html",
-		"linebreak",
-		"header",
-		"alert",
-	];
+	const excludeFromFieldFormat = ["hidden", "linebreak", "header", "alert"];
 	const FIELD_RENDERERS = useMemo(
 		() => ({
 			file: RenderFileInputField,
