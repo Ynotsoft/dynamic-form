@@ -61,6 +61,13 @@ export default function ExampleNormalPage() {
         description:
           "Sort by priority. 1 = Highest Priority , 5 = Lowest Priority", // Use to add description below fields
       },
+      {
+        name: "birthDate",
+        label: "Birth Date",
+        type: "date",
+        required: true,
+        placeholder: "Select date",
+      },
 
       {
         name: "agreeTerms",
