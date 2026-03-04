@@ -392,6 +392,8 @@ const DynamicForm = ({
 	};
 
 	function fieldFormat(children, field, error) {
+		const errorId = `${field.name}-error`;
+
 		// DEBUG: Log the error being passed to the renderer
 		if (debugMode) {
 			if (error) {
@@ -424,18 +426,32 @@ const DynamicForm = ({
 						className="block text-sm font-medium mb-1"
 					>
 						{field.label}
-						{field.required && <span className="text-red-500 ml-1">*</span>}
+						{field.required && (
+							<span className="text-red-500 ml-1" aria-hidden="true">
+								*
+							</span>
+						)}
 					</label>
 				)}
 
-				<div>{children}</div>
+				<div>
+					{React.cloneElement(children, {
+						"aria-describedby": error ? errorId : undefined,
+						"aria-invalid": !!error,
+						"aria-required": field.required,
+					})}
+				</div>
 
 				{field.description && (
 					<p class="text-xs mt-1.5 text-gray-400">{field.description}</p>
 				)}
 
 				{/* THIS IS THE ERROR RENDERING LINE */}
-				{error && <p className="text-sm text-red-500 mt-1">{error}</p>}
+				{error && (
+					<p id={errorId} className="text-sm text-red-500 mt-1" role="alert">
+						{error}
+					</p>
+				)}
 			</>
 		);
 
