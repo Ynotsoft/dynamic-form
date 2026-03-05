@@ -38,14 +38,8 @@ function RadioGroupField({
 			aria-labelledby={`${field.name}-legend`}
 			aria-describedby={error ? errorId : undefined}
 		>
-			{/* Legend provides context for the group (WCAG 1.3.1) */}
-			<legend
-				id={`${field.name}-legend`}
-				className="text-sm font-medium leading-none mb-4"
-			>
-				{field.label}
-				{field.required && <span className="text-destructive ml-1">*</span>}
-			</legend>
+			{/* Use sr-only so the legend exists for Screen Readers but doesn't clutter the UI */}
+			<legend className="sr-only">{field.label}</legend>
 
 			<RadioGroup
 				{...rest} // Spread only valid HTML/ARIA props

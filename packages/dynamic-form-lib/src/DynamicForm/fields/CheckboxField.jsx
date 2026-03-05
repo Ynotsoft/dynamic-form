@@ -50,11 +50,8 @@ function CheckboxField({
 				aria-invalid={!!error}
 				aria-describedby={error ? errorId : undefined}
 			>
-				{/* Legend provides context to Screen Readers for the whole group */}
-				<legend className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mb-4">
-					{field.label}
-					{field.required && <span className="text-destructive ml-1">*</span>}
-				</legend>
+				{/* Use sr-only so the legend exists for Screen Readers but doesn't clutter the UI */}
+				<legend className="sr-only">{field.label}</legend>
 
 				<div
 					className={isInline ? "flex flex-wrap gap-x-6 gap-y-3" : "space-y-4"}
