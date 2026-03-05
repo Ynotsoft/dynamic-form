@@ -551,7 +551,7 @@ const GridImpl = <TRecord extends Record<string, any>>({
 									<th
 										key={`${header}-${index.toString()}`}
 										onClick={() => header.sortKey && handleSort(header.sortKey)}
-										className="px-2 py-2 text-left text-sm font-semibold text-gray-700 grow uppercase cursor-pointer hover:bg-gray-200 select-none"
+										className="px-2 py-2 text-left text-sm font-semibold text-gray-700 grow uppercase cursor-pointer hover:bg-gray-200 select-none w-full"
 									>
 										{header.title}
 										{header.sortKey === sortKey && (
@@ -564,7 +564,7 @@ const GridImpl = <TRecord extends Record<string, any>>({
 							)}
 
 							{customActionRenderer && (
-								<th className="px-2 py-2 text-left text-sm font-semibold text-gray-700 shrink uppercase w-10" />
+								<th className="px-2 py-2 text-left text-sm font-semibold text-gray-700 shrink uppercase w-10 w-full" />
 							)}
 						</tr>
 					</thead>

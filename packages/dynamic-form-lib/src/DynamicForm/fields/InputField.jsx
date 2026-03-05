@@ -5,15 +5,26 @@ function InputField({
 	handleBlur,
 	error,
 	disabled,
-	...props // Capture aria-describedby and other standard props
+	...props
 }) {
+	// Destructure the custom props that belong to your logic, not the DOM.
+	// This prevents them from being spread into the <input> via ...rest
+	const {
+		apiClient,
+		api_URL,
+		charCount,
+		setCharCounts,
+		fileInputRefs,
+		...rest // These are standard HTML/ARIA props (like aria-describedby)
+	} = props;
+
 	const isDisabled = disabled;
-	const errorId = props["aria-describedby"];
+	const errorId = rest["aria-describedby"];
 
 	return (
 		<input
 			{...field.props}
-			{...props}
+			{...rest}
 			id={field.name}
 			name={field.name}
 			type={field.type || "text"}

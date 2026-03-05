@@ -8,16 +8,24 @@ function RadioGroupField({
 	handleBlur,
 	error,
 	disabled,
-	...props // Capture ARIA props: aria-describedby, aria-invalid
+	...props
 }) {
+	const {
+		apiClient,
+		api_URL,
+		charCount,
+		setCharCounts,
+		fileInputRefs,
+		...rest
+	} = props;
+
 	const value = formValues[field.name] || "";
 	const isDisabled = disabled;
 	const options = field.options || [];
 	const isInline = field.inline || false;
 	const isSegmented = field.renderType === "segment";
-	const errorId = props["aria-describedby"];
+	const errorId = rest["aria-describedby"];
 
-	// Container using theme variables for background and border
 	const groupContainerClass = isSegmented
 		? "mt-2 inline-flex w-full p-1 rounded-lg bg-muted/50 border border-border shadow-inner"
 		: isInline
@@ -28,17 +36,24 @@ function RadioGroupField({
 		<fieldset
 			className={`mb-4 ${field.fieldClass ? field.fieldClass : "col-span-full"}`}
 			aria-labelledby={`${field.name}-legend`}
-			aria-describedby={errorId}
+			aria-describedby={error ? errorId : undefined}
 		>
-			<legend id={`${field.name}-legend`} className="sr-only">
+			{/* Legend provides context for the group (WCAG 1.3.1) */}
+			<legend
+				id={`${field.name}-legend`}
+				className="text-sm font-medium leading-none mb-4"
+			>
 				{field.label}
+				{field.required && <span className="text-destructive ml-1">*</span>}
 			</legend>
 
 			<RadioGroup
-				{...props}
+				{...rest} // Spread only valid HTML/ARIA props
 				value={value}
-				onValueChange={(val) => handleChange(field.name, val)}
-				onBlur={() => handleBlur(field.name)}
+				onValueChange={(val) => {
+					handleChange(field.name, val);
+					handleBlur(field.name);
+				}}
 				disabled={isDisabled}
 				className={groupContainerClass}
 			>
@@ -57,16 +72,11 @@ function RadioGroupField({
 							<label
 								key={optionValue}
 								htmlFor={itemId}
-								// focus-within keeps focus indicator on label for modern look
 								className={`
 									relative flex-1 min-w-max text-center px-4 py-2 rounded-md text-sm font-medium 
 									transition-all duration-200 cursor-pointer select-none
 									focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2
-									${
-										isChecked
-											? "bg-background text-primary shadow-sm"
-											: "text-muted-foreground hover:text-foreground"
-									}
+									${isChecked ? "bg-background text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"}
 									${isDisabled ? "opacity-40 cursor-not-allowed" : ""}
 								`}
 							>
@@ -90,20 +100,9 @@ function RadioGroupField({
 									disabled={isDisabled}
 									className={`
 										size-4 flex items-center justify-center rounded-full border border-input transition-all
-										focus:ring-2 focus:ring-ring focus:ring-offset-2 ring
-										data-[state=checked]:bg-primary                     
-                    data-[state=checked]::after:content-[''] 
-                    data-[state=checked]::after:absolute 
-                    data-[state=checked]::after:size-2.5 
-                    data-[state=checked]::after:rounded-full 
-                    data-[state=checked]::after:bg-white 
-                    data-[state=checked]::after:border-[3px] 
-                    data-[state=checked]::after:border-background 
-										${
-											isDisabled
-												? "bg-muted opacity-50"
-												: "bg-background cursor-pointer hover:border-primary/50"
-										}
+										focus:ring-2 focus:ring-ring focus:ring-offset-2
+										${isDisabled ? "bg-muted opacity-50" : "bg-background cursor-pointer hover:border-primary/50"}
+										${error ? "border-destructive" : ""}
 									`}
 								/>
 							</div>
@@ -120,7 +119,7 @@ function RadioGroupField({
 								</label>
 								{optionDescription && !isInline && (
 									<p
-										className={`${isDisabled ? "text-muted-foreground/60" : "text-muted-foreground"}`}
+										className={`text-xs ${isDisabled ? "text-muted-foreground/60" : "text-muted-foreground"}`}
 									>
 										{optionDescription}
 									</p>

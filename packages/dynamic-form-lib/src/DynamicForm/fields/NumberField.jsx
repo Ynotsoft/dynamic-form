@@ -9,28 +9,53 @@ function NumberField({
 	disabled,
 	...props
 }) {
+	const {
+		apiClient,
+		api_URL,
+		charCount,
+		setCharCounts,
+		fileInputRefs,
+		...rest
+	} = props;
+
 	const isDisabled = disabled;
+	const errorId = rest["aria-describedby"];
 
 	return (
 		<input
 			{...field.props}
-			{...props}
+			{...rest}
 			id={field.name}
+			name={field.name}
 			type="number"
 			value={formValues[field.name] ?? ""}
 			onChange={(e) => handleChange(field.name, e.target.value)}
 			onBlur={() => handleBlur(field.name)}
 			disabled={isDisabled}
-			name={field.name}
 			placeholder={field.placeholder || ""}
 			min={field.min}
 			max={field.max}
 			step={field.step || "any"}
-			className={`flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
-				error
-					? "border-red-500 focus-visible:ring-red-500"
-					: "border-input focus-visible:ring-blue-500"
-			} ${isDisabled ? "bg-gray-50 text-gray-600" : "bg-background"}`}
+			aria-invalid={!!error}
+			aria-describedby={error ? errorId : undefined}
+			className={`
+				flex h-10 w-full rounded-md border px-3 py-2 text-sm 
+				transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium 
+				placeholder:text-muted-foreground 
+				focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring 
+				disabled:cursor-not-allowed disabled:opacity-50
+				${
+					error
+						? "border-destructive focus-visible:ring-destructive"
+						: "border-input focus-visible:ring-ring"
+				} 
+				${
+					isDisabled
+						? "bg-muted text-muted-foreground"
+						: "bg-background text-foreground"
+				}
+				${field.className || ""}
+			`}
 		/>
 	);
 }

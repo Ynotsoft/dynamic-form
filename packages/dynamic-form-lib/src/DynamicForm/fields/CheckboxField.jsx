@@ -9,18 +9,28 @@ function CheckboxField({
 	disabled,
 	...props
 }) {
+	// 1. Destructure custom props to prevent React DOM warnings
+	const {
+		apiClient,
+		api_URL,
+		charCount,
+		setCharCounts,
+		fileInputRefs,
+		...rest
+	} = props;
+
 	const isDisabled = disabled;
 	const options = field.options || [];
 	const isInline = field.inline || field.layout === "inline";
-	const errorId = props["aria-describedby"];
+	const errorId = rest["aria-describedby"];
 
-	// UPDATED: Uses theme variables and accent-primary for the orange checkmark
 	const checkboxBaseClass = `
 		size-4 rounded border-input bg-background transition-all accent-primary
-		focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 
+		focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 
 		disabled:cursor-not-allowed disabled:opacity-50
 	`;
 
+	// --- GROUP RENDER (Multiple Options) ---
 	if (options.length > 0) {
 		const selectedValues = Array.isArray(formValues[field.name])
 			? formValues[field.name]
@@ -31,7 +41,6 @@ function CheckboxField({
 				? [...selectedValues, optionValue]
 				: selectedValues.filter((v) => v !== optionValue);
 			handleChange(field.name, newValues);
-			// Trigger blur to clear validation errors immediately
 			handleBlur(field.name);
 		};
 
@@ -39,9 +48,13 @@ function CheckboxField({
 			<fieldset
 				className="mt-2"
 				aria-invalid={!!error}
-				aria-describedby={errorId}
+				aria-describedby={error ? errorId : undefined}
 			>
-				<legend className="sr-only">{field.label}</legend>
+				{/* Legend provides context to Screen Readers for the whole group */}
+				<legend className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mb-4">
+					{field.label}
+					{field.required && <span className="text-destructive ml-1">*</span>}
+				</legend>
 
 				<div
 					className={isInline ? "flex flex-wrap gap-x-6 gap-y-3" : "space-y-4"}
@@ -64,7 +77,7 @@ function CheckboxField({
 								<div className="flex h-6 items-center">
 									<input
 										{...field.props}
-										{...props}
+										{...rest} // Using filtered props
 										type="checkbox"
 										id={itemId}
 										checked={isChecked}
@@ -105,12 +118,13 @@ function CheckboxField({
 		);
 	}
 
+	// --- SINGLE RENDER (Boolean Toggle) ---
 	return (
 		<div className="mt-1 flex items-start group">
 			<div className="flex h-6 items-center">
 				<input
 					{...field.props}
-					{...props}
+					{...rest} // Using filtered props
 					id={field.name}
 					type="checkbox"
 					checked={!!formValues[field.name]}
