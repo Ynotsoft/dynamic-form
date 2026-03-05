@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { DayPicker } from "react-day-picker";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, X } from "lucide-react";
+import { Calendar as CalendarIcon, X, ChevronDown } from "lucide-react";
 import {
 	Popover,
 	PopoverContent,
@@ -27,13 +27,13 @@ function DatePickerField({
 
 	const handleSelect = (date) => {
 		handleChange(field.name, date);
-		if (field.closeOnSelect) setOpen(false);
+		if (field.closeOnSelect !== false) setOpen(false); // Default to close
 		handleBlur(field.name);
 	};
 
 	const handleClear = (e) => {
 		e.preventDefault();
-		e.stopPropagation();
+		e.stopPropagation(); // Critical: prevents the popover from opening/closing
 		handleChange(field.name, null);
 		handleBlur(field.name);
 	};
@@ -48,22 +48,31 @@ function DatePickerField({
 				}}
 			>
 				<PopoverTrigger asChild>
-					<button
-						type="button"
-						id={field.name}
-						disabled={isDisabled}
-						aria-haspopup="dialog"
+					{/* FIX: Changed from <button> to <div> to allow the nested clear button.
+						Added role and tabIndex to maintain accessibility (WCAG 2.1).
+					*/}
+					<div
+						role="combobox"
 						aria-expanded={open}
-						aria-invalid={!!error}
-						aria-describedby={error ? errorId : undefined}
+						aria-haspopup="dialog"
+						aria-controls={field.name + "-calendar"}
+						tabIndex={isDisabled ? -1 : 0}
+						onClick={() => !isDisabled && setOpen(true)}
+						onKeyDown={(e) => {
+							if (isDisabled) return;
+							if (e.key === "Enter" || e.key === " ") {
+								e.preventDefault();
+								setOpen(true);
+							}
+						}}
 						className={`
 							flex h-10 w-full items-center justify-between rounded-md border px-3 py-2 text-sm 
-							transition-all outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
-							${isDisabled ? "bg-muted text-muted-foreground cursor-not-allowed opacity-50" : "bg-background text-foreground hover:border-primary/50"}
-							${error ? "border-destructive focus-visible:ring-destructive" : "border-input"}
+							transition-all outline-none focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2
+							${isDisabled ? "bg-muted text-muted-foreground cursor-not-allowed opacity-50" : "bg-background text-foreground hover:border-primary/50 cursor-pointer"}
+							${error ? "border-destructive focus-within:ring-destructive" : "border-input"}
 						`}
 					>
-						<div className="flex items-center gap-2 overflow-hidden">
+						<div className="flex items-center gap-2 overflow-hidden pointer-events-none">
 							<CalendarIcon
 								className={`h-4 w-4 shrink-0 ${error ? "text-destructive" : "text-muted-foreground"}`}
 								aria-hidden="true"
@@ -83,7 +92,7 @@ function DatePickerField({
 									type="button"
 									aria-label="Clear selected date"
 									onClick={handleClear}
-									className="p-1 hover:bg-muted rounded-full transition-colors focus-visible:ring-1 focus-visible:ring-ring outline-none"
+									className="p-1 hover:bg-muted rounded-full transition-colors focus-visible:ring-1 focus-visible:ring-ring outline-none relative z-10"
 								>
 									<X
 										className="h-3.5 w-3.5 text-muted-foreground"
@@ -91,23 +100,12 @@ function DatePickerField({
 									/>
 								</button>
 							)}
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								width="16"
-								height="16"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								strokeWidth="2"
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								className={`shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+							<ChevronDown
+								className={`h-4 w-4 shrink-0 opacity-50 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
 								aria-hidden="true"
-							>
-								<path d="m6 9 6 6 6-6" />
-							</svg>
+							/>
 						</div>
-					</button>
+					</div>
 				</PopoverTrigger>
 
 				<PopoverContent
@@ -121,32 +119,23 @@ function DatePickerField({
 							selected={selected}
 							onSelect={handleSelect}
 							showOutsideDays
-							className="m-0"
 							classNames={{
 								day_selected:
-									"bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+									"bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground",
 								day_today: "bg-accent text-accent-foreground font-bold",
-								day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-muted rounded-md transition-colors",
+								day: "h-9 w-9 p-0 font-normal hover:bg-muted rounded-md transition-colors",
 								nav_button:
 									"h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 border border-input rounded-md flex items-center justify-center",
-								caption: "flex justify-center pt-1 relative items-center mb-2",
 								caption_label: "text-sm font-medium",
 							}}
 						/>
 					</div>
 
-					<div className="flex items-center justify-between gap-2 border-t border-border p-3 bg-muted/20">
-						<button
-							type="button"
-							onClick={handleClear}
-							className="text-xs font-medium px-3 py-1.5 rounded-md border border-input bg-background hover:bg-muted transition-colors focus-visible:ring-2 focus-visible:ring-ring"
-						>
-							Clear
-						</button>
+					<div className="flex items-center justify-end gap-2 border-t border-border p-3 bg-muted/20">
 						<button
 							type="button"
 							onClick={() => setOpen(false)}
-							className="text-xs font-medium px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:opacity-90 transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+							className="text-xs font-medium px-4 py-2 rounded-md bg-primary text-primary-foreground hover:opacity-90 transition-all focus-visible:ring-2 focus-visible:ring-ring"
 						>
 							Done
 						</button>
