@@ -232,8 +232,8 @@ const DynamicForm = ({
 		else if (field.type === "dateRange") {
 			newValues[fieldName] = [
 				{
-					startDate: value[0].from,
-					endDate: value[0].to,
+					startDate: value.from,
+					endDate: value.to || value.from,
 					key: "selection",
 				},
 			];
@@ -437,7 +437,7 @@ const DynamicForm = ({
 				</div>
 
 				{field.description && (
-					<p class="text-xs mt-1.5 text-gray-400">{field.description}</p>
+					<p className="text-xs mt-1.5 text-gray-400">{field.description}</p>
 				)}
 
 				{/* THIS IS THE ERROR RENDERING LINE */}

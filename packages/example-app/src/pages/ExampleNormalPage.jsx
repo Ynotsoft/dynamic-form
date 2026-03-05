@@ -68,7 +68,17 @@ export default function ExampleNormalPage() {
         required: true,
         placeholder: "Select date",
       },
-
+      {
+        name: "projectDates",
+        label: "Project Timeline",
+        type: "dateRange",
+        required: true,
+        placeholder: "Select date range",
+        value: {
+          from: new Date("2025-01-01"),
+          to: new Date("2025-12-31"),
+        },
+      },
       {
         name: "agreeTerms",
         label: "I agree to terms",
