@@ -22,6 +22,19 @@ import { default as RenderDatePickerField } from "./fields/DatePickerField.jsx";
 import { default as RenderTimeField } from "./fields/timeField.jsx";
 import { default as RenderAlertMessageField } from "./fields/AlertMessageField.jsx";
 
+function dateTimeParser(value) {
+	if (value instanceof Date) {
+		return value;
+	}
+	if (typeof value === "string" && value) {
+		const date = new Date(value);
+		if (!isNaN(date.getTime())) {
+			return date;
+		}
+	}
+	return null;
+}
+
 const DynamicForm = ({
 	apiClient,
 	api_URL,
@@ -137,8 +150,17 @@ const DynamicForm = ({
 						field.options &&
 						field.options.length > 0);
 
-				initialValues[field.name] =
-					defaultValues[field.name] ?? field.value ?? (shouldBeArray ? [] : "");
+				let fieldValue = defaultValues[field.name] ?? field.value ?? (shouldBeArray ? [] : "");
+				
+				// Parse date strings to Date objects for date-related fields
+				const isDateField = ["date", "datetime", "datepicker"].includes(field.type?.toLowerCase());
+				if (isDateField && fieldValue) {
+					console.log(`[BEFORE dateTimeParser] Field: ${field.name}, Type: ${field.type}, Value:`, fieldValue, `Type: ${typeof fieldValue}`);
+					fieldValue = dateTimeParser(fieldValue) || fieldValue;
+					console.log(`[AFTER dateTimeParser] Field: ${field.name}, Parsed Value:`, fieldValue, `Type: ${typeof fieldValue}`, `Is Date: ${fieldValue instanceof Date}`);
+				}
+
+				initialValues[field.name] = fieldValue;
 			});
 			setFormValues(initialValues);
 		}

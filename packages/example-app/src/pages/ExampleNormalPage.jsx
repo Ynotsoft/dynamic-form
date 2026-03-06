@@ -67,6 +67,7 @@ export default function ExampleNormalPage() {
         type: "date",
         required: true,
         placeholder: "Select date",
+        value: "2000-01-15", // Add a date string to test the parser
       },
       {
         name: "projectDates",
