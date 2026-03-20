@@ -1,15 +1,48 @@
 import * as Select from "@radix-ui/react-select";
-import { ChevronDown } from "lucide-react";
-import React from "react";
+import { ChevronDown, Loader2 } from "lucide-react";
+import React, { useState, useEffect } from "react";
 // get arrow down icon from icon hero icon
 
-function SelectField({ field, formValues, handleChange, handleBlur, error }) {
+function SelectField({ field, formValues, handleChange, handleBlur, error, apiClient }) {
 	const value = formValues[field.name] || "";
 	const isDisabled =
 		typeof field.disabled === "function"
 			? field.disabled(formValues)
 			: field.disabled;
-	const options = field.options || [];
+
+	const [options, setOptions] = useState(field.options || []);
+	const [isLoading, setIsLoading] = useState(false);
+
+	useEffect(() => {
+		const loadOptions = async () => {
+			if (!field.optionsUrl || !apiClient) {
+				if (field.options) setOptions(field.options);
+				return;
+			}
+
+			setIsLoading(true);
+			try {
+				const config = field.queryParams ? { params: field.queryParams } : {};
+				const response = await apiClient(field.optionsUrl, config);
+				const data = response.data || response;
+				const results = Array.isArray(data) ? data : [];
+
+				const mappedResults = results.map(item => ({
+					value: item[field.valueId || "key"] || item.key,
+					label: item[field.labelId || "value"] || item.value
+				}));
+
+				setOptions(mappedResults);
+			} catch (err) {
+				console.error("Failed to load options for SelectField:", err);
+				setOptions(field.options || []);
+			} finally {
+				setIsLoading(false);
+			}
+		};
+
+		loadOptions();
+	}, [field.optionsUrl, field.options, apiClient, field.valueId, field.labelId, field.queryParams]);
 
 	return (
 		<>
@@ -23,21 +56,20 @@ function SelectField({ field, formValues, handleChange, handleBlur, error }) {
 					id={field.name}
 					onBlur={() => handleBlur(field.name)}
 					className={`inline-flex items-center justify-between w-full h-10 rounded-md border px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-background transition-all
-          ${
-						error
+          ${error
 							? "border-red-500 focus-visible:ring-red-500"
 							: "border-input focus-visible:ring-blue-500"
-					}
+						}
           ${isDisabled ? "cursor-not-allowed opacity-50" : ""}
         `}
 				>
 					<Select.Value
 						placeholder={
-							field.placeholder || `Select ${field.label?.toLowerCase() || ""}`
+							isLoading ? "Loading..." : field.placeholder || `Select ${field.label?.toLowerCase() || ""}`
 						}
 					/>
-					<Select.Icon className="ml-2 text-gray-500">
-						<ChevronDown className="w-4 h-4" />
+					<Select.Icon className="ml-2 text-gray-500 flex items-center">
+						{isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ChevronDown className="w-4 h-4" />}
 					</Select.Icon>
 				</Select.Trigger>
 
