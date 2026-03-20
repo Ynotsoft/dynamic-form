@@ -22,8 +22,24 @@ function SelectField({ field, formValues, handleChange, handleBlur, error, apiCl
 
 			setIsLoading(true);
 			try {
-				const config = field.queryParams ? { params: field.queryParams } : {};
-				const response = await apiClient(field.optionsUrl, config);
+				let finalUrl = field.optionsUrl;
+				let config = {};
+
+				if (field.queryParams) {
+					const params = typeof field.queryParams === "function"
+						? field.queryParams(formValues)
+						: field.queryParams;
+
+					if (typeof params === "string") {
+						// e.g. "?EntitlementUUID=..."
+						finalUrl += params.startsWith("?") ? params : `?${params}`;
+					} else {
+						// e.g. { param1: "value" }
+						config = { params };
+					}
+				}
+
+				const response = await apiClient(finalUrl, config);
 				const data = response.data || response;
 				const results = Array.isArray(data) ? data : [];
 
@@ -42,7 +58,16 @@ function SelectField({ field, formValues, handleChange, handleBlur, error, apiCl
 		};
 
 		loadOptions();
-	}, [field.optionsUrl, field.options, apiClient, field.valueId, field.labelId, field.queryParams]);
+	}, [
+		field.optionsUrl,
+		field.options,
+		apiClient,
+		field.valueId,
+		field.labelId,
+		// Instead of depending directly on field.queryParams (which triggers nothing when formValues change),
+		// stringify the evaluated params so it refetches ONLY when the inputs of the API call change.
+		JSON.stringify(typeof field.queryParams === "function" ? field.queryParams(formValues) : field.queryParams)
+	]);
 
 	return (
 		<>
