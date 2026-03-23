@@ -42,6 +42,14 @@ function DateRangeField({
 		handleBlur(field.name);
 	};
 
+	const disabledDays = [];
+	if (field.maxDate) {
+		disabledDays.push({ after: new Date(field.maxDate) });
+	}
+	if (field.minDate) {
+		disabledDays.push({ before: new Date(field.minDate) });
+	}
+
 	return (
 		<div className="relative w-full">
 			<Popover open={open} onOpenChange={setOpen}>
@@ -119,6 +127,7 @@ function DateRangeField({
 								)
 							}
 							showOutsideDays
+							disabled={disabledDays}
 							classNames={{
 								day_range_start:
 									"bg-primary text-primary-foreground rounded-l-md",

@@ -72,6 +72,14 @@ function DayTimePickerField({ field, formValues, handleChange, handleBlur, error
 
   const handleClear = () => handleChange(field.name, null);
 
+  const disabledDays = [];
+  if (field.maxDate) {
+    disabledDays.push({ after: new Date(field.maxDate) });
+  }
+  if (field.minDate) {
+    disabledDays.push({ before: new Date(field.minDate) });
+  }
+
   return (
     <div className="relative">
       <Popover open={open} onOpenChange={setOpen}>
@@ -135,6 +143,7 @@ function DayTimePickerField({ field, formValues, handleChange, handleBlur, error
               selected={selected}
               onSelect={handleSelect}
               showOutsideDays
+              disabled={disabledDays}
               className="p-0"
               classNames={{
                 day_selected: "bg-blue-600 text-white hover:bg-blue-600 hover:text-white focus:bg-blue-600 focus:text-white rounded-md",

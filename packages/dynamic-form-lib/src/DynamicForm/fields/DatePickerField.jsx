@@ -25,6 +25,14 @@ function DatePickerField({
 		: null;
 	const errorId = props["aria-describedby"];
 
+	const disabledDays = [];
+	if (field.maxDate) {
+		disabledDays.push({ after: new Date(field.maxDate) });
+	}
+	if (field.minDate) {
+		disabledDays.push({ before: new Date(field.minDate) });
+	}
+
 	const handleSelect = (date) => {
 		handleChange(field.name, date);
 		if (field.closeOnSelect !== false) setOpen(false); // Default to close
@@ -119,6 +127,7 @@ function DatePickerField({
 							selected={selected}
 							onSelect={handleSelect}
 							showOutsideDays
+							disabled={disabledDays}
 							classNames={{
 								day_selected:
 									"bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground",
