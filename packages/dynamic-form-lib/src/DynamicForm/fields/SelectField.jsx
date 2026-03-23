@@ -49,10 +49,6 @@ function SelectField({ field, formValues, handleChange, handleBlur, error, apiCl
 				}));
 
 				setOptions(mappedResults);
-				if (field.name + "_count" in formValues) {
-					handleChange(field.name + "_count", mappedResults.length);
-				}
-
 
 			} catch (err) {
 				console.error("Failed to load options for SelectField:", err);
