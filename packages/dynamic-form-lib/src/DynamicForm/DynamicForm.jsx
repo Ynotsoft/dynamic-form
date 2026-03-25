@@ -41,10 +41,10 @@ const DynamicForm = ({
 	footerMode = "normal",
 	formDefinition,
 	returnType = false,
-	sendFormValues = () => {},
+	sendFormValues = () => { },
 	children,
 	defaultValues = {},
-	onFieldsChange = () => {},
+	onFieldsChange = () => { },
 	debugMode = false,
 }) => {
 	const [formValues, setFormValues] = useState({ ...defaultValues });
@@ -84,6 +84,10 @@ const DynamicForm = ({
 
 	const loadOptionsForField = async (field, dependentValue = null) => {
 		// Check if apiClient is provided, if not throw an error
+
+		if (field.optionsUrl && !field.preloadOptions) {
+			return;
+		}
 		if (!apiClient) {
 			const errorMsg = `apiClient prop is required when using fields with optionsUrl. Field "${field.name}" requires optionsUrl but no apiClient was provided.`;
 
@@ -151,7 +155,6 @@ const DynamicForm = ({
 						field.options.length > 0);
 
 				let fieldValue = defaultValues[field.name] ?? field.value ?? (shouldBeArray ? [] : "");
-				
 				// Parse date strings to Date objects for date-related fields
 				const isDateField = ["date", "datetime", "datepicker"].includes(field.type?.toLowerCase());
 				if (isDateField && fieldValue) {
