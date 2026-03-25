@@ -33,6 +33,10 @@ function SearchSelectField({
       ? currentRawValue
       : [currentRawValue];
     return values.map((val) => {
+      // Direct object mapping formatting if passed during load
+      if (val && typeof val === 'object' && val.value !== undefined) {
+        return { value: val.value, label: val.label || val.value };
+      }
       const foundInOptions = options.find((o) => o.value === val);
       if (foundInOptions) return foundInOptions;
       if (selectedOptionsCache[val]) return selectedOptionsCache[val];
@@ -94,17 +98,20 @@ function SearchSelectField({
       if (!option) return;
       setSelectedOptionsCache((prev) => ({ ...prev, [option.value]: option }));
 
+      const optionToSave = { value: option.value, label: option.label };
       let newRawValue;
       if (isSingleSelect) {
-        newRawValue = [option.value];
+        newRawValue = [optionToSave];
         setIsOpen(false);
       } else {
         const currentArray = Array.isArray(currentRawValue)
           ? currentRawValue
           : [];
-        newRawValue = currentArray.includes(option.value)
-          ? currentArray.filter((v) => v !== option.value)
-          : [...currentArray, option.value];
+
+        const exists = currentArray.some(v => (v?.value ?? v) === option.value);
+        newRawValue = exists
+          ? currentArray.filter((v) => (v?.value ?? v) !== option.value)
+          : [...currentArray, optionToSave];
       }
       handleChange(field.name, newRawValue);
 
@@ -196,7 +203,7 @@ function SearchSelectField({
     const currentArray = Array.isArray(currentRawValue) ? currentRawValue : [];
     const newValue = isSingleSelect
       ? []
-      : currentArray.filter((v) => v !== valueToRemove);
+      : currentArray.filter((v) => (v?.value ?? v) !== valueToRemove);
     handleChange(field.name, newValue);
 
     // --- FIX: Trigger blur after removal ---
