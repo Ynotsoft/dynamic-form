@@ -49,7 +49,7 @@ function SelectField({ field, formValues, handleChange, handleBlur, error, apiCl
 				}));
 
 				setOptions(mappedResults);
-				
+
 				if (field.name + "_count" in formValues) {
 					handleChange(field.name + "_count", mappedResults.length);
 				}
@@ -153,7 +153,6 @@ function SelectField({ field, formValues, handleChange, handleBlur, error, apiCl
 					</Select.Content>
 				</Select.Portal>
 			</Select.Root>
-			{error && <p className="mt-1 text-sm text-red-500">{error}</p>}
 		</>
 	);
 }

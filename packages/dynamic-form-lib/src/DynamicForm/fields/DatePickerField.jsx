@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { DayPicker } from "react-day-picker";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, X, ChevronDown } from "lucide-react";
@@ -18,12 +18,23 @@ function DatePickerField({
 	disabled,
 	...props
 }) {
+	const getValidDate = (value) => {
+		if (!value) return null;
+		const parsed = new Date(value);
+		return Number.isNaN(parsed.getTime()) ? null : parsed;
+	};
+
 	const [open, setOpen] = useState(false);
 	const isDisabled = disabled;
-	const selected = formValues[field.name]
-		? new Date(formValues[field.name])
-		: null;
+	const selected = getValidDate(formValues[field.name]);
+	const [displayMonth, setDisplayMonth] = useState(selected || new Date());
 	const errorId = props["aria-describedby"];
+
+	useEffect(() => {
+		if (open) {
+			setDisplayMonth(selected || new Date());
+		}
+	}, [open, selected]);
 
 	const disabledDays = [];
 	if (field.maxDate) {
@@ -34,8 +45,17 @@ function DatePickerField({
 	}
 
 	const handleSelect = (date) => {
-		handleChange(field.name, date);
+		handleChange(field.name, date || null);
+		if (date) setDisplayMonth(date);
 		if (field.closeOnSelect !== false) setOpen(false); // Default to close
+		handleBlur(field.name);
+	};
+
+	const handleToday = () => {
+		const today = new Date();
+		handleChange(field.name, today);
+		setDisplayMonth(today);
+		if (field.closeOnSelect !== false) setOpen(false);
 		handleBlur(field.name);
 	};
 
@@ -43,6 +63,7 @@ function DatePickerField({
 		e.preventDefault();
 		e.stopPropagation(); // Critical: prevents the popover from opening/closing
 		handleChange(field.name, null);
+		setDisplayMonth(new Date());
 		handleBlur(field.name);
 	};
 
@@ -125,6 +146,8 @@ function DatePickerField({
 						<DayPicker
 							mode="single"
 							selected={selected}
+							month={displayMonth}
+							onMonthChange={setDisplayMonth}
 							onSelect={handleSelect}
 							showOutsideDays
 							disabled={disabledDays}
@@ -140,7 +163,14 @@ function DatePickerField({
 						/>
 					</div>
 
-					<div className="flex items-center justify-end gap-2 border-t border-border p-3 bg-muted/20">
+					<div className="flex items-center justify-between gap-2 border-t border-border p-3 bg-muted/20">
+						<button
+							type="button"
+							onClick={handleToday}
+							className="text-xs font-medium px-4 py-2 rounded-md border border-input bg-background hover:bg-muted transition-all focus-visible:ring-2 focus-visible:ring-ring"
+						>
+							Today
+						</button>
 						<button
 							type="button"
 							onClick={() => setOpen(false)}

@@ -13,6 +13,8 @@ function SearchSelectField({
 }) {
   const isDisabled = disabled;
   const isSingleSelect = field.selectMode !== "multiple";
+  const returnValueOnly =
+    field.returnValueOnly === true;
 
   const [options, setOptions] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -98,7 +100,9 @@ function SearchSelectField({
       if (!option) return;
       setSelectedOptionsCache((prev) => ({ ...prev, [option.value]: option }));
 
-      const optionToSave = { value: option.value, label: option.label };
+      const optionToSave = returnValueOnly
+        ? option.value
+        : { value: option.value, label: option.label };
       let newRawValue;
       if (isSingleSelect) {
         newRawValue = [optionToSave];
@@ -127,6 +131,7 @@ function SearchSelectField({
       handleChange,
       handleBlur,
       isSingleSelect,
+      returnValueOnly,
     ],
   );
 
