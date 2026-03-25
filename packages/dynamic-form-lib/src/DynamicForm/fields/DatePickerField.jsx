@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { DayPicker } from "react-day-picker";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, X, ChevronDown } from "lucide-react";
@@ -26,13 +26,23 @@ function DatePickerField({
 
 	const [open, setOpen] = useState(false);
 	const isDisabled = disabled;
-	const selected = getValidDate(formValues[field.name]);
+	const rawValue = formValues[field.name];
+	const selected = useMemo(() => getValidDate(rawValue), [rawValue]);
 	const [displayMonth, setDisplayMonth] = useState(selected || new Date());
 	const errorId = props["aria-describedby"];
 
 	useEffect(() => {
 		if (open) {
-			setDisplayMonth(selected || new Date());
+			const targetMonth = selected || new Date();
+			setDisplayMonth((prevMonth) => {
+				if (
+					prevMonth.getFullYear() === targetMonth.getFullYear() &&
+					prevMonth.getMonth() === targetMonth.getMonth()
+				) {
+					return prevMonth;
+				}
+				return targetMonth;
+			});
 		}
 	}, [open, selected]);
 
