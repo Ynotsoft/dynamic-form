@@ -193,6 +193,8 @@ function SearchSelectField({
   }, [isOpen, loadOptions, searchTerm]);
 
   useEffect(() => {
+    if (!isOpen) return;
+
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setIsOpen(false);
@@ -201,7 +203,7 @@ function SearchSelectField({
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [field.name, handleBlur]);
+  }, [isOpen, field.name, handleBlur]);
 
   const handleRemove = (e, valueToRemove) => {
     e.stopPropagation();
