@@ -12,6 +12,9 @@ function SelectField({ field, formValues, handleChange, handleBlur, error, apiCl
 
 	const [options, setOptions] = useState(field.options || []);
 	const [isLoading, setIsLoading] = useState(false);
+	const refreshTrigger = typeof field.refresh === "function"
+		? field.refresh(formValues)
+		: field.refresh;
 
 	useEffect(() => {
 		const loadOptions = async () => {
@@ -70,6 +73,7 @@ function SelectField({ field, formValues, handleChange, handleBlur, error, apiCl
 		apiClient,
 		field.valueId,
 		field.labelId,
+		JSON.stringify(refreshTrigger),
 		// Instead of depending directly on field.queryParams (which triggers nothing when formValues change),
 		// stringify the evaluated params so it refetches ONLY when the inputs of the API call change.
 		JSON.stringify(typeof field.queryParams === "function" ? field.queryParams(formValues) : field.queryParams)
