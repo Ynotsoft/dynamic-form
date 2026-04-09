@@ -41,8 +41,9 @@ function DatePickerField({
 	return (
 		<div className="relative w-full">
 			<Popover
-				open={open}
+				open={isDisabled ? false : open}
 				onOpenChange={(isOpen) => {
+					if (isDisabled) return;
 					setOpen(isOpen);
 					if (!isOpen) handleBlur(field.name);
 				}}

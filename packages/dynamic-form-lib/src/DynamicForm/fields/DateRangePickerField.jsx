@@ -44,7 +44,10 @@ function DateRangeField({
 
 	return (
 		<div className="relative w-full">
-			<Popover open={open} onOpenChange={setOpen}>
+			<Popover open={disabled ? false : open} onOpenChange={(isOpen) => {
+				if (disabled) return;
+				setOpen(isOpen);
+			}}>
 				<PopoverTrigger asChild>
 					<div
 						role="combobox"
@@ -54,6 +57,7 @@ function DateRangeField({
 						tabIndex={disabled ? -1 : 0}
 						onClick={() => !disabled && setOpen(true)}
 						onKeyDown={(e) => {
+							if (disabled) return;
 							if (e.key === "Enter" || e.key === " ") {
 								e.preventDefault();
 								setOpen(true);

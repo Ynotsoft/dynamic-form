@@ -63,11 +63,12 @@ export default function ExampleNormalPage() {
       },
       {
         name: "birthDate",
-        label: "Birth Date",
+        label: "Birth Datesss",
         type: "date",
         required: true,
         placeholder: "Select date",
-        value: "2000-01-15", // Add a date string to test the parser
+        value: "2026-03-25T13:00:00.000Z",
+        disabled: true,
       },
       {
         name: "projectDates",

@@ -74,15 +74,19 @@ function DayTimePickerField({ field, formValues, handleChange, handleBlur, error
 
   return (
     <div className="relative">
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover open={field.disabled ? false : open} onOpenChange={(isOpen) => {
+        if (field.disabled) return;
+        setOpen(isOpen);
+      }}>
         <PopoverTrigger asChild>
           <button
             type="button"
             id={field.name}
+            disabled={field.disabled}
             aria-haspopup="dialog"
             aria-expanded={open}
-            onClick={() => setOpen(true)}
-            onKeyDown={(e) => e.key === "Enter" && setOpen(true)}
+            onClick={() => !field.disabled && setOpen(true)}
+            onKeyDown={(e) => !field.disabled && e.key === "Enter" && setOpen(true)}
             className={`
               group inline-flex items-center justify-between gap-2
               w-full h-10 rounded-lg border bg-white
