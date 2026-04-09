@@ -262,8 +262,17 @@ Search for selections and select multiple/single
       optionsUrl: "/api/users/search", // API endpoint
       minSearchLength: 2, // Minimum characters before search (default: 2)
       selectMode: "single", // 'single' | 'multiple' (default: 'single')
+      returnValueOnly: true, // true: ['user@email.com'], false: [{ value, label }]
     }
 ```
+
+Output format for `searchselect` values:
+- `returnValueOnly: false` (default) -> `[{ value: "Aaron.ssss@ssss.gov.au", label: "Aaron ssss" }]`
+- `returnValueOnly: true` -> `["Aaron.ssss@ssss.gov.au"]`
+
+Backward compatibility aliases are also supported:
+- `return: true`
+- `reuturn: true`
 
 ### 7\. Checkbox Field
 
