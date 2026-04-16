@@ -19,7 +19,7 @@ function RadioGroupField({
 		...rest
 	} = props;
 
-	const value = formValues[field.name] || "";
+	const value = formValues[field.name] ?? "";
 	const isDisabled = disabled;
 	const options = field.options || [];
 	const isInline = field.inline || false;
