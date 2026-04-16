@@ -103,11 +103,10 @@ function RadioGroupField({
 							<div className="ml-3 text-sm leading-6">
 								<label
 									htmlFor={itemId}
-									className={`font-medium transition-colors ${
-										isDisabled
+									className={`font-medium transition-colors ${isDisabled
 											? "text-muted-foreground"
 											: "text-foreground cursor-pointer group-hover:text-primary"
-									}`}
+										}`}
 								>
 									{optionLabel}
 								</label>
