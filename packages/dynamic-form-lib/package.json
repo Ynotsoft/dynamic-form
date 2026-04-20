@@ -1,6 +1,6 @@
 {
   "name": "ynotsoft-dynamic-form",
-  "version": "1.0.104",
+  "version": "1.0.105",
   "description": "DynamicForm React component library",
   "type": "module",
   "main": "./dist/dynamic-form.umd.cjs",
@@ -71,3 +71,4 @@
     "tailwind-merge": "^3.4.0"
   }
 }
+
