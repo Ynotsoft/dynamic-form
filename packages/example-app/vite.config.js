@@ -21,12 +21,6 @@ export default defineConfig({
         "dynamic-form-lib",
         "src",
       ),
-      "ynotsoft-dynamic-grid": path.resolve(
-        __dirname,
-        "..",
-        "dynamic-grid-lib",
-        "src",
-      ),
       "@": path.resolve(__dirname, "..", "dynamic-form-lib", "src"),
     },
   },
