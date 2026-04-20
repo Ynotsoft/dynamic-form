@@ -52,6 +52,7 @@ export type GridProps<TRecord extends Record<string, any>> = {
 	apiClient: ApiClientLike;
 	pageLength?: number;
 	refresh?: boolean;
+	showExport?: boolean;
 	setRefreshGrid?: (value: boolean) => void;
 	onSelectedRows?: (selected: TRecord[]) => void;
 	children?: ReactNode;

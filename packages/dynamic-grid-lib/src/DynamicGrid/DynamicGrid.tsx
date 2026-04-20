@@ -114,8 +114,9 @@ const GridImpl = <TRecord extends Record<string, any>>({
 	apiClient,
 	pageLength = 10,
 	refresh,
+	showExport = false,
 	setRefreshGrid,
-	onSelectedRows = () => {},
+	onSelectedRows = () => { },
 	children,
 }: GridProps<TRecord>) => {
 	const [totalCount, setTotalCount] = useState<number>(0);
@@ -409,37 +410,39 @@ const GridImpl = <TRecord extends Record<string, any>>({
 							<div
 								className={`flex gap-2 ${customFiltersRenderer ? "justify-end" : ""}`}
 							>
-								<button
-									type="button"
-									onClick={() => void exportList()}
-									className="btn bg-primary text-primary-foreground  hover:bg-primary/90 "
-								>
-									{isLoading ? (
-										<svg
-											className="animate-spin h-5 w-5 text-white"
-											xmlns="http://www.w3.org/2000/svg"
-											fill="none"
-											viewBox="0 0 24 24"
-										>
-											<title id="svg-title">Loading export...</title>
-											<circle
-												className="opacity-25"
-												cx="12"
-												cy="12"
-												r="10"
-												stroke="currentColor"
-												strokeWidth="4"
-											/>
-											<path
-												className="opacity-75"
-												fill="currentColor"
-												d="M4 12a8 8 0 018-8v8H4z"
-											/>
-										</svg>
-									) : (
-										"Export"
-									)}
-								</button>
+								{showExport && (
+									<button
+										type="button"
+										onClick={() => void exportList()}
+										className="btn bg-primary text-primary-foreground  hover:bg-primary/90 "
+									>
+										{isLoading ? (
+											<svg
+												className="animate-spin h-5 w-5 text-white"
+												xmlns="http://www.w3.org/2000/svg"
+												fill="none"
+												viewBox="0 0 24 24"
+											>
+												<title id="svg-title">Loading export...</title>
+												<circle
+													className="opacity-25"
+													cx="12"
+													cy="12"
+													r="10"
+													stroke="currentColor"
+													strokeWidth="4"
+												/>
+												<path
+													className="opacity-75"
+													fill="currentColor"
+													d="M4 12a8 8 0 018-8v8H4z"
+												/>
+											</svg>
+										) : (
+											"Export"
+										)}
+									</button>
+								)}
 
 								<button
 									type="button"
