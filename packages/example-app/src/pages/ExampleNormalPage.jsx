@@ -18,7 +18,7 @@ export default function ExampleNormalPage() {
     entitlementUUID: "f2444f0a-5a1e-4fe4-8e86-cb9f3a8a23fc",
     behalfOfLanLogonName: "",
   };
-   const normaliseShowIf = (showIf) => {
+  const normaliseShowIf = (showIf) => {
     if (!showIf) return undefined;
     if (typeof showIf === 'function') return showIf;
 
@@ -132,6 +132,12 @@ export default function ExampleNormalPage() {
       name: "domainLanLogonName_count",
       type: "hidden",
       value: 0,
+    },
+    {
+      name: "content",
+      label: "Content",
+      type: 'html',
+      content: '<p>Start writing </p>'
     },
 
     {
