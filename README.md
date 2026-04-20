@@ -6,10 +6,8 @@ This project uses **Node** as the package manager and **Vite** with custom path 
 
 ### 1\. Prerequisites
 
-You **must** have **node v24** installed to manage dependencies and run development scripts.  
+You **must** have **node v22 or higher** (v24 recommended) installed to manage dependencies and run development scripts.  
 
-> Can now use npm instead of bun </br>
-> node ^v22.7.0 required
 
 ### 2\. Install Dependencies
 
