@@ -30,8 +30,8 @@
     "react-select": "^5.10.2",
     "sonner": "^2.0.7",
     "tailwindcss": "^4.1.17",
-    "ynotsoft-dynamic-form": "workspace:*",
-    "ynotsoft-dynamic-grid": "workspace:*"
+    "ynotsoft-dynamic-form": "*",
+    "ynotsoft-dynamic-grid": "*"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
