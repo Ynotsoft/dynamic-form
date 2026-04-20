@@ -7,7 +7,6 @@ on:
     paths:
       - "packages/dynamic-form-lib/**"
   workflow_dispatch:
-    # Allows for a manual re-run if a build failed due to a version conflict
     inputs:
       reason:
         description: "Reason for manual trigger (optional)"
@@ -21,23 +20,26 @@ permissions:
 jobs:
   publish-form:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # Required for OIDC
     env:
       PKG_DIR: "packages/dynamic-form-lib"
       PKG_NAME: "ynotsoft-dynamic-form"
-      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: actions/checkout@v4
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
 
-      - name: Set up .npmrc
-        run: echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > .npmrc
+      - name: Update npm
+        run: npm install -g npm@latest
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Build Library
         run: npm run build --workspace=${{ env.PKG_NAME }}
@@ -45,13 +47,9 @@ jobs:
       - name: Determine Version and Tag
         id: info
         run: |
-          # Extract version and name from the package.json within the lib folder
           VER=$(node -p "require('./${{ env.PKG_DIR }}/package.json').version")
           NAME=$(node -p "require('./${{ env.PKG_DIR }}/package.json').name")
-          
-          # Determine if this is a 'next' (pre-release) or 'latest' tag
           if [[ "$VER" == *-* ]]; then TAG="next"; else TAG="latest"; fi
-          
           echo "version=$VER" >> "$GITHUB_OUTPUT"
           echo "name=$NAME" >> "$GITHUB_OUTPUT"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
@@ -60,13 +58,10 @@ jobs:
         run: |
           PKG="${{ steps.info.outputs.name }}"
           VER="${{ steps.info.outputs.version }}"
-          
-          # Use npm view to check if this specific version is already live
           if npm view "$PKG@$VER" version >/dev/null 2>&1; then
-            echo "::error::Version $VER of $PKG already exists on NPM. You must update package.json in your local branch and push again."
+            echo "::error::Version $VER of $PKG already exists on NPM."
             exit 1
           fi
 
       - name: Publish to npm
-        run: |
-          npm publish ./${{ env.PKG_DIR }} --access public --provenance --tag "${{ steps.info.outputs.tag }}"
+        run: npm publish ./${{ env.PKG_DIR }} --access public --provenance --tag "${{ steps.info.outputs.tag }}"
