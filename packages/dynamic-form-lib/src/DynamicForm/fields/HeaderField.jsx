@@ -17,11 +17,9 @@ function HeaderField({ field }) {
 
     // Visual size mappings - CORRECTED
     const sizeClasses = {
-        xs: "text-xs font-semibold",
         sm: "text-sm font-semibold",
         base: "text-base font-bold",
         lg: "text-lg font-bold",
-        xl: "text-xl font-extrabold",
     };
 
     // Alignment mappings
@@ -33,7 +31,7 @@ function HeaderField({ field }) {
 
     // Primary header class
     const headerClass = `
-    ${sizeClasses[size] || sizeClasses.lg} 
+    ${sizeClasses[size]} 
     ${alignClasses[align] || alignClasses.left}
     ${customClass}
     text-gray-900 tracking-tight w-full 
