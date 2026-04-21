@@ -3,17 +3,23 @@ import React from "react";
 function HeaderField({ field }) {
 	const text = field.text || field.label || "";
 	const description = field.description || "";
-	// Size: 'md', 'lg', 'xl', '2xl', '3xl' - Use '2xl' as the default heading size
-	const size = field.size || "2xl";
-	// Separator: Use 'line' for a divider, 'space' for extra vertical padding, or false/undefined for none
-	const separator = field.separator || false;
+	
+	// Size: Visual size for the header
+	const size = field.size || "lg";
+	
+	// Separator/Underline: 'line' for border, 'space' for padding, or false
+	const separator = field.separator || field.underline || false;
+	
 	// Alignment: 'left', 'center', 'right'
 	const align = field.align || "left";
+	
 	const customClass = field.className || "";
 
-	// Size mappings for font size and weight
-	// Note: We use h2 and h3 structure for semantic flexibility.
+	// Visual size mappings
 	const sizeClasses = {
+		xs: "text-xs font-semibold",
+		sm: "text-sm font-semibold",
+		base: "text-base font-bold",
 		md: "text-lg font-semibold",
 		lg: "text-xl font-bold",
 		xl: "text-2xl font-extrabold",
@@ -28,36 +34,32 @@ function HeaderField({ field }) {
 		right: "text-right",
 	};
 
-	// Separator styling based on the 'separator' field
+	// Separator styling
 	const separatorClasses = {
 		line: "border-b border-gray-200 pb-3",
 		space: "pb-4",
 		false: "",
 	};
 
-	// Primary header class, ensuring full width and responsive styling
+	// Primary header class
 	const headerClass = `
-    ${sizeClasses[size] || sizeClasses["2xl"]} 
+    ${sizeClasses[size] || sizeClasses.lg} 
     ${alignClasses[align] || alignClasses.left}
     ${customClass}
     text-gray-900 tracking-tight w-full 
   `.trim();
 
-	// Description class with subdued text color
-	// We use text-lg for description for better visual hierarchy contrast
+	// Description class
 	const descriptionClass = `
-    mt-1 text-lg text-gray-500 w-full
+    mt-1 text-base text-gray-500 w-full
     ${alignClasses[align] || alignClasses.left}
   `.trim();
 
 	return (
-		// Wrapper div ensures the component spans the full width of the container
 		<div
-			className={`my-6 col-span-full w-full border-b border-gray-300 pb-2 ${separatorClasses[separator] || separatorClasses.false}`}
+			className={`my-6 col-span-full w-full ${separatorClasses[separator] || ""}`}
 		>
-			{/* Use h2 for the main title as it is the most common use case for a form section header */}
 			<h2 className={headerClass}>{text}</h2>
-			{/* Use p tag for the descriptive text */}
 			{description && <p className={descriptionClass}>{description}</p>}
 		</div>
 	);
