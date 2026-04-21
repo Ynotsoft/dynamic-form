@@ -15,11 +15,11 @@ function HeaderField({ field }) {
     
     const customClass = field.className || "";
 
-    // Visual size mappings - CORRECTED
+    // Visual size mappings - PROPER HEADER SIZES
     const sizeClasses = {
-        sm: "text-sm font-semibold",
-        base: "text-base font-bold",
-        lg: "text-lg font-bold",
+        sm: "text-xl font-bold",      // Small header = 20px
+        base: "text-2xl font-bold",   // Base header = 24px
+        lg: "text-3xl font-bold",     // Large header = 30px
     };
 
     // Alignment mappings
@@ -31,7 +31,7 @@ function HeaderField({ field }) {
 
     // Primary header class
     const headerClass = `
-    ${sizeClasses[size]} 
+    ${sizeClasses[size] || sizeClasses.lg} 
     ${alignClasses[align] || alignClasses.left}
     ${customClass}
     text-gray-900 tracking-tight w-full 
