@@ -99,7 +99,15 @@ export default function ExampleNormalPage() {
         ],
       readOnly: !allowedOnBehalfOf,
       description: !allowedOnBehalfOf ? "This entitlement does not allow on behalf of requests." : "Select the user(s) you are requesting access on behalf of. This entitlement does not allow on behalf of requests.",
-    }, {
+    },,
+    {
+      name: "onBehalfLanLogonName",
+      label: "User Picker",
+      type: "header",
+      size: "xs",
+      underline: true,
+    },
+    {
       name: "onBehalfLanLogonName",
       label: "Select User",
       returnValueOnly: true,
@@ -162,6 +170,7 @@ export default function ExampleNormalPage() {
   return (
     <div className="p-6   rounded shadow border">
       <h2 className="text-xl font-semibold mb-4">Normal Page Form</h2>
+
       <DynamicForm
         formDefinition={formDefinition}
         returnType={false}
