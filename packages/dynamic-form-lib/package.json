@@ -1,6 +1,6 @@
 {
   "name": "ynotsoft-dynamic-form",
-  "version": "1.0.101",
+  "version": "1.0.108",
   "description": "DynamicForm React component library",
   "type": "module",
   "main": "./dist/dynamic-form.umd.cjs",
@@ -14,7 +14,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Ynotsoft/dynamic-form"
+    "url": "git+https://github.com/Ynotsoft/dynamic-form.git"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   },
   "files": [
     "dist",

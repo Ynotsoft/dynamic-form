@@ -5,7 +5,6 @@ import { ThemeToggle } from "./components/themeToggle.jsx";
 import ExampleNormalPage from "./pages/ExampleNormalPage.jsx";
 import ExampleDrawer from "./pages/ExampleDrawer.jsx";
 import ExampleDialog from "./pages/ExampleDialog.jsx";
-import ExampleGridPage from "./pages/ExampleGridPage.jsx"; // Importing the new component
 
 export default function App() {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -26,12 +25,6 @@ export default function App() {
               className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded"
             >
               Normal Page
-            </Link>
-            <Link
-              to="/grid"
-              className="px-4 py-2 bg-green-600 text-white hover:bg-green-700 rounded"
-            >
-              Grid Page
             </Link>
           </nav>
 
@@ -56,7 +49,6 @@ export default function App() {
           {/* Route Definitions */}
           <Routes>
             <Route path="/" element={<ExampleNormalPage />} />
-            <Route path="/grid" element={<ExampleGridPage />} />
           </Routes>
 
           {/* Overlays (Drawer/Dialog) */}

@@ -1,4 +1,4 @@
-name: Publish Libraries
+name: Publish Form Library
 
 on:
   push:
@@ -6,61 +6,43 @@ on:
       - main
     paths:
       - "packages/dynamic-form-lib/**"
-      - "packages/dynamic-grid-lib/**"
   workflow_dispatch:
     inputs:
-      target_package:
-        description: "Which package to manually publish?"
-        required: true
-        default: "form"
-        type: choice
-        options:
-          - form
-          - grid
+      reason:
+        description: "Reason for manual trigger (optional)"
+        required: false
+        default: "Manual retry"
 
 permissions:
   contents: read
   id-token: write
 
 jobs:
-  changes:
-    runs-on: ubuntu-latest
-    outputs:
-      form: ${{ steps.filter.outputs.form }}
-      grid: ${{ steps.filter.outputs.grid }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            form:
-              - 'packages/dynamic-form-lib/**'
-            grid:
-              - 'packages/dynamic-grid-lib/**'
-
   publish-form:
-    needs: changes
-    if: |
-      needs.changes.outputs.form == 'true' || 
-      (github.event_name == 'workflow_dispatch' && github.event.inputs.target_package == 'form')
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # Required for OIDC
     env:
       PKG_DIR: "packages/dynamic-form-lib"
       PKG_NAME: "ynotsoft-dynamic-form"
-      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v1
 
-      - name: Set up .npmrc
-        run: echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > .npmrc
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Update npm
+        run: npm install -g npm@latest
 
       - name: Install dependencies
-        run: bun install --frozen-lockfile
+        run: npm install
 
       - name: Build Library
-        run: bun run --filter ${{ env.PKG_NAME }} build
+        run: npm run build --workspace=${{ env.PKG_NAME }}
 
       - name: Determine Version and Tag
         id: info
@@ -77,56 +59,9 @@ jobs:
           PKG="${{ steps.info.outputs.name }}"
           VER="${{ steps.info.outputs.version }}"
           if npm view "$PKG@$VER" version >/dev/null 2>&1; then
-            echo "::error::Version $VER of $PKG already exists on NPM. Please bump the version in ${{ env.PKG_DIR }}/package.json"
+            echo "::error::Version $VER of $PKG already exists on NPM."
             exit 1
           fi
 
       - name: Publish to npm
-        run: |
-          bun publish --cwd ${{ env.PKG_DIR }} --access public --provenance --tag "${{ steps.info.outputs.tag }}"
-
-  publish-grid:
-    needs: changes
-    if: |
-      needs.changes.outputs.grid == 'true' || 
-      (github.event_name == 'workflow_dispatch' && github.event.inputs.target_package == 'grid')
-    runs-on: ubuntu-latest
-    env:
-      PKG_DIR: "packages/dynamic-grid-lib"
-      PKG_NAME: "ynotsoft-dynamic-grid"
-      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v1
-
-      - name: Set up .npmrc
-        run: echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > .npmrc
-
-      - name: Install dependencies
-        run: bun install --no-save
-
-      - name: Build Library
-        run: bun run --filter ${{ env.PKG_NAME }} build
-
-      - name: Determine Version and Tag
-        id: info
-        run: |
-          VER=$(node -p "require('./${{ env.PKG_DIR }}/package.json').version")
-          NAME=$(node -p "require('./${{ env.PKG_DIR }}/package.json').name")
-          if [[ "$VER" == *-* ]]; then TAG="next"; else TAG="latest"; fi
-          echo "version=$VER" >> "$GITHUB_OUTPUT"
-          echo "name=$NAME" >> "$GITHUB_OUTPUT"
-          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
-
-      - name: Validate Version Bump
-        run: |
-          PKG="${{ steps.info.outputs.name }}"
-          VER="${{ steps.info.outputs.version }}"
-          if npm view "$PKG@$VER" version >/dev/null 2>&1; then
-            echo "::error::Version $VER of $PKG already exists on NPM. Please bump the version in ${{ env.PKG_DIR }}/package.json"
-            exit 1
-          fi
-
-      - name: Publish to npm
-        run: |
-          bun publish --cwd ${{ env.PKG_DIR }} --access public --provenance --tag "${{ steps.info.outputs.tag }}"
+        run: npm publish ./${{ env.PKG_DIR }} --access public --provenance --tag "${{ steps.info.outputs.tag }}"

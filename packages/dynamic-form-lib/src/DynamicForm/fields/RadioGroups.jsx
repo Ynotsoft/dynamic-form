@@ -19,7 +19,7 @@ function RadioGroupField({
 		...rest
 	} = props;
 
-	const value = formValues[field.name] || "";
+	const value = formValues[field.name] ?? "";
 	const isDisabled = disabled;
 	const options = field.options || [];
 	const isInline = field.inline || false;
@@ -43,9 +43,17 @@ function RadioGroupField({
 
 			<RadioGroup
 				{...rest} // Spread only valid HTML/ARIA props
-				value={value}
+				value={String(value)}
 				onValueChange={(val) => {
-					handleChange(field.name, val);
+					const selectedOption = options.find(
+						(opt) => String(typeof opt === "object" ? opt.value : opt) === val
+					);
+					const realValue = selectedOption
+						? typeof selectedOption === "object"
+							? selectedOption.value
+							: selectedOption
+						: val;
+					handleChange(field.name, realValue);
 					handleBlur(field.name);
 				}}
 				disabled={isDisabled}
@@ -58,13 +66,13 @@ function RadioGroupField({
 						typeof option === "object" ? option.label : option;
 					const optionDescription =
 						typeof option === "object" ? option.description : null;
-					const itemId = `${field.name}-${optionValue}`;
-					const isChecked = value === optionValue;
+					const itemId = `${field.name}-${String(optionValue)}`;
+					const isChecked = String(value) === String(optionValue);
 
 					if (isSegmented) {
 						return (
 							<label
-								key={optionValue}
+								key={String(optionValue)}
 								htmlFor={itemId}
 								className={`
 									relative flex-1 min-w-max text-center px-4 py-2 rounded-md text-sm font-medium 
@@ -75,7 +83,7 @@ function RadioGroupField({
 								`}
 							>
 								<RadioGroupItem
-									value={optionValue}
+									value={String(optionValue)}
 									id={itemId}
 									disabled={isDisabled}
 									className="sr-only"
@@ -86,10 +94,10 @@ function RadioGroupField({
 					}
 
 					return (
-						<div key={optionValue} className="relative flex items-start group">
+						<div key={String(optionValue)} className="relative flex items-start group">
 							<div className="flex h-6 items-center">
 								<RadioGroupItem
-									value={optionValue}
+									value={String(optionValue)}
 									id={itemId}
 									disabled={isDisabled}
 									className={`
@@ -103,11 +111,10 @@ function RadioGroupField({
 							<div className="ml-3 text-sm leading-6">
 								<label
 									htmlFor={itemId}
-									className={`font-medium transition-colors ${
-										isDisabled
-											? "text-muted-foreground"
-											: "text-foreground cursor-pointer group-hover:text-primary"
-									}`}
+									className={`font-medium transition-colors ${isDisabled
+										? "text-muted-foreground"
+										: "text-foreground cursor-pointer group-hover:text-primary"
+										}`}
 								>
 									{optionLabel}
 								</label>
