@@ -18,10 +18,34 @@ function DatePickerField({
 	disabled,
 	...props
 }) {
-	const getValidDate = (value) => {
+	const parseDateValue = (value) => {
 		if (!value) return null;
+		if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value;
+
+		if (typeof value === "string") {
+			const dateOnlyMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+			if (dateOnlyMatch) {
+				const [, y, m, d] = dateOnlyMatch;
+				const localDate = new Date(Number(y), Number(m) - 1, Number(d));
+				return Number.isNaN(localDate.getTime()) ? null : localDate;
+			}
+
+			const normalized = value.includes("T") ? value : value.replace(" ", "T");
+			const parsedDateTime = new Date(normalized);
+			return Number.isNaN(parsedDateTime.getTime()) ? null : parsedDateTime;
+		}
+
 		const parsed = new Date(value);
 		return Number.isNaN(parsed.getTime()) ? null : parsed;
+	};
+
+	const toDateOnlyString = (date) => {
+		if (!(date instanceof Date) || Number.isNaN(date.getTime())) return null;
+		return format(date, "yyyy-MM-dd");
+	};
+
+	const getValidDate = (value) => {
+		return parseDateValue(value);
 	};
 
 	const [open, setOpen] = useState(false);
@@ -48,14 +72,16 @@ function DatePickerField({
 
 	const disabledDays = [];
 	if (field.maxDate) {
-		disabledDays.push({ after: new Date(field.maxDate) });
+		const maxDate = parseDateValue(field.maxDate);
+		if (maxDate) disabledDays.push({ after: maxDate });
 	}
 	if (field.minDate) {
-		disabledDays.push({ before: new Date(field.minDate) });
+		const minDate = parseDateValue(field.minDate);
+		if (minDate) disabledDays.push({ before: minDate });
 	}
 
 	const handleSelect = (date) => {
-		handleChange(field.name, date || null);
+		handleChange(field.name, date ? toDateOnlyString(date) : null);
 		if (date) setDisplayMonth(date);
 		if (field.closeOnSelect !== false) setOpen(false); // Default to close
 		handleBlur(field.name);
@@ -63,7 +89,7 @@ function DatePickerField({
 
 	const handleToday = () => {
 		const today = new Date();
-		handleChange(field.name, today);
+		handleChange(field.name, toDateOnlyString(today));
 		setDisplayMonth(today);
 		if (field.closeOnSelect !== false) setOpen(false);
 		handleBlur(field.name);

@@ -18,21 +18,37 @@ function DateRangeField({
 	disabled,
 }) {
 	const [open, setOpen] = useState(false);
+	const parseDateValue = (value) => {
+		if (!value) return undefined;
+		if (value instanceof Date) return isValid(value) ? value : undefined;
+
+		if (typeof value === "string") {
+			const dateOnlyMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+			if (dateOnlyMatch) {
+				const [, y, m, d] = dateOnlyMatch;
+				const localDate = new Date(Number(y), Number(m) - 1, Number(d));
+				return isValid(localDate) ? localDate : undefined;
+			}
+
+			const normalized = value.includes("T") ? value : value.replace(" ", "T");
+			const parsedDateTime = new Date(normalized);
+			return isValid(parsedDateTime) ? parsedDateTime : undefined;
+		}
+
+		const parsed = new Date(value);
+		return isValid(parsed) ? parsed : undefined;
+	};
 
 	const rawValue = formValues[field.name];
 	const selected = useMemo(() => {
 		const empty = { from: undefined, to: undefined };
 		if (!rawValue) return empty;
-		const parseDate = (d) => {
-			const date = new Date(d);
-			return isValid(date) ? date : undefined;
-		};
 		if (Array.isArray(rawValue)) {
 			const start = rawValue[0]?.startDate || rawValue[0];
 			const end = rawValue[0]?.endDate || rawValue[1];
-			return { from: parseDate(start), to: parseDate(end) };
+			return { from: parseDateValue(start), to: parseDateValue(end) };
 		}
-		return { from: parseDate(rawValue.from), to: parseDate(rawValue.to) };
+		return { from: parseDateValue(rawValue.from), to: parseDateValue(rawValue.to) };
 	}, [rawValue]);
 
 	const handleClear = (e) => {
@@ -44,10 +60,12 @@ function DateRangeField({
 
 	const disabledDays = [];
 	if (field.maxDate) {
-		disabledDays.push({ after: new Date(field.maxDate) });
+		const maxDate = parseDateValue(field.maxDate);
+		if (maxDate) disabledDays.push({ after: maxDate });
 	}
 	if (field.minDate) {
-		disabledDays.push({ before: new Date(field.minDate) });
+		const minDate = parseDateValue(field.minDate);
+		if (minDate) disabledDays.push({ before: minDate });
 	}
 
 	return (

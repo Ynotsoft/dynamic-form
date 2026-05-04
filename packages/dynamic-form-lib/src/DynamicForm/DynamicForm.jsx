@@ -27,7 +27,17 @@ function dateTimeParser(value) {
 		return value;
 	}
 	if (typeof value === "string" && value) {
-		const date = new Date(value);
+		const dateOnlyMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+		if (dateOnlyMatch) {
+			const [, y, m, d] = dateOnlyMatch;
+			const localDate = new Date(Number(y), Number(m) - 1, Number(d));
+			if (!isNaN(localDate.getTime())) {
+				return localDate;
+			}
+		}
+
+		const normalizedValue = value.includes("T") ? value : value.replace(" ", "T");
+		const date = new Date(normalizedValue);
 		if (!isNaN(date.getTime())) {
 			return date;
 		}
@@ -351,13 +361,13 @@ const DynamicForm = ({
 					case "bool":
 						return String(value).toLowerCase() === "true" || value === true;
 					case "date":
-					case "datetime": {
-						// FIXED: Using block scope {} to avoid ESLint errors
-						// .toISOString() produces the YYYY-MM-DDTHH:mm:ss.sssZ format
-						// which C# DateTime and Json.NET/System.Text.Json prefer.
-						const dateObj = dayjs(value);
-						return dateObj.isValid() ? dateObj.toISOString() : value;
-					}
+						return dayjs(value).isValid()
+							? dayjs(value).format("YYYY-MM-DD")
+							: value;
+					case "datetime":
+						return dayjs(value).isValid()
+							? dayjs(value).format("YYYY-MM-DDTHH:mm:ss")
+							: value;
 					default:
 						return value;
 				}

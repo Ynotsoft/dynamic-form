@@ -8,8 +8,32 @@ import { DayPicker } from 'react-day-picker';
 
 function DayTimePickerField({ field, formValues, handleChange, handleBlur, error }) {
   const [open, setOpen] = useState(false);
+
+  const parseDateValue = (value) => {
+    if (!value) return null;
+    if (value instanceof Date) {
+      return Number.isNaN(value.getTime()) ? null : value;
+    }
+
+    if (typeof value === 'string') {
+      const dateOnlyMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (dateOnlyMatch) {
+        const [, y, m, d] = dateOnlyMatch;
+        const localDate = new Date(Number(y), Number(m) - 1, Number(d));
+        return Number.isNaN(localDate.getTime()) ? null : localDate;
+      }
+
+      const normalized = value.includes('T') ? value : value.replace(' ', 'T');
+      const parsedDateTime = new Date(normalized);
+      return Number.isNaN(parsedDateTime.getTime()) ? null : parsedDateTime;
+    }
+
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  };
+
   const rawValue = formValues[field.name];
-  const selected = rawValue ? new Date(rawValue) : null;
+  const selected = parseDateValue(rawValue);
 
   const displayHours = selected ? (selected.getHours() % 12 || 12).toString().padStart(2, '0') : "12";
   const displayMinutes = selected ? selected.getMinutes().toString().padStart(2, '0') : "00";
@@ -74,10 +98,12 @@ function DayTimePickerField({ field, formValues, handleChange, handleBlur, error
 
   const disabledDays = [];
   if (field.maxDate) {
-    disabledDays.push({ after: new Date(field.maxDate) });
+    const maxDate = parseDateValue(field.maxDate);
+    if (maxDate) disabledDays.push({ after: maxDate });
   }
   if (field.minDate) {
-    disabledDays.push({ before: new Date(field.minDate) });
+    const minDate = parseDateValue(field.minDate);
+    if (minDate) disabledDays.push({ before: minDate });
   }
 
   return (
