@@ -361,6 +361,7 @@ const DynamicForm = ({
 					case "bool":
 						return String(value).toLowerCase() === "true" || value === true;
 					case "date":
+					case "datepicker":
 						return dayjs(value).isValid()
 							? dayjs(value).format("YYYY-MM-DD")
 							: value;
@@ -377,7 +378,7 @@ const DynamicForm = ({
 			formDefinition.fields.forEach((field) => {
 				if (field.name) {
 					const rawValue = formValues[field.name];
-					const type = field.fieldType || "string";
+					const type = field.type || "string";
 					const convertedValue = castValue(rawValue, type);
 
 					if (returnType) {
