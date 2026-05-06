@@ -214,7 +214,7 @@ function HtmlField({
     editorProps: {
       attributes: {
         class:
-          "prose prose-sm dark:prose-invert max-w-none focus:outline-none min-h-[150px] p-4 text-foreground",
+          "prose prose-sm dark:prose-invert max-w-none focus:outline-none min-h-[150px] max-h-[400px] overflow-y-auto p-4 text-foreground",
         role: "textbox",
         "aria-multiline": "true",
         "aria-label": field.label || "Rich text editor",

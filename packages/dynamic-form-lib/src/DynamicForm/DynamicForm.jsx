@@ -126,7 +126,7 @@ const DynamicForm = ({
 				];
 			}
 			formDefinition.fields.forEach((f) => {
-				if (f.name === field.name) {
+			if (f && f.name === field.name) {
 					f.options = options;
 				}
 			});
@@ -142,17 +142,18 @@ const DynamicForm = ({
 	useEffect(() => {
 		if (formDefinition?.fields && formDefinition.fields.length > 0) {
 			// Wait until at least one field has a non-empty value
-			const hasData = formDefinition.fields.some((f) => f.value);
+			const hasData = formDefinition.fields.some((f) => f && f.value);
 			if (!hasData) return; // Don't set empty values early
 
 			// Load async options
 			formDefinition.fields.forEach((field) => {
-				if (field.optionsUrl) loadOptionsForField(field);
+				if (field && field.optionsUrl) loadOptionsForField(field);
 			});
 
 			// Initialise form values
 			const initialValues = {};
 			formDefinition.fields.forEach((field) => {
+				if (!field) return;
 				// FIX: Skip any field that does not have a name defined to prevent {undefined: ''} key
 				if (!field.name) return;
 
@@ -245,7 +246,7 @@ const DynamicForm = ({
 	};
 
 	const handleChange = (fieldName, value) => {
-		const field = formDefinition.fields.find((f) => f.name === fieldName);
+		const field = formDefinition.fields.find((f) => f && f.name === fieldName);
 		if (!field) return;
 
 		const newValues = { ...formValues };
@@ -285,7 +286,7 @@ const DynamicForm = ({
 		// Clear dependent fields when parent selection changes
 		if (field.type === "select") {
 			formDefinition.fields.forEach((f) => {
-				if (f.showIf && !f.showIf(newValues)) {
+				if (f && f.showIf && !f.showIf(newValues)) {
 					const shouldBeArray =
 						f.type === "multiselect" ||
 						f.type === "searchselect" ||
@@ -296,7 +297,7 @@ const DynamicForm = ({
 		}
 
 		formDefinition.fields.forEach((f) => {
-			if (typeof f.disabled === "function" && f.disabled(newValues)) {
+			if (f && typeof f.disabled === "function" && f.disabled(newValues)) {
 				// ... rest of the logic
 				const shouldBeArray =
 					f.type === "multiselect" ||
@@ -318,14 +319,14 @@ const DynamicForm = ({
 
 		const allTouched = {};
 		formDefinition.fields.forEach((field) => {
-			if (field.name) allTouched[field.name] = true;
+			if (field && field.name) allTouched[field.name] = true;
 		});
 		setTouched(allTouched);
 
 		const newErrors = {};
 
 		formDefinition.fields.forEach((field) => {
-			if (!field.name) return;
+			if (!field || !field.name) return;
 
 			// Validation runs if the field is shown
 			if (!field.showIf || field.showIf(formValues)) {
@@ -376,7 +377,7 @@ const DynamicForm = ({
 
 			const formattedValues = {};
 			formDefinition.fields.forEach((field) => {
-				if (field.name) {
+				if (field && field.name) {
 					const rawValue = formValues[field.name];
 					const type = field.type || "string";
 					const convertedValue = castValue(rawValue, type);
@@ -547,7 +548,7 @@ const DynamicForm = ({
 			className="grid grid-cols-12 gap-x-4 mx-auto w-full  "
 		>
 			{formDefinition ? (
-				formDefinition.fields.map((field) => (
+				formDefinition.fields.filter((field) => field).map((field) => (
 					<div
 						className={`${field.class || "col-span-full"} `}
 						key={field.name + field.type}
