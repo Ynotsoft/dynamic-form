@@ -17,9 +17,10 @@ function EmailField({
 				{...field.props}
 				type="email"
 				value={formValues[field.name] || ""}
-				onChange={(e) => handleChange(field.name, e.target.value)}
-				onBlur={() => handleBlur(field.name)}
-				disabled={isDisabled}
+			onChange={(e) => { if (!isDisabled) handleChange(field.name, e.target.value); }}
+			onBlur={() => handleBlur(field.name)}
+			disabled={isDisabled}
+			readOnly={isDisabled}
 				name={field.name}
 				placeholder={field.placeholder}
 				className={`flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
