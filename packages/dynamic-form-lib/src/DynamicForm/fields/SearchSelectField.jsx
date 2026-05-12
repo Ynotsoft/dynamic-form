@@ -52,13 +52,20 @@ function SearchSelectField({
     async (inputValue = "") => {
       if (field.onSearch) {
         const results = await field.onSearch(inputValue, formValues);
-        setOptions(results);
+        setOptions(
+          (results || []).map((item) => ({
+            value: item[field.valueId || "value"] ?? item.value ?? item.id,
+            label: item[field.labelId || "label"] ?? item.label ?? item.name,
+            email: item.email,
+          })),
+        );
         return;
       }
       if (!field.optionsUrl || !apiClient) {
         const allOptions = (field.options || []).map((item) => ({
           value: item[field.valueId || "value"] || item.value || item.id,
           label: item[field.labelId || "label"] || item.label || item.name,
+          email: item.email,
         }));
         setOptions(
           !inputValue
@@ -84,6 +91,7 @@ function SearchSelectField({
           results.map((item) => ({
             value: item[field.valueId || "value"] || item.value || item.id,
             label: item[field.labelId || "label"] || item.label || item.name,
+            email: item.email,
           })),
         );
       } catch (err) {
@@ -324,8 +332,15 @@ function SearchSelectField({
 											${!isActive && !isSelected ? "hover:bg-muted" : ""}
 										`}
                   >
-                    <span>{option.label}</span>
-                    {isSelected && <Check className="w-4 h-4 text-primary" />}
+                    <div className="flex flex-col min-w-0">
+                      <span className="truncate">{option.label}</span>
+                      {option.email && (
+                        <span className="text-xs text-muted-foreground truncate">
+                          {option.email}
+                        </span>
+                      )}
+                    </div>
+                    {isSelected && <Check className="w-4 h-4 text-primary shrink-0 ml-2" />}
                   </div>
                 );
               })
