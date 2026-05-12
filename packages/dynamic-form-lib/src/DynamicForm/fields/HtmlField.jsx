@@ -18,6 +18,7 @@ import {
   Code,
   Undo,
   Redo,
+  GripHorizontal,
 } from "lucide-react";
 
 // MenuBar component remains the same...
@@ -184,6 +185,41 @@ function HtmlField({
   const rawValue = formValues[field.name];
   const initialContent =
     typeof rawValue === "string" ? rawValue : field.content || "";
+  
+  const [editorHeight, setEditorHeight] = useState(150);
+  const [isResizing, setIsResizing] = useState(false);
+
+  const handleMouseDown = (e) => {
+    e.preventDefault();
+    setIsResizing(true);
+  };
+
+  useEffect(() => {
+    if (!isResizing) return;
+
+    const handleMouseMove = (e) => {
+      const newHeight = Math.max(150, Math.min(600, editorHeight + e.movementY));
+      setEditorHeight(newHeight);
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+    };
+
+    // Prevent text selection while dragging
+    document.body.style.userSelect = "none";
+    document.body.style.cursor = "ns-resize";
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      document.body.style.userSelect = "";
+      document.body.style.cursor = "";
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isResizing, editorHeight]);
 
   const editor = useEditor({
     extensions: [
@@ -214,7 +250,8 @@ function HtmlField({
     editorProps: {
       attributes: {
         class:
-          "prose prose-sm dark:prose-invert max-w-none focus:outline-none min-h-[150px] max-h-[400px] overflow-y-auto p-4 text-foreground",
+          "prose prose-sm dark:prose-invert max-w-none focus:outline-none overflow-y-auto p-4 text-foreground",
+        style: `min-height: ${editorHeight}px; max-height: ${editorHeight}px;`,
         role: "textbox",
         "aria-multiline": "true",
         "aria-label": field.label || "Rich text editor",
@@ -250,7 +287,21 @@ function HtmlField({
         {!isDisabled && <MenuBar editor={editor} error={error} />}
 
         <EditorContent editor={editor} />
-
+      {!isDisabled && (
+        <div
+          className={`flex justify-center items-center py-1 cursor-ns-resize border-t border-b transition-colors ${
+            isResizing 
+              ? "bg-primary/10 border-primary/50" 
+              : "hover:bg-muted/50 border-border"
+          }`}
+          onMouseDown={handleMouseDown}
+          role="separator"
+          aria-orientation="horizontal"
+          aria-label="Resize editor"
+        >
+          <GripHorizontal size={16} className="text-muted-foreground" />
+        </div>
+      )}
         <div
           className={`flex justify-end px-4 py-2  text-[10px] uppercase tracking-wider ${error
             ? "bg-red-50/50 border-red-500/50 text-red-500"
