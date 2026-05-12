@@ -56,7 +56,7 @@ function SearchSelectField({
           (results || []).map((item) => ({
             value: item[field.valueId || "value"] ?? item.value ?? item.id,
             label: item[field.labelId || "label"] ?? item.label ?? item.name,
-            email: item.email,
+            description: item.description,
           })),
         );
         return;
@@ -65,7 +65,7 @@ function SearchSelectField({
         const allOptions = (field.options || []).map((item) => ({
           value: item[field.valueId || "value"] || item.value || item.id,
           label: item[field.labelId || "label"] || item.label || item.name,
-          email: item.email,
+          description: item.description,
         }));
         setOptions(
           !inputValue
@@ -91,7 +91,7 @@ function SearchSelectField({
           results.map((item) => ({
             value: item[field.valueId || "value"] || item.value || item.id,
             label: item[field.labelId || "label"] || item.label || item.name,
-            email: item.email,
+            description: item.description,
           })),
         );
       } catch (err) {
@@ -334,9 +334,9 @@ function SearchSelectField({
                   >
                     <div className="flex flex-col min-w-0">
                       <span className="truncate">{option.label}</span>
-                      {option.email && (
+                      {option.description && (
                         <span className="text-xs text-muted-foreground truncate">
-                          {option.email}
+                          {option.description}
                         </span>
                       )}
                     </div>
