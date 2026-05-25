@@ -47,7 +47,6 @@ function dateTimeParser(value) {
 
 const DynamicForm = ({
 	apiClient,
-	disabled,
 	api_URL,
 	footerMode = "normal",
 	formDefinition,
@@ -62,7 +61,6 @@ const DynamicForm = ({
 	const [errors, setErrors] = useState({});
 	const [touched, setTouched] = useState({});
 	const [charCounts, setCharCounts] = useState({});
-	const isDisabled = disabled;
 
 	// FIX: Initialize the ref object here to hold references to file inputs
 	const fileInputRefs = useRef({});
@@ -453,9 +451,8 @@ const DynamicForm = ({
 			<>
 				{field.label && (
 					<label
-						disabled={isDisabled}
 						htmlFor={field.name}
-						className={`block text-sm font-medium mb-1 ${isDisabled ? "bg-gray-100 text-gray-500 cursor-not-allowed" : "bg-background"}`}
+						className="block text-sm font-medium mb-1"
 					>
 						{field.label}
 						{field.required && (
@@ -519,10 +516,9 @@ const DynamicForm = ({
 		const error = errors[field.name] ? errors[field.name] : null;
 
 		const effectiveDisabled =
-			isDisabled ||
-			(typeof field.disabled === "function"
+		typeof field.disabled === "function"
 				? field.disabled(formValues)
-				: !!field.disabled);
+				: !!field.disabled;
 
 		return fieldFormat(
 			<FieldComponent
