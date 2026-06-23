@@ -23,22 +23,16 @@ function DatePickerField({
 		if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value;
 
 		if (typeof value === "string") {
-			const dateOnlyMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-			if (dateOnlyMatch) {
-				const [, y, m, d] = dateOnlyMatch;
-				const localDate = new Date(Number(y), Number(m) - 1, Number(d));
-				return Number.isNaN(localDate.getTime()) ? null : localDate;
-			}
-
-			const normalized = value.includes("T") ? value : value.replace(" ", "T");
-			const parsedDateTime = new Date(normalized);
-			return Number.isNaN(parsedDateTime.getTime()) ? null : parsedDateTime;
+			// Take only the calendar date. Ignore any time/timezone portion entirely.
+			const match = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
+			if (!match) return null;
+			const [, y, m, d] = match;
+			const localDate = new Date(Number(y), Number(m) - 1, Number(d));
+			return Number.isNaN(localDate.getTime()) ? null : localDate;
 		}
 
-		const parsed = new Date(value);
-		return Number.isNaN(parsed.getTime()) ? null : parsed;
+		return null;
 	};
-
 	const toDateOnlyString = (date) => {
 		if (!(date instanceof Date) || Number.isNaN(date.getTime())) return null;
 		return format(date, "yyyy-MM-dd");
