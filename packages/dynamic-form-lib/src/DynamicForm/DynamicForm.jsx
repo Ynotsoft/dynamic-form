@@ -64,6 +64,7 @@ const DynamicForm = ({
 
 	// FIX: Initialize the ref object here to hold references to file inputs
 	const fileInputRefs = useRef({});
+	const initializedRef = useRef(false);
 
 	const excludeFromFieldFormat = ["hidden", "linebreak", "header", "alert"];
 	const FIELD_RENDERERS = useMemo(
@@ -140,6 +141,7 @@ const DynamicForm = ({
 	};
 
 	useEffect(() => {
+		if (initializedRef.current) return;
 		if (formDefinition?.fields && formDefinition.fields.length > 0) {
 			// Wait until at least one field has a non-empty value
 			const hasData = formDefinition.fields.some((f) => f && f.value);
@@ -175,6 +177,7 @@ const DynamicForm = ({
 				initialValues[field.name] = fieldValue;
 			});
 			setFormValues(initialValues);
+	        initializedRef.current = true;
 		}
 	}, [formDefinition]);
 
