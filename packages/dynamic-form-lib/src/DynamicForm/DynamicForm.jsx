@@ -45,6 +45,32 @@ function dateTimeParser(value) {
 	return null;
 }
 
+function normalizeDateOnly(value) {
+	if (!value) return "";
+
+	if (value instanceof Date) {
+		if (Number.isNaN(value.getTime())) return "";
+		const year = value.getFullYear();
+		const month = String(value.getMonth() + 1).padStart(2, "0");
+		const day = String(value.getDate()).padStart(2, "0");
+		return `${year}-${month}-${day}`;
+	}
+
+	if (typeof value === "string") {
+		const match = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
+		if (match) return `${match[1]}-${match[2]}-${match[3]}`;
+
+		const parsed = dateTimeParser(value);
+		if (!parsed) return "";
+		const year = parsed.getFullYear();
+		const month = String(parsed.getMonth() + 1).padStart(2, "0");
+		const day = String(parsed.getDate()).padStart(2, "0");
+		return `${year}-${month}-${day}`;
+	}
+
+	return "";
+}
+
 const DynamicForm = ({
 	apiClient,
 	api_URL,
@@ -172,9 +198,14 @@ const DynamicForm = ({
 
 				const typeLower = field.type?.toLowerCase();
 				const isDateTimeField = ["datetime", "daytimepicker"].includes(typeLower);
+				const isDateField = ["date", "datepicker"].includes(typeLower);
 
 				if (isDateTimeField && fieldValue) {
 					fieldValue = dateTimeParser(fieldValue) || fieldValue;
+				}
+
+				if (isDateField && fieldValue) {
+					fieldValue = normalizeDateOnly(fieldValue);
 				}
 
 				initialValues[field.name] = fieldValue;
@@ -283,6 +314,8 @@ const DynamicForm = ({
 			newValues[fieldName] = value
 				? dayjs(value).format("YYYY-MM-DD HH:mm:ss")
 				: "";
+		} else if (field.type === "date") {
+			newValues[fieldName] = normalizeDateOnly(value);
 		} else if (field.type === "number") {
 			newValues[fieldName] = value === "" ? "" : Number(value);
 		} else {
@@ -369,9 +402,7 @@ const DynamicForm = ({
 						return String(value).toLowerCase() === "true" || value === true;
 					case "date":
 					case "datepicker":
-						return dayjs(value).isValid()
-							? dayjs(value).format("YYYY-MM-DD")
-							: value;
+						return normalizeDateOnly(value) || value;
 					case "datetime":
 						return dayjs(value).isValid()
 							? dayjs(value).format("YYYY-MM-DDTHH:mm:ss")
