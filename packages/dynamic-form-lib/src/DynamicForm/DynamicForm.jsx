@@ -168,9 +168,12 @@ const DynamicForm = ({
 						field.options.length > 0);
 
 				let fieldValue = defaultValues[field.name] ?? field.value ?? (shouldBeArray ? [] : "");
-				// Parse date strings to Date objects for date-related fields
-				const isDateField = ["date", "datetime", "datepicker"].includes(field.type?.toLowerCase());
-				if (isDateField && fieldValue) {
+
+
+				const typeLower = field.type?.toLowerCase();
+				const isDateTimeField = ["datetime", "daytimepicker"].includes(typeLower);
+
+				if (isDateTimeField && fieldValue) {
 					fieldValue = dateTimeParser(fieldValue) || fieldValue;
 				}
 
